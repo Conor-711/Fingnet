@@ -1,0 +1,22 @@
+# Railway/Nixpacks configuration for OnlyMsg deployment
+
+[providers]
+# Ensure npm is used as the package manager
+npm = "20"
+
+[variables]
+# Explicitly set npm as the package manager
+NIXPACKS_PACKAGE_MANAGER = "npm"
+# Node.js version
+NODE_VERSION = "20"
+
+[phases.build]
+# Use npm for installation and build
+cmds = [
+    "npm ci",
+    "npm run build"
+]
+
+[phases.start]
+# Start command for the application
+cmd = "npm run preview"
