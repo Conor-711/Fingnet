@@ -8,6 +8,15 @@ export default defineConfig({
     host: "::",
     port: 8080,
   },
+  preview: {
+    host: "::",
+    port: 8080,
+    allowedHosts: [
+      "www.onlymsg.xyz",
+      "onlymsg.xyz",
+      ".railway.app"
+    ]
+  },
   plugins: [react()],
   resolve: {
     alias: {
