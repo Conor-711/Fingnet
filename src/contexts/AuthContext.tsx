@@ -51,7 +51,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         isLoading: true,
         error: null,
       };
-    case 'LOGIN_SUCCESS':
+    case 'LOGIN_SUCCESS': {
       // 检查是否需要显示onboarding（新用户或未完成onboarding的用户）
       const savedOnboarding = localStorage.getItem('onlymsg_onboarding');
       const shouldShowOnboarding = !savedOnboarding || (() => {
@@ -71,6 +71,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         error: null,
         shouldShowOnboarding,
       };
+    }
     case 'LOGIN_FAILURE':
       return {
         ...state,
