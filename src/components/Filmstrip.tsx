@@ -52,7 +52,7 @@ export const Filmstrip = ({ images, activeIndex, onImageSelect }: FilmstripProps
     <div className="w-full">
       <div 
         ref={scrollContainerRef}
-        className="flex gap-2 overflow-x-auto scrollbar-hide pb-2"
+        className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 justify-center"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {images.map((image, index) => (

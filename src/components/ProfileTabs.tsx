@@ -8,9 +8,7 @@ interface ProfileTabsProps {
 export const ProfileTabs = ({ activeTab, onTabChange }: ProfileTabsProps) => {
   const tabs = [
     { id: 'posts', label: 'Posts' },
-    { id: 'replies', label: 'Replies' },
-    { id: 'media', label: 'Media' },
-  ];
+    { id: 'replies', label: 'Replies' }  ];
 
   return (
     <div className="border-b border-border">

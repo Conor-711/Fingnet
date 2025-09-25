@@ -1,28 +1,15 @@
-import { Heart, MessageCircle, Share, MoreHorizontal } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { Post } from '@/types/post';
 
 interface PinterestCardProps {
-  post: {
-    id: string;
-    author: {
-      name: string;
-      username: string;
-      avatar: string;
-      verified: boolean;
-    };
-    content: string;
-    relationship?: string;
-    feelings?: string[];
-    timestamp: string;
-    likes: number;
-    retweets: number;
-    replies: number;
-    images?: string[];
-  };
+  post: Post;
+  onLike?: (postId: string, isLiked: boolean) => void;
+  onBookmark?: (postId: string, isBookmarked: boolean) => void;
 }
 
-export const PinterestCard = ({ post }: PinterestCardProps) => {
+export const PinterestCard = ({ post, onLike, onBookmark }: PinterestCardProps) => {
   const navigate = useNavigate();
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -33,22 +20,64 @@ export const PinterestCard = ({ post }: PinterestCardProps) => {
     navigate(`/post/${post.id}`);
   };
 
-  // Generate a random height for masonry effect
-  const heights = [280, 320, 360, 400, 440];
-  const randomHeight = heights[Math.floor(Math.random() * heights.length)];
+  const handleAvatarClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 阻止冒泡，避免触发卡片点击
+    if (post.author?.id) {
+      navigate(`/profile/${post.author.id}`);
+    }
+  };
+
+
 
   return (
     <div 
-      className="bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+      className="bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group flex flex-col h-80"
       onClick={handleCardClick}
-      style={{ height: randomHeight }}
     >
-      {/* Image placeholder with content */}
-      <div className="relative h-3/4 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+      {/* Card header - Text content */}
+      <div className="p-3 flex-1 flex flex-col justify-between">
+        <div className="flex items-start gap-2">
+          {post.author?.avatar && (
+            <img
+              src={post.author.avatar}
+              alt={post.author.displayName || post.author.username || 'User'}
+              className="w-8 h-8 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+              onClick={handleAvatarClick}
+            />
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1">
+              <p className="text-sm font-medium text-foreground truncate">
+                {post.author?.displayName || post.author?.username || 'Unknown User'}
+              </p>
+              {post.author?.verified && (
+                <div className="w-3 h-3 bg-primary rounded-full flex items-center justify-center">
+                  <span className="text-primary-foreground text-xs">✓</span>
+                </div>
+              )}
+            </div>
+            {/* Story字段显示 - 加粗 */}
+            {post.content && (
+              <p className="text-sm font-bold text-foreground mt-1 line-clamp-3">
+                {post.content}
+              </p>
+            )}
+            
+            {/* 点赞数显示 */}
+            <div className="flex items-center gap-1 mt-2">
+              <Heart className={`w-3 h-3 ${post.isLikedByCurrentUser ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+              <span className="text-xs text-muted-foreground">{post.likesCount}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Cover image */}
+      <div className="relative h-48 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
         {post.images && post.images.length > 0 ? (
           <img 
-            src={post.images[0]} 
-            alt="Post content"
+            src={post.images[post.coverImageIndex || 0].url} 
+            alt={post.images[post.coverImageIndex || 0].altText || "Post content"}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -58,52 +87,6 @@ export const PinterestCard = ({ post }: PinterestCardProps) => {
             </p>
           </div>
         )}
-        
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <Button className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 py-2 rounded-full">
-            Save
-          </Button>
-        </div>
-
-        {/* More button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-2 right-2 p-1 bg-background/80 hover:bg-background opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <MoreHorizontal className="w-4 h-4" />
-        </Button>
-      </div>
-
-      {/* Card footer */}
-      <div className="p-3 h-1/4">
-        <div className="flex items-start gap-2">
-          <img
-            src={post.author.avatar}
-            alt={post.author.name}
-            className="w-8 h-8 rounded-full flex-shrink-0"
-          />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
-              {post.author.name}
-            </p>
-            {(post.relationship || (post.feelings && post.feelings.length > 0)) && (
-              <div className="flex flex-wrap gap-1 mt-1">
-                {post.relationship && (
-                  <span className="inline-block bg-accent text-accent-foreground px-2 py-0.5 rounded-full text-xs">
-                    {post.relationship}
-                  </span>
-                )}
-                {post.feelings && post.feelings.slice(0, 2).map((feeling) => (
-                  <span key={feeling} className="inline-block bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full text-xs">
-                    {feeling}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );

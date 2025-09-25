@@ -42,7 +42,7 @@ export const PostComposer = () => {
             
             <Button 
               className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-6 rounded-full"
-              onClick={() => navigate('/create-post')}
+              onClick={() => navigate('/share')}
             >
               Post
             </Button>
