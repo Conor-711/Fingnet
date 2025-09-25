@@ -6,8 +6,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { GoogleAuthProvider } from "@/contexts/GoogleAuthContext";
+import { OnboardingProvider } from "@/contexts/OnboardingContext";
 import { useEffect, useState } from "react";
 import { appInitializer } from "@/lib/appInitializer";
+import { Onboarding } from "@/components/Onboarding";
 import Index from "./pages/Index";
 import Profile from "./pages/Profile";
 import PostDetail from "./pages/PostDetail";
@@ -93,28 +95,33 @@ const App = () => (
       <AppInitializer>
         <AuthProvider>
           <GoogleAuthProvider>
-            <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              
-              {/* Main App Routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/profile/:userId" element={<Profile />} />
-              <Route path="/post/:postId" element={<PostDetail />} />
-              <Route path="/share" element={<SharePost />} />
-              <Route path="/settings" element={<Settings />} />
-              
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-          </TooltipProvider>
+            <OnboardingProvider>
+              <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+
+                {/* Onboarding Route */}
+                <Route path="/onboarding" element={<Onboarding />} />
+
+                {/* Main App Routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/profile/:userId" element={<Profile />} />
+                <Route path="/post/:postId" element={<PostDetail />} />
+                <Route path="/share" element={<SharePost />} />
+                <Route path="/settings" element={<Settings />} />
+
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+            </TooltipProvider>
+          </OnboardingProvider>
         </GoogleAuthProvider>
       </AuthProvider>
       </AppInitializer>

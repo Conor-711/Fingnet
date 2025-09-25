@@ -2,16 +2,19 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { User, LoginRequest, RegisterRequest, AuthState } from '@/types/auth';
 import { mockApi } from '@/lib/mockApi';
 import { useToast } from '@/hooks/use-toast';
+import { OnboardingAnswer } from '@/types/post';
 
 // 认证Action类型
-type AuthAction = 
+type AuthAction =
   | { type: 'LOGIN_START' }
   | { type: 'LOGIN_SUCCESS'; payload: User }
   | { type: 'LOGIN_FAILURE'; payload: string }
   | { type: 'LOGOUT' }
   | { type: 'RESTORE_SESSION'; payload: User }
   | { type: 'UPDATE_USER'; payload: User }
-  | { type: 'CLEAR_ERROR' };
+  | { type: 'CLEAR_ERROR' }
+  | { type: 'SET_ONBOARDING_ANSWERS'; payload: Record<string, OnboardingAnswer> }
+  | { type: 'SET_SHOULD_SHOW_ONBOARDING'; payload: boolean };
 
 // 认证Context类型
 interface AuthContextType extends AuthState {
@@ -20,14 +23,23 @@ interface AuthContextType extends AuthState {
   logout: () => void;
   updateUser: (user: User) => void;
   clearError: () => void;
+  // Onboarding相关
+  onboardingAnswers?: Record<string, OnboardingAnswer>;
+  updateOnboardingAnswers: (answers: Record<string, OnboardingAnswer>) => void;
+  shouldShowOnboarding: boolean;
 }
 
 // 初始状态
-const initialState: AuthState = {
+const initialState: AuthState & {
+  onboardingAnswers?: Record<string, OnboardingAnswer>;
+  shouldShowOnboarding: boolean;
+} = {
   user: null,
   isLoading: true,
   isAuthenticated: false,
   error: null,
+  onboardingAnswers: undefined,
+  shouldShowOnboarding: false,
 };
 
 // Reducer函数
@@ -40,12 +52,24 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         error: null,
       };
     case 'LOGIN_SUCCESS':
+      // 检查是否需要显示onboarding（新用户或未完成onboarding的用户）
+      const savedOnboarding = localStorage.getItem('onlymsg_onboarding');
+      const shouldShowOnboarding = !savedOnboarding || (() => {
+        try {
+          const parsed = JSON.parse(savedOnboarding);
+          return !parsed.isCompleted;
+        } catch {
+          return true; // 如果解析失败，也显示onboarding
+        }
+      })();
+
       return {
         ...state,
         user: action.payload,
         isLoading: false,
         isAuthenticated: true,
         error: null,
+        shouldShowOnboarding,
       };
     case 'LOGIN_FAILURE':
       return {
@@ -80,6 +104,16 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
       return {
         ...state,
         error: null,
+      };
+    case 'SET_ONBOARDING_ANSWERS':
+      return {
+        ...state,
+        onboardingAnswers: action.payload,
+      };
+    case 'SET_SHOULD_SHOW_ONBOARDING':
+      return {
+        ...state,
+        shouldShowOnboarding: action.payload,
       };
     default:
       return state;
@@ -243,6 +277,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: 'CLEAR_ERROR' });
   };
 
+  // 更新onboarding答案
+  const updateOnboardingAnswers = (answers: Record<string, OnboardingAnswer>) => {
+    dispatch({ type: 'SET_ONBOARDING_ANSWERS', payload: answers });
+  };
+
+  // 设置是否显示onboarding
+  const setShouldShowOnboarding = (shouldShow: boolean) => {
+    dispatch({ type: 'SET_SHOULD_SHOW_ONBOARDING', payload: shouldShow });
+  };
+
   const value: AuthContextType = {
     ...state,
     login,
@@ -250,6 +294,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     updateUser,
     clearError,
+    updateOnboardingAnswers,
+    shouldShowOnboarding: state.shouldShowOnboarding,
   };
 
   return (

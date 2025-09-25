@@ -211,3 +211,40 @@ export interface CommentStats {
   totalReplies: number;
   topLevelComments: number;
 }
+
+// Onboarding相关类型
+export interface OnboardingQuestion {
+  id: string;
+  type: 'single-choice' | 'multiple-choice';
+  title: string;
+  subtitle?: string;
+  options: OnboardingOption[];
+  required: boolean;
+}
+
+export interface OnboardingOption {
+  id: string;
+  label: string;
+  value: string;
+  icon?: string;
+  description?: string;
+  avatar?: {
+    src: string;
+    alt: string;
+    bgColor: string;
+  };
+}
+
+export interface OnboardingAnswer {
+  questionId: string;
+  selectedOptions: string[];
+  timestamp: string;
+}
+
+export interface OnboardingProgress {
+  currentStep: number;
+  totalSteps: number;
+  completedQuestions: string[];
+  answers: Record<string, OnboardingAnswer>;
+  isCompleted: boolean;
+}
