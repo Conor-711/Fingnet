@@ -24,16 +24,12 @@ interface AuthContextType extends AuthState {
   updateUser: (user: User) => void;
   clearError: () => void;
   // Onboarding相关
-  onboardingAnswers?: Record<string, OnboardingAnswer>;
   updateOnboardingAnswers: (answers: Record<string, OnboardingAnswer>) => void;
-  shouldShowOnboarding: boolean;
+  setShouldShowOnboarding: (shouldShow: boolean) => void;
 }
 
 // 初始状态
-const initialState: AuthState & {
-  onboardingAnswers?: Record<string, OnboardingAnswer>;
-  shouldShowOnboarding: boolean;
-} = {
+const initialState: AuthState = {
   user: null,
   isLoading: true,
   isAuthenticated: false,
@@ -296,7 +292,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     updateUser,
     clearError,
     updateOnboardingAnswers,
-    shouldShowOnboarding: state.shouldShowOnboarding,
+    setShouldShowOnboarding,
   };
 
   return (

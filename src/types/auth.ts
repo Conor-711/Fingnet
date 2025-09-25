@@ -98,4 +98,7 @@ export interface AuthState {
   isLoading: boolean;
   isAuthenticated: boolean;
   error: string | null;
+  // Onboarding相关
+  onboardingAnswers?: Record<string, unknown>;
+  shouldShowOnboarding: boolean;
 }
