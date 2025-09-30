@@ -1,10 +1,22 @@
 import OpenAI from 'openai';
 
-// 初始化OpenAI客户端
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true // 注意：在生产环境中应该通过后端API调用
-});
+// 延迟初始化OpenAI客户端
+let openai: OpenAI | null = null;
+
+const getOpenAIClient = (): OpenAI => {
+  if (!openai) {
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    if (!apiKey) {
+      console.warn('OpenAI API key not found. AI features will be disabled.');
+      throw new Error('OpenAI API key is not configured');
+    }
+    openai = new OpenAI({
+      apiKey,
+      dangerouslyAllowBrowser: true // 注意：在生产环境中应该通过后端API调用
+    });
+  }
+  return openai;
+};
 
 export interface GoalIntegrationInput {
   stage: string;
@@ -94,7 +106,7 @@ Output only the integrated paragraph, nothing else:
 `;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: "gpt-4.1-nano",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 150,
@@ -126,7 +138,7 @@ Output only the refined statement, nothing else:
 `;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: "gpt-4.1-nano",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 100,
@@ -158,7 +170,7 @@ Output only the refined statement, nothing else:
 `;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: "gpt-4.1-nano",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 100,
@@ -313,7 +325,7 @@ Generate your question:
   }
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: "gpt-4.1-nano",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 120,
@@ -352,7 +364,7 @@ Output only the integrated goal statement, nothing else:
 `;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: "gpt-4.1-nano",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 200,
@@ -392,7 +404,7 @@ Output only the value offered statement, nothing else:
 `;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: "gpt-4.1-nano",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 150,
@@ -432,7 +444,7 @@ Output only the value desired statement, nothing else:
 `;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: "gpt-4.1-nano",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 150,
@@ -547,7 +559,7 @@ IMPORTANT: Respond with ONLY a valid JSON array, no other text:
 ]
 `;
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAIClient().chat.completions.create({
     model: "gpt-4.1-nano", // 使用更稳定的模型
     messages: [{ role: "user", content: prompt }],
     max_tokens: 2000,
@@ -702,7 +714,7 @@ IMPORTANT: Respond with ONLY a valid JSON object:
 `;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: "gpt-4.1-nano",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 300,
@@ -741,7 +753,7 @@ Provide a concise, professional summary:
 `;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: "gpt-4.1-nano",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 200,
@@ -899,7 +911,7 @@ export const summarizeGroupChat = async (
       `${msg.sender}: ${msg.content}`
     ).join('\n');
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: "gpt-4.1-nano",
       messages: [
         {
