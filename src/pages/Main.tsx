@@ -608,7 +608,7 @@ const Main = () => {
                 </Avatar>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">{aiTwinProfile?.name || 'Your AI Twin'}</h3>
-                  <p className="text-gray-600">Created from your conversation with AI</p>
+                  <p className="text-gray-600">Created from your conversation</p>
                   <Badge variant="outline" className="mt-1">
                     Profile Complete
                   </Badge>
@@ -1373,7 +1373,7 @@ const Main = () => {
                 <div className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center">
                   <div className="w-2 h-2 bg-emerald-600 rounded-full"></div>
                 </div>
-                <span className="text-gray-700">Make your AI twin better</span>
+                <span className="text-gray-700">Make {aiTwinProfile?.name || 'your AI Twin'} better</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center">
@@ -1391,7 +1391,7 @@ const Main = () => {
                 <div className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center">
                   <div className="w-2 h-2 bg-emerald-600 rounded-full"></div>
                 </div>
-                <span className="text-gray-700">Advanced AI Twin features</span>
+                <span className="text-gray-700">Advanced {aiTwinProfile?.name || 'your AI Twin'} features</span>
               </div>
             </div>
             <Button className="w-full mt-8 bg-emerald-600 hover:bg-emerald-700 text-white py-3 text-lg">
@@ -1420,7 +1420,7 @@ const Main = () => {
                 <div className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center">
                   <div className="w-2 h-2 bg-emerald-600 rounded-full"></div>
                 </div>
-                <span className="text-gray-700">Make your AI twin the best</span>
+                <span className="text-gray-700">Make {aiTwinProfile?.name || 'your AI Twin'} the best</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center">
@@ -1438,7 +1438,7 @@ const Main = () => {
                 <div className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center">
                   <div className="w-2 h-2 bg-emerald-600 rounded-full"></div>
                 </div>
-                <span className="text-gray-700">All AI Twin features</span>
+                <span className="text-gray-700">All {aiTwinProfile?.name || 'your AI Twin'} features</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center">

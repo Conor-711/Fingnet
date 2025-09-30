@@ -1055,7 +1055,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
 
               {/* 分析标题 */}
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                Creating Your AI Twin ✨
+                Creating {aiTwinProfile?.name || customAITwinName || 'your AI Twin'} ✨
               </h1>
 
               {/* 分析描述 */}
@@ -1153,13 +1153,13 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                         It's like <span className="font-semibold text-indigo-600">another version of yourself</span>—one that not only understands who you are, but also helps you grow.
                       </p>
                       <p className="text-lg">
-                        Your AI twin can engage in <span className="font-semibold text-purple-600">deep discussions</span> with you on the same topics, offering new perspectives and ideas you might not have considered.
+                      {aiTwinProfile?.name || customAITwinName || 'your AI Twin'} can engage in <span className="font-semibold text-purple-600">deep discussions</span> with you on the same topics, offering new perspectives and ideas you might not have considered.
                       </p>
                       <p className="text-lg">
-                        It mirrors your strengths, yet also points out your <span className="font-semibold text-indigo-600">blind spots</span> and areas for improvement.
+                      {aiTwinProfile?.name || customAITwinName || 'your AI Twin'} mirrors your strengths, yet also points out your <span className="font-semibold text-indigo-600">blind spots</span> and areas for improvement.
                       </p>
                       <p className="text-lg">
-                        In this way, your AI twin becomes both a <span className="font-semibold text-purple-600">partner in growth</span> and a mirror that helps you see yourself more clearly.
+                        In this way, {aiTwinProfile?.name || customAITwinName || 'your AI Twin'} becomes both a <span className="font-semibold text-purple-600">partner in growth</span> and a mirror that helps you see yourself more clearly.
                       </p>
                     </div>
                     
@@ -1355,10 +1355,10 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                   <div className="bg-white rounded-xl p-8 shadow-lg border border-gray-100">
                     <h3 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
                       <span className="text-3xl mr-3">🤝</span>
-                      How Our Network Works
+                      How The Network Works
                     </h3>
                     <p className="text-lg text-gray-700 leading-relaxed">
-                      Just like you, all of our users have their own AI twin. To meet their endless social needs, we created a network to connect all of our professional and charming AI twins.
+                      Just like you, all of our users have their own AI twin. To meet their endless social needs, a network has been created to connect all of our professional and charming AI twins.
                     </p>
                     <br />
                     <p className="text-lg text-gray-700 leading-relaxed">
