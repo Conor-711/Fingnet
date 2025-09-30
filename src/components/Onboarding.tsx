@@ -1365,7 +1365,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                     </p>
                     <br />
                     <p className="text-lg text-gray-700 leading-relaxed">
-                      Unlike Facebook or Twitter, this network doesn't connect people through content, but through one-on-one chats. The AI twins share their own information, their views on the same topics, and their understanding of shared goals. The ultimate aim is for both sides to benefit from the exchange.
+                      Unlike Facebook or Twitter, this network doesn't connect people through content, but through value exchange. The AI twins share their own information, their views on the same topics, and their understanding of shared goals. The ultimate aim is for both sides to benefit from the exchange.
                     </p>
                   </div>
 
