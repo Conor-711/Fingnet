@@ -701,13 +701,19 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
               {/* 自我介绍内容 */}
               <div className="text-lg text-gray-700 leading-relaxed mb-8 space-y-4">
                 <p>
-                  Welcome to <span className="font-semibold text-rose-600">Fingnet</span>! I'm here to be your personal companion on this journey.
+                  Hey, welcome to <span className="font-bold">Fingnet</span>!
                 </p>
                 <p>
-                  Unlike other AI assistants, I want to truly get to know you - your dreams, your challenges, and what makes you unique. I'll ask you some thoughtful questions to understand who you are and what you're looking for.
+                  This is a place that helps you easily find the people you're looking for.
                 </p>
                 <p>
-                  Together, we'll discover your goals and connect you with like-minded people who share your aspirations. Are you ready to start this adventure with me?
+                  I'm your AI Twin <span className="font-semibold text-rose-600"> {customAITwinName || 'your AI Twin'}</span>. My job is to really understand what you're aiming for and what you can bring to the table, so I can connect you with the right people.
+                </p>
+                <p>
+                  And the cool part? I'll also grow and get smarter through the connections you make.
+                </p>
+                <p>
+                  So, let's kick things off with a quick chat to get to know each other!
                 </p>
               </div>
 
@@ -1127,10 +1133,10 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
           <Card className="shadow-xl border-0">
             <CardHeader className="text-center pb-6">
               <CardTitle className="text-3xl font-bold text-gray-900 mb-4">
-                Meet Your AI Twin 🎭
+                Meet {aiTwinProfile?.name || customAITwinName || 'your AI Twin'} 🎭
               </CardTitle>
               <CardDescription className="text-lg text-gray-600">
-                Based on our conversation, I've created your personalized AI Twin
+                Based on our conversation, {aiTwinProfile?.name || customAITwinName || 'your AI Twin'} has been created
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8">
@@ -1140,7 +1146,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                   <div className="bg-white rounded-xl p-8 shadow-lg border border-gray-100">
                     <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                       <span className="text-3xl mr-3">✨</span>
-                      What can an AI twin do for you?
+                      What can {aiTwinProfile?.name || customAITwinName || 'your AI Twin'} do for you?
                     </h3>
                     <div className="space-y-4 text-gray-700 leading-relaxed">
                       <p className="text-lg">
@@ -1429,7 +1435,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                       >
                         <div className="w-12 h-12 rounded-full border-2 border-blue-300 shadow-md overflow-hidden bg-white">
                           <img
-                            src="/src/assets/network/1.png"
+                            src="/avatars/1.png"
                             alt="AI Twin 1"
                             className="w-full h-full object-cover"
                             onError={(e) => {
@@ -1459,7 +1465,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                       >
                         <div className="w-14 h-14 rounded-full border-2 border-cyan-300 shadow-md overflow-hidden bg-white">
                           <img
-                            src="/src/assets/network/2.png"
+                            src="/avatars/2.png"
                             alt="AI Twin 2"
                             className="w-full h-full object-cover"
                             onError={(e) => {
@@ -1489,7 +1495,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                       >
                         <div className="w-14 h-14 rounded-full border-2 border-cyan-300 shadow-md overflow-hidden bg-white">
                           <img
-                            src="/src/assets/network/3.png"
+                            src="/avatars/3.png"
                             alt="AI Twin 3"
                             className="w-full h-full object-cover"
                             onError={(e) => {
@@ -1519,7 +1525,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                       >
                         <div className="w-16 h-16 rounded-full border-2 border-blue-300 shadow-md overflow-hidden bg-white">
                           <img
-                            src="/src/assets/network/4.png"
+                            src="/avatars/4.png"
                             alt="AI Twin 4"
                             className="w-full h-full object-cover"
                             onError={(e) => {
@@ -1641,7 +1647,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                       >
                         <div className="w-12 h-12 rounded-full border-2 border-emerald-300 shadow-md overflow-hidden bg-white">
                           <img
-                            src="/src/assets/network/1.png"
+                            src="/avatars/1.png"
                             alt="AI Twin 1"
                             className="w-full h-full object-cover"
                             onError={(e) => {
@@ -1671,7 +1677,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                       >
                         <div className="w-14 h-14 rounded-full border-2 border-teal-300 shadow-md overflow-hidden bg-white">
                           <img
-                            src="/src/assets/network/2.png"
+                            src="/avatars/2.png"
                             alt="AI Twin 2"
                             className="w-full h-full object-cover"
                             onError={(e) => {
@@ -1701,7 +1707,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                       >
                         <div className="w-14 h-14 rounded-full border-2 border-teal-300 shadow-md overflow-hidden bg-white">
                           <img
-                            src="/src/assets/network/3.png"
+                            src="/avatars/3.png"
                             alt="AI Twin 3"
                             className="w-full h-full object-cover"
                             onError={(e) => {
@@ -1731,7 +1737,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                       >
                         <div className="w-16 h-16 rounded-full border-2 border-emerald-300 shadow-md overflow-hidden bg-white">
                           <img
-                            src="/src/assets/network/4.png"
+                            src="/avatars/4.png"
                             alt="AI Twin 4"
                             className="w-full h-full object-cover"
                             onError={(e) => {
@@ -1863,7 +1869,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                           <div className="flex flex-col items-center">
                             <div className="w-16 h-16 rounded-full border-2 border-teal-300 overflow-hidden mb-2">
                               <img
-                                src="/src/assets/network/2.png"
+                                src="/avatars/2.png"
                                 alt="Connected AI Twin"
                                 className="w-full h-full object-cover"
                                 onError={(e) => {

@@ -201,7 +201,7 @@ const Main = () => {
     {
       id: 1,
       recipientName: "Alex Thompson",
-      recipientAvatar: "/src/assets/network/2.png",
+      recipientAvatar: "/avatars/2.png",
       sentDate: "2024-03-15",
       status: "accepted", // pending, accepted, declined
       acceptedDate: "2024-03-16",
@@ -210,7 +210,7 @@ const Main = () => {
     {
       id: 2,
       recipientName: "Sarah Chen",
-      recipientAvatar: "/src/assets/network/3.png",
+      recipientAvatar: "/avatars/3.png",
       sentDate: "2024-03-14",
       status: "pending",
       connectionType: "AI Twin Chat"
@@ -218,7 +218,7 @@ const Main = () => {
     {
       id: 3,
       recipientName: "Marcus Rodriguez",
-      recipientAvatar: "/src/assets/network/4.png",
+      recipientAvatar: "/avatars/4.png",
       sentDate: "2024-03-13",
       status: "declined",
       declinedDate: "2024-03-14",
@@ -230,7 +230,7 @@ const Main = () => {
     {
       id: 1,
       senderName: "Emma Watson",
-      senderAvatar: "/src/assets/network/1.png",
+      senderAvatar: "/avatars/1.png",
       receivedDate: "2024-03-16",
       status: "pending", // pending, accepted, declined
       connectionType: "AI Twin Chat",
@@ -239,7 +239,7 @@ const Main = () => {
     {
       id: 2,
       senderName: "David Kim",
-      senderAvatar: "/src/assets/network/2.png",
+      senderAvatar: "/avatars/2.png",
       receivedDate: "2024-03-15",
       status: "accepted",
       acceptedDate: "2024-03-15",
@@ -249,7 +249,7 @@ const Main = () => {
     {
       id: 3,
       senderName: "Lisa Johnson",
-      senderAvatar: "/src/assets/network/3.png",
+      senderAvatar: "/avatars/3.png",
       receivedDate: "2024-03-14",
       status: "pending",
       connectionType: "AI Twin Chat",
@@ -258,28 +258,28 @@ const Main = () => {
   ];
 
   // 获取用户头像（使用AI Twin的头像或默认头像）
-  const getUserAvatar = () => aiTwinProfile?.avatar || "/src/assets/network/middle.png";
+  const getUserAvatar = () => aiTwinProfile?.avatar || "/avatars/middle.png";
 
   // 模拟群聊数据
   const mockGroupChats = [
     {
       id: 1,
       name: "AI Entrepreneurs Hub",
-      avatar: "/src/assets/network/1.png",
+      avatar: "/avatars/1.png",
       lastMessage: "Great insights on scaling AI products!",
       lastMessageTime: "2 min ago",
       unreadCount: 3,
       participants: [
-        { name: "Alex Thompson", avatar: "/src/assets/network/2.png" },
-        { name: "Sarah Chen", avatar: "/src/assets/network/3.png" },
-        { name: "Marcus Rodriguez", avatar: "/src/assets/network/4.png" },
-        { name: "Emma Watson", avatar: "/src/assets/network/1.png" }
+        { name: "Alex Thompson", avatar: "/avatars/2.png" },
+        { name: "Sarah Chen", avatar: "/avatars/3.png" },
+        { name: "Marcus Rodriguez", avatar: "/avatars/4.png" },
+        { name: "Emma Watson", avatar: "/avatars/1.png" }
       ],
       messages: [
         {
           id: 1,
           sender: "Alex Thompson",
-          senderAvatar: "/src/assets/network/2.png",
+          senderAvatar: "/avatars/2.png",
           content: "Hey everyone! Just launched my new AI product. Would love to get your feedback on the user experience.",
           timestamp: "10:30 AM",
           isOwn: false
@@ -287,7 +287,7 @@ const Main = () => {
         {
           id: 2,
           sender: "Sarah Chen",
-          senderAvatar: "/src/assets/network/3.png",
+          senderAvatar: "/avatars/3.png",
           content: "Congratulations Alex! 🎉 I'd be happy to test it out. What's the main value proposition?",
           timestamp: "10:32 AM",
           isOwn: false
@@ -303,7 +303,7 @@ const Main = () => {
         {
           id: 4,
           sender: "Marcus Rodriguez",
-          senderAvatar: "/src/assets/network/4.png",
+          senderAvatar: "/avatars/4.png",
           content: "Great insights on scaling AI products!",
           timestamp: "10:38 AM",
           isOwn: false
@@ -313,20 +313,20 @@ const Main = () => {
     {
       id: 2,
       name: "Content Creators Circle",
-      avatar: "/src/assets/network/2.png",
+      avatar: "/avatars/2.png",
       lastMessage: "Anyone tried the new GPT features?",
       lastMessageTime: "1 hour ago",
       unreadCount: 0,
       participants: [
-        { name: "Emma Watson", avatar: "/src/assets/network/1.png" },
-        { name: "David Kim", avatar: "/src/assets/network/2.png" },
-        { name: "Lisa Johnson", avatar: "/src/assets/network/3.png" }
+        { name: "Emma Watson", avatar: "/avatars/1.png" },
+        { name: "David Kim", avatar: "/avatars/2.png" },
+        { name: "Lisa Johnson", avatar: "/avatars/3.png" }
       ],
       messages: [
         {
           id: 1,
           sender: "Emma Watson",
-          senderAvatar: "/src/assets/network/1.png",
+          senderAvatar: "/avatars/1.png",
           content: "Anyone tried the new GPT features? I'm thinking of integrating them into my content workflow.",
           timestamp: "9:15 AM",
           isOwn: false
@@ -334,7 +334,7 @@ const Main = () => {
         {
           id: 2,
           sender: "David Kim",
-          senderAvatar: "/src/assets/network/2.png",
+          senderAvatar: "/avatars/2.png",
           content: "Yes! The new vision capabilities are game-changing for content analysis.",
           timestamp: "9:20 AM",
           isOwn: false
@@ -344,19 +344,19 @@ const Main = () => {
     {
       id: 3,
       name: "Tech Innovators",
-      avatar: "/src/assets/network/3.png",
+      avatar: "/avatars/3.png",
       lastMessage: "Excited to share my latest project!",
       lastMessageTime: "3 hours ago",
       unreadCount: 1,
       participants: [
-        { name: "Sarah Chen", avatar: "/src/assets/network/3.png" },
-        { name: "Alex Thompson", avatar: "/src/assets/network/2.png" }
+        { name: "Sarah Chen", avatar: "/avatars/3.png" },
+        { name: "Alex Thompson", avatar: "/avatars/2.png" }
       ],
       messages: [
         {
           id: 1,
           sender: "Sarah Chen",
-          senderAvatar: "/src/assets/network/3.png",
+          senderAvatar: "/avatars/3.png",
           content: "Excited to share my latest project! Working on a sustainable tech solution.",
           timestamp: "7:45 AM",
           isOwn: false
@@ -554,7 +554,7 @@ const Main = () => {
       return {
         id: index + 1,
         partner: `${twinProfile.name}'s AI Twin`,
-        avatar: `/src/assets/network/${index + 2}.png`,
+        avatar: `/avatars/${index + 2}.png`,
         lastMessage: lastMessage.substring(0, 80) + (lastMessage.length > 80 ? '...' : ''),
         timestamp: conversation.length > 0 ? conversation[conversation.length - 1].timestamp : 'Just now',
         messageCount: conversation.length,
@@ -601,7 +601,7 @@ const Main = () => {
             <CardContent className="p-6">
               <div className="flex items-center space-x-4 mb-6">
                 <Avatar className="w-16 h-16">
-                  <AvatarImage src={aiTwinProfile.avatar || "/src/assets/network/middle.png"} alt={aiTwinProfile.name || "Your AI Twin"} />
+                  <AvatarImage src={aiTwinProfile.avatar || "/avatars/middle.png"} alt={aiTwinProfile.name || "Your AI Twin"} />
                   <AvatarFallback className="bg-emerald-100 text-emerald-700 text-xl">
                     🤖
                   </AvatarFallback>
@@ -950,7 +950,7 @@ const Main = () => {
         const newMsg = {
           id: selectedGroup.messages.length + 1,
           sender: "You",
-          senderAvatar: aiTwinProfile?.avatar || "/src/assets/network/middle.png",
+          senderAvatar: aiTwinProfile?.avatar || "/avatars/middle.png",
           content: newMessage,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           isOwn: true
@@ -1658,7 +1658,7 @@ const Main = () => {
                   </div>
                   {message.isOwn && (
                     <Avatar className="w-8 h-8">
-                      <AvatarImage src={aiTwinProfile?.avatar || "/src/assets/network/middle.png"} alt={aiTwinProfile?.name || "Your AI Twin"} />
+                      <AvatarImage src={aiTwinProfile?.avatar || "/avatars/middle.png"} alt={aiTwinProfile?.name || "Your AI Twin"} />
                       <AvatarFallback className="bg-teal-100 text-teal-700 text-sm">
                         👤
                       </AvatarFallback>

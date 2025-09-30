@@ -178,7 +178,7 @@ export const onboardingQuestions: OnboardingQuestion[] = [
         label: 'Steve Jobs',
         value: 'steve-jobs',
         avatar: {
-          src: '/src/assets/cele/steve_jobs.png',
+          src: '/cele/steve_jobs.png',
           alt: 'Steve Jobs',
           bgColor: 'bg-blue-100'
         }
@@ -188,7 +188,7 @@ export const onboardingQuestions: OnboardingQuestion[] = [
         label: 'Richard Branson',
         value: 'richard-branson',
         avatar: {
-          src: '/src/assets/cele/rechard.png',
+          src: '/cele/rechard.png',
           alt: 'Richard Branson',
           bgColor: 'bg-green-100'
         }
@@ -198,7 +198,7 @@ export const onboardingQuestions: OnboardingQuestion[] = [
         label: 'LeBron James',
         value: 'lebron-james',
         avatar: {
-          src: '/src/assets/cele/lebron.png',
+          src: '/cele/lebron.png',
           alt: 'LeBron James',
           bgColor: 'bg-orange-100'
         }
@@ -208,7 +208,7 @@ export const onboardingQuestions: OnboardingQuestion[] = [
         label: 'Oprah Winfrey',
         value: 'oprah-winfrey',
         avatar: {
-          src: '/src/assets/cele/Oprah.png',
+          src: '/cele/Oprah.png',
           alt: 'Oprah Winfrey',
           bgColor: 'bg-pink-100'
         }
@@ -218,7 +218,7 @@ export const onboardingQuestions: OnboardingQuestion[] = [
         label: 'Emma Watson',
         value: 'emma-watson',
         avatar: {
-          src: '/src/assets/cele/emma.png',
+          src: '/cele/emma.png',
           alt: 'Emma Watson',
           bgColor: 'bg-purple-100'
         }
@@ -228,7 +228,7 @@ export const onboardingQuestions: OnboardingQuestion[] = [
         label: 'Serena Williams',
         value: 'serena-williams',
         avatar: {
-          src: '/src/assets/cele/serena.png',
+          src: '/cele/serena.png',
           alt: 'Serena Williams',
           bgColor: 'bg-indigo-100'
         }
@@ -238,7 +238,7 @@ export const onboardingQuestions: OnboardingQuestion[] = [
         label: 'Jeff Bezos',
         value: 'jeff-bezos',
         avatar: {
-          src: '/src/assets/cele/jeff.png',
+          src: '/cele/jeff.png',
           alt: 'Jeff Bezos',
           bgColor: 'bg-yellow-100'
         }
@@ -248,7 +248,7 @@ export const onboardingQuestions: OnboardingQuestion[] = [
         label: 'Kevin Hart',
         value: 'kevin-hart',
         avatar: {
-          src: '/src/assets/cele/kevin.png',
+          src: '/cele/kevin.png',
           alt: 'Kevin Hart',
           bgColor: 'bg-red-100'
         }
@@ -258,7 +258,7 @@ export const onboardingQuestions: OnboardingQuestion[] = [
         label: 'Brené Brown',
         value: 'brene-brown',
         avatar: {
-          src: '/src/assets/cele/brown.png',
+          src: '/cele/brown.png',
           alt: 'Brené Brown',
           bgColor: 'bg-teal-100'
         }
@@ -874,7 +874,7 @@ export const onboardingQuestions: OnboardingQuestion[] = [
         label: 'Notion',
         value: 'notion',
         avatar: {
-          src: '/src/assets/tools/notion.png',
+          src: '/tools/notion.png',
           alt: 'Notion',
           bgColor: 'bg-white'
         }
@@ -884,7 +884,7 @@ export const onboardingQuestions: OnboardingQuestion[] = [
         label: 'Figma',
         value: 'figma',
         avatar: {
-          src: '/src/assets/tools/figma.png',
+          src: '/tools/figma.png',
           alt: 'Figma',
           bgColor: 'bg-white'
         }
@@ -894,7 +894,7 @@ export const onboardingQuestions: OnboardingQuestion[] = [
         label: 'Cursor',
         value: 'cursor',
         avatar: {
-          src: '/src/assets/tools/cursor.png',
+          src: '/tools/cursor.png',
           alt: 'Cursor',
           bgColor: 'bg-white'
         }
@@ -904,7 +904,7 @@ export const onboardingQuestions: OnboardingQuestion[] = [
         label: 'Canva',
         value: 'canva',
         avatar: {
-          src: '/src/assets/tools/canva.png',
+          src: '/tools/canva.png',
           alt: 'Canva',
           bgColor: 'bg-white'
         }
@@ -914,7 +914,7 @@ export const onboardingQuestions: OnboardingQuestion[] = [
         label: 'Manus',
         value: 'manus',
         avatar: {
-          src: '/src/assets/tools/manus.png',
+          src: '/tools/manus.png',
           alt: 'Manus',
           bgColor: 'bg-white'
         }
@@ -924,7 +924,7 @@ export const onboardingQuestions: OnboardingQuestion[] = [
         label: 'Nano',
         value: 'nano',
         avatar: {
-          src: '/src/assets/tools/nano.png',
+          src: '/tools/nano.png',
           alt: 'Nano',
           bgColor: 'bg-white'
         }

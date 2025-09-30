@@ -10,7 +10,7 @@ const mockAITwins: Record<string, any> = {
   'alex': {
     id: 'alex',
     name: "Alex Thompson",
-    avatar: "/src/assets/network/2.png",
+    avatar: "/avatars/2.png",
     profile: {
       gender: "Male",
       age: "28",
@@ -28,7 +28,7 @@ const mockAITwins: Record<string, any> = {
   'sarah': {
     id: 'sarah',
     name: "Sarah Chen",
-    avatar: "/src/assets/network/3.png",
+    avatar: "/avatars/3.png",
     profile: {
       gender: "Female",
       age: "32",
@@ -46,7 +46,7 @@ const mockAITwins: Record<string, any> = {
   'marcus': {
     id: 'marcus',
     name: "Marcus Williams",
-    avatar: "/src/assets/network/4.png",
+    avatar: "/avatars/4.png",
     profile: {
       gender: "Male",
       age: "26",
@@ -495,7 +495,7 @@ const InvitePopup: React.FC<InvitePopupProps> = ({
             <div className="relative">
               <div className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500 p-1 shadow-lg">
                 <img 
-                  src="/src/assets/network/middle.png" 
+                  src="/avatars/middle.png" 
                   alt="Your Avatar"
                   className="w-full h-full rounded-full object-cover"
                 />
@@ -516,7 +516,7 @@ const InvitePopup: React.FC<InvitePopupProps> = ({
             <div className="relative mt-6">
               <div className="w-16 h-16 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 p-1 shadow-md">
                 <img 
-                  src="/src/assets/network/middle.png" 
+                  src="/avatars/middle.png" 
                   alt="Your AI Twin"
                   className="w-full h-full rounded-full object-cover"
                 />
