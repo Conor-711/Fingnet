@@ -420,11 +420,14 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
   };
 
   // 处理Goal聊天回车键
-  const handleGoalKeyPress = (e: React.KeyboardEvent) => {
+  const handleGoalKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // 只处理Enter键，其他键（如左右键）不拦截
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      e.stopPropagation();
       handleGoalSendMessage();
     }
+    // 左右键、删除键等其他键不做任何处理，让浏览器默认行为生效
   };
 
   // 处理查看其他用户目标
@@ -971,7 +974,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                   type="text"
                   value={goalUserInput}
                   onChange={(e) => setGoalUserInput(e.target.value)}
-                  onKeyPress={handleGoalKeyPress}
+                  onKeyDown={handleGoalKeyPress}
                   placeholder={currentGoalQuestionIndex === 0 ? "Share your goal here..." : "Type your answer here..."}
                   className="flex-1 p-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   disabled={!canUserTypeGoal}
