@@ -18,11 +18,11 @@ const AITwinConnectionAnimation = ({ userAvatar }: AITwinConnectionAnimationProp
 
   // AI Twin头像
   const avatars = [
-    userAvatar || '/src/assets/network/middle.png', // 中心节点使用用户头像
-    '/src/assets/network/1.png',
-    '/src/assets/network/2.png',
-    '/src/assets/network/3.png',
-    '/src/assets/network/4.png',
+    userAvatar || '/avatars/middle.png', // 中心节点使用用户头像
+    '/avatars/1.png',
+    '/avatars/2.png',
+    '/avatars/3.png',
+    '/avatars/4.png',
   ];
 
   useEffect(() => {

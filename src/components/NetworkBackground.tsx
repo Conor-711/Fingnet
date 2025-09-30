@@ -23,13 +23,13 @@ const NetworkBackground = () => {
 
   // AI Twin头像路径
   const avatars = [
-    '/src/assets/network/middle.png',
-    '/src/assets/network/1.png',
-    '/src/assets/network/2.png',
-    '/src/assets/network/3.png',
-    '/src/assets/network/4.png',
-    '/src/assets/network/5.png',
-    '/src/assets/network/6.png',
+    '/avatars/middle.png',
+    '/avatars/1.png',
+    '/avatars/2.png',
+    '/avatars/3.png',
+    '/avatars/4.png',
+    '/avatars/5.png',
+    '/avatars/6.png',
   ];
 
   // 初始化节点

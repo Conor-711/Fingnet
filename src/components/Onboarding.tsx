@@ -32,11 +32,11 @@ const goalQuestions = [
 
 // AI Twin头像选项
 const avatarOptions = [
-  { id: 'default', src: '/src/assets/ai_friend_pfp/ai_friend.png', name: 'Default' },
-  { id: 'avatar1', src: '/src/assets/network/1.png', name: 'Avatar 1' },
-  { id: 'avatar2', src: '/src/assets/network/2.png', name: 'Avatar 2' },
-  { id: 'avatar3', src: '/src/assets/network/3.png', name: 'Avatar 3' },
-  { id: 'avatar4', src: '/src/assets/network/4.png', name: 'Avatar 4' },
+  { id: 'default', src: '/avatars/ai_friend.png', name: 'Default' },
+  { id: 'avatar1', src: '/avatars/1.png', name: 'Avatar 1' },
+  { id: 'avatar2', src: '/avatars/2.png', name: 'Avatar 2' },
+  { id: 'avatar3', src: '/avatars/3.png', name: 'Avatar 3' },
+  { id: 'avatar4', src: '/avatars/4.png', name: 'Avatar 4' },
 ];
 
 interface OnboardingProps {
@@ -108,7 +108,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
   
   // AI Twin自定义状态
   const [customAITwinName, setCustomAITwinName] = useState('');
-  const [customAITwinAvatar, setCustomAITwinAvatar] = useState('/src/assets/ai_friend_pfp/ai_friend.png');
+  const [customAITwinAvatar, setCustomAITwinAvatar] = useState('/avatars/ai_friend.png');
   const [showAvatarOptions, setShowAvatarOptions] = useState(false);
   
   // 打字机效果状态
