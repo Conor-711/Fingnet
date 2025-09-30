@@ -2,6 +2,39 @@ import { createContext, useContext, useState, useCallback, ReactNode } from 'rea
 import { OnboardingAnswer, OnboardingProgress } from '@/types/post';
 import { onboardingQuestions } from '@/data/onboardingData';
 
+// Memory条目类型
+export interface Memory {
+  id: string;
+  content: string;
+  source: 'chat_summary' | 'user_input' | 'conversation';
+  timestamp: string;
+  groupName?: string; // 如果来自群聊，记录群聊名称
+}
+
+// AI Twin Profile数据类型
+export interface AITwinProfile {
+  // AI Twin基本信息
+  name: string;
+  avatar: string;
+  // 用户档案信息
+  profile: {
+    gender: string;
+    age: string;
+    occupation: string;
+    location: string;
+  };
+  // 支持多个goals、offers、lookings
+  goals?: string[];  // 当前目标列表
+  offers?: string[]; // 能提供的价值列表
+  lookings?: string[]; // 寻找的价值列表
+  // AI Twin记忆
+  memories?: Memory[]; // 记忆列表
+  // 向后兼容的单个字段
+  goalRecently?: string;
+  valueOffered?: string;
+  valueDesired?: string;
+}
+
 interface OnboardingContextType {
   progress: OnboardingProgress;
   updateAnswer: (questionId: string, selectedOptions: string[]) => void;
@@ -9,6 +42,9 @@ interface OnboardingContextType {
   skipOnboarding: () => void;
   isOnboardingRequired: boolean;
   resetOnboarding: () => void;
+  aiTwinProfile: AITwinProfile | null;
+  updateAITwinProfile: (profile: AITwinProfile) => void;
+  updateAITwinBasicInfo: (name: string, avatar: string) => void;
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
@@ -36,6 +72,20 @@ export const OnboardingProvider = ({ children }: OnboardingProviderProps) => {
       answers: {},
       isCompleted: false
     };
+  });
+
+  // AI Twin Profile状态
+  const [aiTwinProfile, setAITwinProfile] = useState<AITwinProfile | null>(() => {
+    // 从localStorage恢复AI Twin Profile
+    const saved = localStorage.getItem('onlymsg_ai_twin_profile');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        // 如果解析失败，返回null
+      }
+    }
+    return null;
   });
 
   // 保存进度到localStorage
@@ -106,6 +156,38 @@ export const OnboardingProvider = ({ children }: OnboardingProviderProps) => {
     saveProgress(newProgress);
   }, [saveProgress]);
 
+  // 更新AI Twin Profile
+  const updateAITwinProfile = useCallback((profile: AITwinProfile) => {
+    setAITwinProfile(profile);
+    localStorage.setItem('onlymsg_ai_twin_profile', JSON.stringify(profile));
+  }, []);
+
+  // 更新AI Twin基本信息（名称和头像）
+  const updateAITwinBasicInfo = useCallback((name: string, avatar: string) => {
+    setAITwinProfile(prev => {
+      const updatedProfile = prev ? {
+        ...prev,
+        name,
+        avatar
+      } : {
+        name,
+        avatar,
+        profile: {
+          gender: '',
+          age: '',
+          occupation: '',
+          location: ''
+        },
+        goalRecently: '',
+        valueOffered: '',
+        valueDesired: ''
+      };
+      
+      localStorage.setItem('onlymsg_ai_twin_profile', JSON.stringify(updatedProfile));
+      return updatedProfile;
+    });
+  }, []);
+
   // 检查是否需要onboarding
   const isOnboardingRequired = !progress.isCompleted;
 
@@ -115,7 +197,10 @@ export const OnboardingProvider = ({ children }: OnboardingProviderProps) => {
     completeOnboarding,
     skipOnboarding,
     isOnboardingRequired,
-    resetOnboarding
+    resetOnboarding,
+    aiTwinProfile,
+    updateAITwinProfile,
+    updateAITwinBasicInfo
   };
 
   return (

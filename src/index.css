@@ -136,3 +136,196 @@
     background: hsl(var(--muted-foreground) / 0.5);
   }
 }
+
+/* Onboarding Animations */
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-10px) translateY(-50%) scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(5px) translateY(-50%) scale(1.05);
+  }
+  70% {
+    transform: translateX(-2px) translateY(-50%) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) translateY(-50%) scale(1);
+  }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out;
+}
+
+/* 行星环绕动画 */
+@keyframes orbit-inner {
+  0% {
+    transform: rotate(0deg) translateX(80px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(80px) rotate(-360deg);
+  }
+}
+
+@keyframes orbit-middle {
+  0% {
+    transform: rotate(0deg) translateX(112px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(112px) rotate(-360deg);
+  }
+}
+
+@keyframes orbit-middle-reverse {
+  0% {
+    transform: rotate(0deg) translateX(112px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg) translateX(112px) rotate(360deg);
+  }
+}
+
+@keyframes orbit-outer {
+  0% {
+    transform: rotate(0deg) translateX(144px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(144px) rotate(-360deg);
+  }
+}
+
+/* 连接线生长动画 - 简化版本 */
+@keyframes grow-connection-line {
+  0% {
+    stroke-dasharray: 0 200;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  60% {
+    stroke-dasharray: 100 200;
+    opacity: 1;
+  }
+  80% {
+    stroke-dasharray: 100 200;
+    opacity: 1;
+  }
+  100% {
+    stroke-dasharray: 100 200;
+    opacity: 0;
+  }
+}
+
+.animate-connection-line {
+  animation: grow-connection-line 3s ease-in-out infinite;
+}
+
+.animate-connection-line-delay-1 {
+  animation: grow-connection-line 3s ease-in-out infinite;
+  animation-delay: 0.75s;
+}
+
+.animate-connection-line-delay-2 {
+  animation: grow-connection-line 3s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+.animate-connection-line-delay-3 {
+  animation: grow-connection-line 3s ease-in-out infinite;
+  animation-delay: 2.25s;
+}
+
+/* Invite popup connection animations */
+@keyframes golden-pulse {
+  0%, 100% { 
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes energy-flow {
+  0% { 
+    stroke-dasharray: 0 60;
+    opacity: 0;
+  }
+  50% { 
+    stroke-dasharray: 30 30;
+    opacity: 1;
+  }
+  100% { 
+    stroke-dasharray: 60 0;
+    opacity: 0;
+  }
+}
+
+@keyframes glow-effect {
+  0%, 100% { 
+    filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.3));
+  }
+  50% { 
+    filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.6));
+  }
+}
+
+@keyframes avatar-active {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
+  }
+}
+
+@keyframes avatar-pending {
+  0%, 100% { 
+    opacity: 0.6;
+  }
+  50% { 
+    opacity: 0.8;
+  }
+}
+
+.animate-golden-pulse {
+  animation: golden-pulse 2s ease-in-out infinite;
+}
+
+.animate-energy-flow {
+  animation: energy-flow 2s linear infinite;
+}
+
+.animate-glow-effect {
+  animation: glow-effect 2s ease-in-out infinite;
+}
+
+.animate-avatar-active {
+  animation: avatar-active 3s ease-in-out infinite;
+}
+
+.animate-avatar-pending {
+  animation: avatar-pending 3s ease-in-out infinite;
+}
