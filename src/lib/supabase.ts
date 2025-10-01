@@ -184,10 +184,17 @@ export async function getAITwin(userId: string) {
 export async function upsertAITwin(userId: string, aiTwinData: Partial<AITwin>) {
   const { data, error } = await supabase
     .from('ai_twins')
-    .upsert({
-      user_id: userId,
-      ...aiTwinData
-    })
+    .upsert(
+      {
+        user_id: userId,
+        ...aiTwinData,
+        updated_at: new Date().toISOString()
+      },
+      {
+        onConflict: 'user_id', // 指定冲突字段（因为有 unique_user_ai_twin 约束）
+        ignoreDuplicates: false // 当冲突时更新而不是忽略
+      }
+    )
     .select()
     .single();
 
@@ -217,12 +224,19 @@ export async function saveOnboardingProgress(
 ) {
   const { data, error } = await supabase
     .from('onboarding_progress')
-    .upsert({
-      user_id: userId,
-      answers,
-      completed,
-      completed_at: completed ? new Date().toISOString() : null
-    })
+    .upsert(
+      {
+        user_id: userId,
+        answers,
+        completed,
+        completed_at: completed ? new Date().toISOString() : null,
+        updated_at: new Date().toISOString()
+      },
+      {
+        onConflict: 'user_id', // 指定冲突字段
+        ignoreDuplicates: false // 当冲突时更新而不是忽略
+      }
+    )
     .select()
     .single();
 
