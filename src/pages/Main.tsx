@@ -54,6 +54,10 @@ const Main = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editedProfile, setEditedProfile] = useState<AITwinProfile | null>(null);
   
+  // 真实AI Twin网络数据
+  const [realAITwins, setRealAITwins] = useState<AITwinConversationProfile[]>([]);
+  const [isLoadingAITwins, setIsLoadingAITwins] = useState(false);
+  
   // 处理编辑AI Twin
   const handleEditProfile = () => {
     if (aiTwinProfile) {
@@ -503,6 +507,13 @@ const Main = () => {
   const generateConversationsForAllChats = async () => {
     if (!aiTwinProfile || isGeneratingConversations || !user) return;
     
+    // 如果没有真实AI Twins且没有加载中，先等待加载
+    if (realAITwins.length === 0 && !isLoadingAITwins) {
+      console.log('ℹ️ No AI Twins available for conversation generation');
+      setIsGeneratingConversations(false);
+      return;
+    }
+    
     setIsGeneratingConversations(true);
     
     try {
@@ -519,8 +530,10 @@ const Main = () => {
 
       const conversations: Record<string, AITwinConversationResult> = {};
       
-      // 为每个AI Twin生成对话（限制20轮）
-      for (const [twinId, twinProfile] of Object.entries(aiTwinsDatabase)) {
+      // 为每个真实AI Twin生成对话
+      for (const [index, twinProfile] of realAITwins.entries()) {
+        const twinId = `twin-${index}`; // 使用索引作为ID
+        
         try {
           const conversationResult = await withRetry(() => 
             generateAITwinConversation(twinProfile, userAITwin, 12) // 生成12轮对话
@@ -586,7 +599,7 @@ const Main = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  // 从数据库加载AI Twin数据
+  // 从数据库加载用户自己的AI Twin数据
   useEffect(() => {
     const loadAITwinFromDatabase = async () => {
       if (!user) return;
@@ -630,16 +643,69 @@ const Main = () => {
     loadAITwinFromDatabase();
   }, [user]);
 
-  // 当AI Twin Profile可用时生成对话
+  // 从数据库加载所有其他用户的AI Twins（用于匹配网络）
   useEffect(() => {
-    if (aiTwinProfile && Object.keys(generatedConversations).length === 0) {
+    const loadAllAITwins = async () => {
+      if (!user) return;
+
+      setIsLoadingAITwins(true);
+      
+      try {
+        // 获取所有AI Twins，排除当前用户
+        const { data: twins, error } = await getAllAITwins(user.id);
+        
+        if (error) {
+          console.error('Error loading AI Twins network:', error);
+          toast.error('加载AI Twin网络失败');
+          return;
+        }
+
+        if (twins && twins.length > 0) {
+          console.log(`✅ Loaded ${twins.length} AI Twins from network`);
+          
+          // 转换为 AITwinConversationProfile 格式
+          const conversationProfiles: AITwinConversationProfile[] = twins.map(twin => ({
+            name: twin.name,
+            profile: twin.profile,
+            goalRecently: twin.goals?.[0] || twin.goal_recently || '',
+            valueOffered: twin.offers?.[0] || twin.value_offered || '',
+            valueDesired: twin.lookings?.[0] || twin.value_desired || '',
+            personality: ["Unique", "Growth-minded"], // 可以后续从数据库扩展
+            interests: twin.goals || []
+          }));
+          
+          setRealAITwins(conversationProfiles);
+        } else {
+          console.log('ℹ️ No other AI Twins found in network yet');
+          // 如果没有其他用户，可以使用少量mock数据作为示例
+          setRealAITwins([]);
+        }
+      } catch (error) {
+        console.error('Error in loadAllAITwins:', error);
+        toast.error('加载网络数据时出错');
+      } finally {
+        setIsLoadingAITwins(false);
+      }
+    };
+
+    loadAllAITwins();
+  }, [user]);
+
+  // 当AI Twin Profile和真实AI Twins都可用时生成对话
+  useEffect(() => {
+    if (aiTwinProfile && realAITwins.length > 0 && Object.keys(generatedConversations).length === 0) {
       generateConversationsForAllChats();
     }
-  }, [aiTwinProfile]);
+  }, [aiTwinProfile, realAITwins]);
 
-  // 动态生成聊天历史记录
+  // 动态生成聊天历史记录（使用真实AI Twins）
   const getDynamicChatHistory = () => {
-    return Object.entries(aiTwinsDatabase).map(([twinId, twinProfile], index) => {
+    if (realAITwins.length === 0) {
+      return [];
+    }
+    
+    return realAITwins.map((twinProfile, index) => {
+      const twinId = `twin-${index}`;
       const conversationResult = generatedConversations[twinId];
       const conversation = conversationResult?.messages || [];
       const lastMessage = conversation.length > 0 
@@ -655,7 +721,7 @@ const Main = () => {
       return {
         id: index + 1,
         partner: `${twinProfile.name}'s AI Twin`,
-        avatar: `/avatars/${index + 2}.png`,
+        avatar: `/avatars/${(index % 4) + 1}.png`, // 循环使用头像
         lastMessage: lastMessage.substring(0, 80) + (lastMessage.length > 80 ? '...' : ''),
         timestamp: conversation.length > 0 ? conversation[conversation.length - 1].timestamp : 'Just now',
         messageCount: conversation.length,
