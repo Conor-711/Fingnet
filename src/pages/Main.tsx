@@ -1024,17 +1024,17 @@ const Main = () => {
                             <span>{chat.timestamp}</span>
                           </div> */}
                         </div>
-                        <div className="flex items-center space-x-2 mb-2">
+                        {/* <div className="flex items-center space-x-2 mb-2">
                           <Badge variant="outline" className="text-xs">
                             {chat.topic}
                           </Badge>
                           <span className="text-xs text-gray-500">
                             {chat.messageCount} messages
                           </span>
-                        </div>
-                        <p className="text-gray-600 text-sm line-clamp-2">
+                        </div> */}
+                        {/* <p className="text-gray-600 text-sm line-clamp-2">
                           {chat.lastMessage}
-                        </p>
+                        </p> */}
                       </div>
                     </div>
                   </div>
