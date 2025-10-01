@@ -1019,10 +1019,10 @@ const Main = () => {
                           <h4 className="font-semibold text-gray-900 truncate">
                             {chat.partner}
                           </h4>
-                          <div className="flex items-center space-x-2 text-sm text-gray-500">
+                          {/* <div className="flex items-center space-x-2 text-sm text-gray-500">
                             <Clock className="w-3 h-3" />
                             <span>{chat.timestamp}</span>
-                          </div>
+                          </div> */}
                         </div>
                         <div className="flex items-center space-x-2 mb-2">
                           <Badge variant="outline" className="text-xs">

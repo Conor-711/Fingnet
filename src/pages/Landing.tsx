@@ -70,6 +70,41 @@ const Landing = () => {
     handleGoogleLogin();
   };
 
+  // 测试模式：创建一个临时测试用户
+  const handleTestMode = async () => {
+    try {
+      setIsLoggingIn(true);
+      
+      console.log('🧪 进入测试模式...');
+      
+      // 创建一个模拟的测试用户
+      const testUser = {
+        sub: `test-user-${Date.now()}`, // 使用时间戳确保唯一性
+        email: `test${Date.now()}@fingnet.dev`,
+        name: 'Test User',
+        picture: '/avatars/ai_friend.png'
+      };
+      
+      console.log('👤 创建测试用户:', {
+        email: testUser.email,
+        name: testUser.name,
+        sub: testUser.sub
+      });
+      
+      // 使用测试用户信息登录
+      await login(testUser);
+      
+      console.log('✅ 测试用户创建成功，跳转到onboarding...');
+      
+      // 跳转到onboarding
+      navigate('/onboarding');
+    } catch (error) {
+      console.error('❌ 测试模式失败:', error);
+      alert(`测试模式失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      setIsLoggingIn(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col relative overflow-hidden">
       {/* Network Background Animation */}
@@ -102,8 +137,9 @@ const Landing = () => {
               Connect with like-minded individuals through intelligent AI twins that understand your Value.
             </p>
 
-            {/* CTA Button */}
-            <div className="pt-8">
+            {/* CTA Buttons */}
+            <div className="pt-8 space-y-4">
+              {/* Main Google Login Button */}
               <Button
                 onClick={handleGetStarted}
                 disabled={isLoggingIn}
@@ -113,7 +149,7 @@ const Landing = () => {
                 {isLoggingIn ? (
                   <>
                     <span className="animate-spin mr-2">⏳</span>
-                    Connecting with Google...
+                    Connecting...
                   </>
                 ) : (
                   <>
@@ -122,9 +158,25 @@ const Landing = () => {
                   </>
                 )}
               </Button>
-              <p className="text-sm text-gray-500 mt-4">
+              <p className="text-sm text-gray-500">
                 Sign in with Google to get started
               </p>
+
+              {/* Test Mode Button */}
+              <div className="pt-4 border-t border-gray-200 mt-6">
+                <Button
+                  onClick={handleTestMode}
+                  disabled={isLoggingIn}
+                  variant="outline"
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-900 border-gray-300 hover:border-gray-400"
+                >
+                  🧪 Test Mode (Skip Google Login)
+                </Button>
+                <p className="text-xs text-gray-400 mt-2">
+                  For testing purposes only
+                </p>
+              </div>
             </div>
           </div>
 
