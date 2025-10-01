@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { MessageCircle, User, Brain, Target, Sparkles, Clock, Settings, CreditCard, Send, Inbox, Users, Plus, Trash2, LogOut } from 'lucide-react';
+import { MessageCircle, User, Brain, Target, Sparkles, Clock, Settings, CreditCard, Send, Inbox, Users, Plus, Trash2, LogOut, ChevronUp, ChevronDown } from 'lucide-react';
 import AITwinConnectionAnimation from '@/components/AITwinConnectionAnimation';
 import { getAITwin, getAllAITwins, getConversations, saveConversation, upsertAITwin } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -53,6 +53,19 @@ const Main = () => {
   // AI Twin编辑状态
   const [showEditModal, setShowEditModal] = useState(false);
   const [editedProfile, setEditedProfile] = useState<AITwinProfile | null>(null);
+  
+  // AI Twin Profile字段折叠状态
+  const [expandedFields, setExpandedFields] = useState<{
+    goals: boolean;
+    offers: boolean;
+    lookings: boolean;
+    memory: boolean;
+  }>({
+    goals: false,
+    offers: false,
+    lookings: false,
+    memory: false
+  });
   
   // 真实AI Twin网络数据
   const [realAITwins, setRealAITwins] = useState<AITwinConversationProfile[]>([]);
@@ -406,6 +419,12 @@ const Main = () => {
       label: `${aiTwinProfile?.name || 'Your AI Twin'}`,
       icon: Brain,
       active: currentPage === 'ai-twin'
+    },
+    {
+      id: 'connections',
+      label: `${aiTwinProfile?.name || 'Your AI Twin'}'s Connections`,
+      icon: MessageCircle,
+      active: currentPage === 'connections'
     },
     {
       id: 'group-chat',
@@ -803,12 +822,234 @@ const Main = () => {
     });
   };
 
+  // 切换字段展开/折叠状态
+  const toggleFieldExpansion = (field: 'goals' | 'offers' | 'lookings' | 'memory') => {
+    setExpandedFields(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
+  // 渲染可折叠的文本字段组件
+  const CollapsibleField: React.FC<{
+    fieldKey: 'goals' | 'offers' | 'lookings' | 'memory';
+    items: string[];
+    fallbackText: string;
+  }> = ({ fieldKey, items, fallbackText }) => {
+    const isExpanded = expandedFields[fieldKey];
+    const hasContent = items && items.length > 0;
+    
+    if (!hasContent) {
+      return <p className="text-sm text-gray-700 leading-relaxed">{fallbackText}</p>;
+    }
+    
+    // 如果只有一个条目且很短，直接显示
+    if (items.length === 1 && items[0].length <= 100) {
+      return (
+        <div className="flex items-start space-x-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 flex-shrink-0"></div>
+          <p className="text-sm text-gray-700 leading-relaxed flex-1">
+            {items[0]}
+          </p>
+        </div>
+      );
+    }
+    
+    // 显示前两行（或完整内容）
+    const displayItems = isExpanded ? items : items.slice(0, 2);
+    const hasMore = items.length > 2;
+    
+    return (
+      <div className="space-y-3">
+        <div className="space-y-2">
+          {displayItems.map((item, index) => (
+            <div key={index} className="flex items-start space-x-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 flex-shrink-0"></div>
+              <p className={`text-sm text-gray-700 leading-relaxed flex-1 ${!isExpanded && index < 2 ? 'line-clamp-2' : ''}`}>
+                {item}
+              </p>
+            </div>
+          ))}
+        </div>
+        {hasMore && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => toggleFieldExpansion(fieldKey)}
+            className="text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 p-0 h-auto font-medium"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="w-3 h-3 mr-1" />
+                Show Less
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-3 h-3 mr-1" />
+                Show More ({items.length - 2} more)
+              </>
+            )}
+          </Button>
+        )}
+      </div>
+    );
+  };
+
+  // 渲染Connections页面内容
+  const renderConnectionsPage = () => (
+    <div className="max-w-6xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{aiTwinProfile?.name || 'Your AI Twin'}'s Connections</h1>
+        <p className="text-gray-600">View and manage AI Twin conversations</p>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Main Content - Conversation History */}
+        <div className="lg:col-span-2">
+          <Card className="shadow-lg border-0">
+            <CardHeader className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-t-lg">
+              <CardTitle className="flex items-center space-x-2">
+                <MessageCircle className="w-5 h-5" />
+                <span>Conversation History</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ScrollArea className="h-[700px]">
+                <div className="p-6 space-y-4">
+                  {isGeneratingConversations ? (
+                    <div className="space-y-4">
+                      <div className="text-center py-4">
+                        <span className="text-sm font-medium font-outfit text-black">{aiTwinProfile?.name || 'Your AI Twin'} is chatting with friends</span>
+                        <p className="text-xs text-gray-500 mt-1">Building connections...</p>
+                      </div>
+                      <AITwinConnectionAnimation userAvatar={aiTwinProfile?.avatar} />
+                    </div>
+                  ) : (
+                    <>
+                      {getDynamicChatHistory().map((chat, index) => (
+                    <div
+                      key={chat.id}
+                      className={`p-4 border rounded-lg transition-all cursor-pointer animate-fade-in ${
+                        chat.recommended 
+                          ? 'border-emerald-300 bg-emerald-50 hover:bg-emerald-100 shadow-md' 
+                          : 'border-gray-200 hover:bg-gray-50'
+                      }`}
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                      onClick={() => handleChatClick(chat)}
+                    >
+                      <div className="mb-3">
+                        <div className="flex items-center justify-between mb-2">
+                          {chat.recommended && (
+                            <Badge className="bg-emerald-600 text-white text-xs">
+                              <Sparkles className="w-3 h-3 mr-1" />
+                              RECOMMENDED
+                            </Badge>
+                          )}
+                          {chat.matchingScore && (
+                            <div className="flex items-center space-x-1">
+                              <span className="text-xs text-gray-500">Match:</span>
+                              <Badge variant="outline" className="text-xs">
+                                {chat.matchingScore.toFixed(1)}/10
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-4">
+                        <Avatar className="w-12 h-12">
+                          <AvatarImage src={chat.avatar} alt={chat.partner} />
+                          <AvatarFallback className="bg-teal-100 text-teal-700">
+                            🤖
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-semibold text-gray-900 truncate">
+                              {chat.partner}
+                            </h4>
+                          </div>
+                        </div>
+                      </div>
+                        {/* 推荐原因 */}
+                      {chat.recommended && chat.recommendReason && (
+                          <div className="bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2 mt-2">
+                            <p className="text-xs text-emerald-800 leading-relaxed">
+                              {chat.recommendReason}
+                            </p>
+                          </div>
+                        )}
+                    </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar - Stats */}
+        <div className="space-y-6">
+          <Card className="shadow-lg border-0">
+            <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-t-lg">
+              <CardTitle className="text-lg">Connection Stats</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="text-center p-4 bg-emerald-50 rounded-lg">
+                  <div className="text-3xl font-bold text-emerald-600">{getDynamicChatHistory().length}</div>
+                  <div className="text-sm text-gray-600 mt-1">Active Chats</div>
+                </div>
+                <div className="text-center p-4 bg-teal-50 rounded-lg">
+                  <div className="text-3xl font-bold text-teal-600">
+                    {getDynamicChatHistory().reduce((sum, chat) => sum + chat.messageCount, 0)}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-1">Total Messages</div>
+                </div>
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-3xl font-bold text-blue-600">
+                    {getDynamicChatHistory().filter(chat => chat.recommended).length}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-1">Recommended</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg border-0">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center">
+                <Sparkles className="w-4 h-4 mr-2 text-yellow-500" />
+                Quick Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-start space-x-2">
+                  <span className="text-emerald-600">✓</span>
+                  <p className="text-gray-600">Your AI Twin is actively networking</p>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-emerald-600">✓</span>
+                  <p className="text-gray-600">High-quality matches found</p>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-emerald-600">✓</span>
+                  <p className="text-gray-600">Building valuable connections</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+
   // 渲染AI Twin页面内容
   const renderAITwinPage = () => (
-    <div className="grid lg:grid-cols-2 gap-8">
-      {/* Left Side - AI Twin Features */}
-      <div className="space-y-6">
-{aiTwinProfile ? (
+    <div className="max-w-4xl mx-auto">
+      {/* AI Twin Profile */}
+      {aiTwinProfile ? (
           <Card className="shadow-lg border-0">
             <CardHeader className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-t-lg">
               <CardTitle className="flex items-center justify-between">
@@ -879,22 +1120,11 @@ const Main = () => {
                     <Target className="w-4 h-4 mr-2 text-blue-600" />
                     Current Goals
                   </h4>
-                  <div className="space-y-2">
-                    {(aiTwinProfile.goals && aiTwinProfile.goals.length > 0) ? (
-                      aiTwinProfile.goals.map((goal, index) => (
-                        <div key={index} className="flex items-start space-x-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 flex-shrink-0"></div>
-                          <p className="text-sm text-gray-700 leading-relaxed flex-1">
-                            {goal}
-                          </p>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        {aiTwinProfile.goalRecently || 'No goals set'}
-                      </p>
-                    )}
-                  </div>
+                  <CollapsibleField
+                    fieldKey="goals"
+                    items={aiTwinProfile.goals || []}
+                    fallbackText={aiTwinProfile.goalRecently || 'No goals set'}
+                  />
                 </div>
 
                 <Separator />
@@ -905,22 +1135,11 @@ const Main = () => {
                     <span className="text-lg mr-2">💝</span>
                     What I Can Offer
                   </h4>
-                  <div className="space-y-2">
-                    {(aiTwinProfile.offers && aiTwinProfile.offers.length > 0) ? (
-                      aiTwinProfile.offers.map((offer, index) => (
-                        <div key={index} className="flex items-start space-x-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-600 mt-2 flex-shrink-0"></div>
-                          <p className="text-sm text-gray-700 leading-relaxed flex-1">
-                            {offer}
-                          </p>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        {aiTwinProfile.valueOffered || 'No offers set'}
-                      </p>
-                    )}
-                  </div>
+                  <CollapsibleField
+                    fieldKey="offers"
+                    items={aiTwinProfile.offers || []}
+                    fallbackText={aiTwinProfile.valueOffered || 'No offers set'}
+                  />
                 </div>
 
                 <Separator />
@@ -931,22 +1150,11 @@ const Main = () => {
                     <span className="text-lg mr-2">🌟</span>
                     What I'm Looking For
                   </h4>
-                  <div className="space-y-2">
-                    {(aiTwinProfile.lookings && aiTwinProfile.lookings.length > 0) ? (
-                      aiTwinProfile.lookings.map((looking, index) => (
-                        <div key={index} className="flex items-start space-x-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-purple-600 mt-2 flex-shrink-0"></div>
-                          <p className="text-sm text-gray-700 leading-relaxed flex-1">
-                            {looking}
-                          </p>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        {aiTwinProfile.valueDesired || 'No lookings set'}
-                      </p>
-                    )}
-                  </div>
+                  <CollapsibleField
+                    fieldKey="lookings"
+                    items={aiTwinProfile.lookings || []}
+                    fallbackText={aiTwinProfile.valueDesired || 'No lookings set'}
+                  />
                 </div>
 
                 <Separator />
@@ -957,9 +1165,13 @@ const Main = () => {
                     <Brain className="w-4 h-4 mr-2 text-indigo-600" />
                     Memory
                   </h4>
-                  <div className="space-y-3">
-                    {(aiTwinProfile.memories && aiTwinProfile.memories.length > 0) ? (
-                      aiTwinProfile.memories.slice().reverse().map((memory) => (
+                  {(aiTwinProfile.memories && aiTwinProfile.memories.length > 0) ? (
+                    <div className="space-y-3">
+                      {/* 显示前两条记忆（或完整列表） */}
+                      {(expandedFields.memory 
+                        ? aiTwinProfile.memories.slice().reverse() 
+                        : aiTwinProfile.memories.slice().reverse().slice(0, 2)
+                      ).map((memory) => (
                         <div key={memory.id} className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-3 border border-indigo-100">
                           <div className="flex items-start justify-between mb-2">
                             <Badge variant="outline" className="text-xs bg-white/50">
@@ -976,17 +1188,37 @@ const Main = () => {
                               From: {memory.groupName}
                             </p>
                           )}
-                          <p className="text-sm text-gray-700 leading-relaxed">
+                          <p className={`text-sm text-gray-700 leading-relaxed ${!expandedFields.memory ? 'line-clamp-2' : ''}`}>
                             {memory.content}
                           </p>
                         </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-500 italic">
-                        No memories yet. Summarize conversations to build {aiTwinProfile?.name || 'Your AI Twin'} 's memory.
-                      </p>
-                    )}
-                  </div>
+                      ))}
+                      {aiTwinProfile.memories.length > 2 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleFieldExpansion('memory')}
+                          className="text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 p-0 h-auto font-medium w-full"
+                        >
+                          {expandedFields.memory ? (
+                            <>
+                              <ChevronUp className="w-3 h-3 mr-1" />
+                              Show Less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="w-3 h-3 mr-1" />
+                              Show More ({aiTwinProfile.memories.length - 2} more)
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">
+                      No memories yet. Summarize conversations to build {aiTwinProfile?.name || 'Your AI Twin'}'s memory.
+                    </p>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -1018,127 +1250,6 @@ const Main = () => {
             </CardContent>
           </Card>
         )}
-      </div>
-
-      {/* Right Side - Chat History */}
-      <div className="space-y-6">
-        <Card className="shadow-lg border-0">
-          <CardHeader className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-t-lg">
-            <CardTitle className="flex items-center space-x-2">
-              <MessageCircle className="w-5 h-5" />
-              <span>Conversation History</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <ScrollArea className="h-[600px]">
-              <div className="p-6 space-y-4">
-                {isGeneratingConversations ? (
-                  <div className="space-y-4">
-                    <div className="text-center py-4">
-                      <span className="text-sm font-medium font-outfit text-black">{aiTwinProfile?.name || 'Your AI Twin'} is chatting with friends</span>
-                      <p className="text-xs text-gray-500 mt-1">Building connections...</p>
-                    </div>
-                    <AITwinConnectionAnimation userAvatar={aiTwinProfile?.avatar} />
-                  </div>
-                ) : (
-                  <>
-                    {getDynamicChatHistory().map((chat, index) => (
-                  <div
-                    key={chat.id}
-                    className={`p-4 border rounded-lg transition-all cursor-pointer animate-fade-in ${
-                      chat.recommended 
-                        ? 'border-emerald-300 bg-emerald-50 hover:bg-emerald-100 shadow-md' 
-                        : 'border-gray-200 hover:bg-gray-50'
-                    }`}
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                    onClick={() => handleChatClick(chat)}
-                  >
-                    <div className="mb-3">
-                      <div className="flex items-center justify-between mb-2">
-                        {chat.recommended && (
-                          <Badge className="bg-emerald-600 text-white text-xs">
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            RECOMMENDED
-                          </Badge>
-                        )}
-                        {chat.matchingScore && (
-                          <div className="flex items-center space-x-1">
-                            <span className="text-xs text-gray-500">Match:</span>
-                            <Badge variant="outline" className="text-xs">
-                              {chat.matchingScore.toFixed(1)}/10
-                            </Badge>
-                          </div>
-                        )}
-                      </div>
-                      {/* 推荐原因 */}
-                      {chat.recommended && chat.recommendReason && (
-                        <div className="bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2 mt-2">
-                          <p className="text-xs text-emerald-800 leading-relaxed">
-                            {chat.recommendReason}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-start space-x-4">
-                      <Avatar className="w-12 h-12">
-                        <AvatarImage src={chat.avatar} alt={chat.partner} />
-                        <AvatarFallback className="bg-teal-100 text-teal-700">
-                          🤖
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-semibold text-gray-900 truncate">
-                            {chat.partner}
-                          </h4>
-                          {/* <div className="flex items-center space-x-2 text-sm text-gray-500">
-                            <Clock className="w-3 h-3" />
-                            <span>{chat.timestamp}</span>
-                          </div> */}
-                        </div>
-                        {/* <div className="flex items-center space-x-2 mb-2">
-                          <Badge variant="outline" className="text-xs">
-                            {chat.topic}
-                          </Badge>
-                          <span className="text-xs text-gray-500">
-                            {chat.messageCount} messages
-                          </span>
-                        </div> */}
-                        {/* <p className="text-gray-600 text-sm line-clamp-2">
-                          {chat.lastMessage}
-                        </p> */}
-                      </div>
-                    </div>
-                  </div>
-                    ))}
-                  </>
-                )}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-
-        {/* Stats Card */}
-        <Card className="shadow-lg border-0">
-          <CardContent className="p-6">
-            <h3 className="font-semibold text-gray-900 mb-4">Connection Stats</h3>
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-emerald-600">4</div>
-                <div className="text-sm text-gray-600">Active Chats</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-teal-600">41</div>
-                <div className="text-sm text-gray-600">Total Messages</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-blue-600">12</div>
-                <div className="text-sm text-gray-600">Connections Made</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 
@@ -1889,6 +2000,8 @@ const Main = () => {
     switch (currentPage) {
       case 'ai-twin':
         return renderAITwinPage();
+      case 'connections':
+        return renderConnectionsPage();
       case 'group-chat':
         return renderGroupChatPage();
       case 'invitations':
