@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding, type AITwinProfile, type Memory } from '@/contexts/OnboardingContext';
 import { generateAITwinConversation, withRetry, summarizeGroupChat, type AITwinConversationProfile, type GeneratedMessage, type AITwinConversationResult, type ChatMessage } from '@/services/aiService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,12 +12,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { MessageCircle, User, Brain, Target, Sparkles, Clock, Settings, CreditCard, Send, Inbox, Users, Plus, Trash2 } from 'lucide-react';
+import { MessageCircle, User, Brain, Target, Sparkles, Clock, Settings, CreditCard, Send, Inbox, Users, Plus, Trash2, LogOut } from 'lucide-react';
 import AITwinConnectionAnimation from '@/components/AITwinConnectionAnimation';
 
 const Main = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user, logout } = useAuth();
   const { progress, aiTwinProfile, updateAITwinProfile } = useOnboarding();
   const [currentPage, setCurrentPage] = useState(() => {
     // 初始化时检查URL参数
@@ -1462,18 +1464,71 @@ const Main = () => {
   );
 
   // 渲染Settings页面内容
-  const renderSettingsPage = () => (
-    <div className="max-w-2xl mx-auto">
-      <Card className="shadow-lg border-0">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-gray-900">Settings</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-600">Settings page coming soon...</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  const renderSettingsPage = () => {
+    const handleLogout = () => {
+      if (window.confirm('Are you sure you want to log out?')) {
+        logout();
+        navigate('/');
+      }
+    };
+
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* User Account Card */}
+        <Card className="shadow-lg border-0">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-gray-900">Account</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* User Info */}
+            <div className="flex items-center space-x-4">
+              <Avatar className="w-16 h-16">
+                <AvatarImage src={user?.picture} alt={user?.name} />
+                <AvatarFallback className="bg-emerald-100 text-emerald-700 text-xl">
+                  {user?.name?.charAt(0) || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="font-semibold text-gray-900">{user?.name}</h3>
+                <p className="text-sm text-gray-600">{user?.email}</p>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Logout Button */}
+            <div>
+              <Button 
+                variant="destructive" 
+                onClick={handleLogout}
+                className="w-full"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Log Out
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* App Information */}
+        <Card className="shadow-lg border-0">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold text-gray-900">About</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Version</span>
+              <span className="font-medium text-gray-900">1.0.0</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Build</span>
+              <span className="font-medium text-gray-900">2025.01</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
 
   // 根据当前页面渲染内容
   const renderCurrentPage = () => {

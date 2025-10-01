@@ -1,13 +1,65 @@
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import { useGoogleLogin } from '@react-oauth/google';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, useState } from 'react';
 import NetworkBackground from '@/components/NetworkBackground';
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, login } = useAuth();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  // 如果已经登录，直接跳转到onboarding
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/onboarding');
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        setIsLoggingIn(true);
+        
+        // 使用access token获取用户信息
+        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.access_token}`,
+          },
+        });
+        
+        const userInfo = await userInfoResponse.json();
+        
+        // 创建模拟的credential用于login函数
+        const mockCredential = btoa(JSON.stringify({
+          header: { alg: 'RS256', typ: 'JWT' },
+          payload: {
+            email: userInfo.email,
+            name: userInfo.name,
+            picture: userInfo.picture,
+            sub: userInfo.sub
+          }
+        }));
+        
+        await login('header.' + mockCredential + '.signature');
+        
+        // 登录成功后跳转到onboarding
+        navigate('/onboarding');
+      } catch (error) {
+        console.error('Login failed:', error);
+        setIsLoggingIn(false);
+      }
+    },
+    onError: (error) => {
+      console.error('Google login failed:', error);
+      setIsLoggingIn(false);
+    },
+  });
 
   const handleGetStarted = () => {
-    navigate('/onboarding');
+    handleGoogleLogin();
   };
 
   return (
@@ -46,12 +98,25 @@ const Landing = () => {
             <div className="pt-8">
               <Button
                 onClick={handleGetStarted}
+                disabled={isLoggingIn}
                 size="lg"
-                className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 text-lg font-medium rounded-lg transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+                className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 text-lg font-medium rounded-lg transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Let your Value flow
-                <ArrowRight className="ml-2 h-5 w-5" />
+                {isLoggingIn ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span>
+                    Connecting with Google...
+                  </>
+                ) : (
+                  <>
+                    Let your Value flow
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </>
+                )}
               </Button>
+              <p className="text-sm text-gray-500 mt-4">
+                Sign in with Google to get started
+              </p>
             </div>
           </div>
 
