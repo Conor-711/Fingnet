@@ -414,18 +414,11 @@ const Main = () => {
       active: currentPage === 'group-chat'
     },
     {
-      id: 'invitation-sent',
-      label: 'Invitation Sent',
+      id: 'invitations',
+      label: 'Invitations',
       icon: Send,
-      active: currentPage === 'invitation-sent',
-      hasNotification: hasNewSentResponse
-    },
-    {
-      id: 'invitation-received',
-      label: 'Invitation Received',
-      icon: Inbox,
-      active: currentPage === 'invitation-received',
-      hasNotification: hasNewReceivedInvite
+      active: currentPage === 'invitations',
+      hasNotification: hasNewSentResponse || hasNewReceivedInvite
     },
     {
       id: 'subscribe',
@@ -698,6 +691,71 @@ const Main = () => {
     }
   }, [aiTwinProfile, realAITwins]);
 
+  // 生成推荐原因
+  const generateRecommendReason = (twinProfile: AITwinConversationProfile, conversationResult: AITwinConversationResult | undefined) => {
+    if (!aiTwinProfile) return null;
+    
+    const reasons: string[] = [];
+    
+    // 检查地理位置
+    if (twinProfile.profile.location && aiTwinProfile.profile.location) {
+      const twinCity = twinProfile.profile.location.split(',')[0].trim();
+      const userCity = aiTwinProfile.profile.location.split(',')[0].trim();
+      if (twinCity === userCity) {
+        reasons.push(`📍 Same city: ${twinCity}`);
+      }
+    }
+    
+    // 检查年龄相仿
+    if (twinProfile.profile.age && aiTwinProfile.profile.age) {
+      const twinAge = parseInt(twinProfile.profile.age);
+      const userAge = parseInt(aiTwinProfile.profile.age);
+      if (!isNaN(twinAge) && !isNaN(userAge) && Math.abs(twinAge - userAge) <= 5) {
+        reasons.push(`👥 Similar age group`);
+      }
+    }
+    
+    // 检查职业相关
+    if (twinProfile.profile.occupation && aiTwinProfile.profile.occupation) {
+      const twinOccupation = twinProfile.profile.occupation.toLowerCase();
+      const userOccupation = aiTwinProfile.profile.occupation.toLowerCase();
+      if (twinOccupation.includes(userOccupation.split(' ')[0]) || userOccupation.includes(twinOccupation.split(' ')[0])) {
+        reasons.push(`💼 Related fields`);
+      }
+    }
+    
+    // 检查价值匹配
+    if (conversationResult) {
+      const valueScore = conversationResult.twin1Score.valueAlignment;
+      if (valueScore >= 8) {
+        reasons.push(`💎 High value alignment (${valueScore}/10)`);
+      }
+    }
+    
+    // 检查目标协同
+    if (conversationResult) {
+      const goalScore = conversationResult.twin1Score.goalSynergy;
+      if (goalScore >= 8) {
+        reasons.push(`🎯 Strong goal synergy (${goalScore}/10)`);
+      }
+    }
+    
+    // 检查兴趣重叠
+    if (twinProfile.interests && aiTwinProfile.goals) {
+      const hasCommonInterest = twinProfile.interests.some(interest => 
+        aiTwinProfile.goals?.some(goal => 
+          goal.toLowerCase().includes(interest.toLowerCase()) || 
+          interest.toLowerCase().includes(goal.toLowerCase())
+        )
+      );
+      if (hasCommonInterest) {
+        reasons.push(`⭐ Shared interests`);
+      }
+    }
+    
+    return reasons.length > 0 ? reasons.slice(0, 3).join(' • ') : null;
+  };
+
   // 动态生成聊天历史记录（使用真实AI Twins）
   const getDynamicChatHistory = () => {
     if (realAITwins.length === 0) {
@@ -718,6 +776,9 @@ const Main = () => {
         : 7; // 默认评分
       const isRecommended = averageScore >= 8 || index < 2;
       
+      // 生成推荐原因
+      const recommendReason = isRecommended ? generateRecommendReason(twinProfile, conversationResult) : null;
+      
       return {
         id: index + 1,
         partner: `${twinProfile.name}'s AI Twin`,
@@ -727,6 +788,7 @@ const Main = () => {
         messageCount: conversation.length,
         topic: twinProfile.interests?.[0] || 'General Discussion',
         recommended: isRecommended,
+        recommendReason, // 推荐原因
         messages: conversation.map(msg => ({
           id: msg.id,
           sender: msg.sender,
@@ -991,19 +1053,29 @@ const Main = () => {
                     style={{ animationDelay: `${index * 0.1}s` }}
                     onClick={() => handleChatClick(chat)}
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      {chat.recommended && (
-                        <Badge className="bg-emerald-600 text-white text-xs">
-                          <Sparkles className="w-3 h-3 mr-1" />
-                          RECOMMENDED
-                        </Badge>
-                      )}
-                      {chat.matchingScore && (
-                        <div className="flex items-center space-x-1">
-                          <span className="text-xs text-gray-500">Match:</span>
-                          <Badge variant="outline" className="text-xs">
-                            {chat.matchingScore.toFixed(1)}/10
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between mb-2">
+                        {chat.recommended && (
+                          <Badge className="bg-emerald-600 text-white text-xs">
+                            <Sparkles className="w-3 h-3 mr-1" />
+                            RECOMMENDED
                           </Badge>
+                        )}
+                        {chat.matchingScore && (
+                          <div className="flex items-center space-x-1">
+                            <span className="text-xs text-gray-500">Match:</span>
+                            <Badge variant="outline" className="text-xs">
+                              {chat.matchingScore.toFixed(1)}/10
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                      {/* 推荐原因 */}
+                      {chat.recommended && chat.recommendReason && (
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2 mt-2">
+                          <p className="text-xs text-emerald-800 leading-relaxed">
+                            {chat.recommendReason}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -1390,8 +1462,125 @@ const Main = () => {
     );
   };
 
-  // 渲染Invitation Sent页面内容
-  const renderInvitationSentPage = () => (
+  // 渲染合并后的Invitations页面（左侧sent，右侧received）
+  const renderInvitationsPage = () => (
+    <div className="h-full">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Invitations</h1>
+        <p className="text-gray-600">Manage your sent and received invitations</p>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
+        {/* 左侧：Invitation Sent */}
+        <div className="flex flex-col">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+              <Send className="w-5 h-5 mr-2 text-blue-600" />
+              Sent Invitations
+            </h2>
+            <Badge variant="outline" className="text-xs">
+              {mockInvitationsSent.length} total
+            </Badge>
+          </div>
+          
+          <ScrollArea className="flex-1">
+            <div className="space-y-3 pr-4">
+              {mockInvitationsSent.map((invitation) => (
+                <Card key={invitation.id} className="shadow-sm border hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-start space-x-3">
+                      <Avatar className="w-10 h-10">
+                        <AvatarImage src={invitation.recipientAvatar} alt={invitation.recipientName} />
+                        <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
+                          {invitation.recipientName.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-gray-900 text-sm truncate">{invitation.recipientName}</h4>
+                        <p className="text-xs text-gray-500">{invitation.connectionType}</p>
+                        <p className="text-xs text-gray-400 mt-1">Sent: {invitation.sentDate}</p>
+                        <div className="mt-2">
+                          <Badge 
+                            className={`text-xs ${
+                              invitation.status === 'accepted' 
+                                ? 'bg-green-100 text-green-700' 
+                                : invitation.status === 'declined'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-yellow-100 text-yellow-700'
+                            }`}
+                          >
+                            {invitation.status === 'accepted' && '✓ Accepted'}
+                            {invitation.status === 'declined' && '✗ Declined'}
+                            {invitation.status === 'pending' && '⏳ Pending'}
+                          </Badge>
+                          {invitation.acceptedDate && (
+                            <span className="text-xs text-gray-500 ml-2">on {invitation.acceptedDate}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* 右侧：Invitation Received */}
+        <div className="flex flex-col">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+              <Inbox className="w-5 h-5 mr-2 text-emerald-600" />
+              Received Invitations
+            </h2>
+            <Badge variant="outline" className="text-xs">
+              {mockInvitationsReceived.length} total
+            </Badge>
+          </div>
+          
+          <ScrollArea className="flex-1">
+            <div className="space-y-3 pr-4">
+              {mockInvitationsReceived.map((invitation) => (
+                <Card key={invitation.id} className="shadow-sm border hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-3 flex-1">
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src={invitation.senderAvatar} alt={invitation.senderName} />
+                          <AvatarFallback className="bg-emerald-100 text-emerald-700 text-xs">
+                            {invitation.senderName.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 text-sm">{invitation.senderName}</h4>
+                          <p className="text-xs text-gray-500">{invitation.connectionType}</p>
+                          <p className="text-xs text-gray-400 mt-1">Received: {invitation.receivedDate}</p>
+                          <p className="text-xs text-gray-700 bg-gray-50 p-2 rounded mt-2 italic line-clamp-2">
+                            "{invitation.message}"
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex space-x-2 mt-3">
+                      <Button size="sm" className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs">
+                        Accept
+                      </Button>
+                      <Button size="sm" variant="outline" className="flex-1 text-xs">
+                        Decline
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+      </div>
+    </div>
+  );
+
+  // 旧的Invitation Sent页面（保留以防需要）
+  const renderInvitationSentPage_OLD = () => (
     <div className="max-w-6xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Invitation Sent</h1>
@@ -1702,10 +1891,8 @@ const Main = () => {
         return renderAITwinPage();
       case 'group-chat':
         return renderGroupChatPage();
-      case 'invitation-sent':
-        return renderInvitationSentPage();
-      case 'invitation-received':
-        return renderInvitationReceivedPage();
+      case 'invitations':
+        return renderInvitationsPage();
       case 'subscribe':
         return renderSubscribePage();
       case 'settings':
@@ -1745,9 +1932,8 @@ const Main = () => {
                   onClick={() => {
                     setCurrentPage(item.id);
                     // 点击后清除对应的通知
-                    if (item.id === 'invitation-sent') {
+                    if (item.id === 'invitations') {
                       setHasNewSentResponse(false);
-                    } else if (item.id === 'invitation-received') {
                       setHasNewReceivedInvite(false);
                     }
                   }}
