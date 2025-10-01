@@ -399,7 +399,7 @@ const Main = () => {
   const sidebarItems = [
     {
       id: 'ai-twin',
-      label: 'AI Twin',
+      label: `${aiTwinProfile?.name || 'Your AI Twin'}`,
       icon: Brain,
       active: currentPage === 'ai-twin'
     },
