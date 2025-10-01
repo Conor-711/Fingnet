@@ -17,6 +17,9 @@ import { Input } from '@/components/ui/input';
 import TypewriterText from '@/components/TypewriterText';
 import { integrateGoalAnswers, integrateValueOffered, integrateValueDesired, withRetry, generateFollowUpQuestion, integrateConversationToGoal, integrateConversationToValueOffered, integrateConversationToValueDesired, type GoalIntegrationInput, type ConversationContext } from '@/services/aiService';
 import { ArrowRight, ArrowLeft, Check, Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { saveOnboardingProgress, upsertAITwin } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 // Goal Input AI问题序列
 const goalQuestions = [
@@ -46,6 +49,7 @@ interface OnboardingProps {
 
 
 export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
+  const { user } = useAuth(); // 获取当前登录用户
   const [currentQuestionId, setCurrentQuestionId] = useState(onboardingQuestions[0]?.id || '');
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -57,6 +61,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
   const [showAIIntro, setShowAIIntro] = useState(true); // AI伙伴自我介绍页面
   const [showLoadingPage, setShowLoadingPage] = useState(false); // Goal Input后的短暂加载页面
   const [isFirstGoalInput, setIsFirstGoalInput] = useState(true); // 是否是第一次进入Goal Input页面
+  const [isSavingToDatabase, setIsSavingToDatabase] = useState(false); // 是否正在保存到数据库
   
   // Goal Input聊天相关状态
   const [goalChatMessages, setGoalChatMessages] = useState<Array<{type: 'ai' | 'user', content: string, timestamp: Date}>>([]);
@@ -119,7 +124,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
   const [searchParams] = useSearchParams();
 
 
-  const { updateAnswer, completeOnboarding, skipOnboarding, updateAITwinProfile, updateAITwinBasicInfo, aiTwinProfile } = useOnboarding();
+  const { progress: onboardingProgress, updateAnswer, completeOnboarding, skipOnboarding, updateAITwinProfile, updateAITwinBasicInfo, aiTwinProfile } = useOnboarding();
 
 
   // 检查是否为强制测试模式
@@ -320,11 +325,70 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
     setShowConnect(true);
   };
 
-  // 完成onboarding流程
-  const handleCompleteOnboarding = () => {
-    // setShouldShowOnboarding(false); // Removed - no auth context
-    if (forceTest) {
-      navigate('/');
+  // 完成onboarding流程并保存到数据库
+  const handleCompleteOnboarding = async () => {
+    if (!user) {
+      toast.error('用户未登录，无法保存数据');
+      return;
+    }
+
+    setIsSavingToDatabase(true);
+
+    try {
+      // 1. 保存onboarding进度
+      const { error: progressError } = await saveOnboardingProgress(
+        user.id,
+        onboardingProgress.answers, // 使用context中的answers
+        true // completed = true
+      );
+
+      if (progressError) {
+        console.error('Failed to save onboarding progress:', progressError);
+        toast.error('保存进度失败，请重试');
+        setIsSavingToDatabase(false);
+        return;
+      }
+
+      // 2. 保存AI Twin数据
+      const aiTwinData = {
+        name: aiTwinProfile?.name || customAITwinName || 'AI Twin',
+        avatar: aiTwinProfile?.avatar || customAITwinAvatar,
+        profile: {
+          gender: profileData.gender,
+          age: profileData.age,
+          occupation: profileData.occupation,
+          location: profileData.location
+        },
+        goals: [goalRecently],
+        offers: [valueOffered],
+        lookings: [valueDesired],
+        memories: []
+      };
+
+      const { error: aiTwinError } = await upsertAITwin(user.id, aiTwinData);
+
+      if (aiTwinError) {
+        console.error('Failed to save AI Twin:', aiTwinError);
+        toast.error('保存AI Twin失败，请重试');
+        setIsSavingToDatabase(false);
+        return;
+      }
+
+      toast.success('所有数据已成功保存！');
+      
+      // 标记onboarding完成
+      completeOnboarding(onboardingProgress.answers);
+
+      // 导航到主页
+      setTimeout(() => {
+        navigate('/main');
+      }, 500);
+
+    } catch (error) {
+      console.error('Error saving onboarding data:', error);
+      toast.error('保存数据时出错，请重试');
+    } finally {
+      setIsSavingToDatabase(false);
     }
   };
 
@@ -2036,13 +2100,21 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
               {/* Interested In按钮 */}
               <div className="p-4 border-t border-gray-100">
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setShowChatPopup(false);
-                    navigate('/main');
+                    await handleCompleteOnboarding();
                   }}
-                  className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg font-semibold text-base transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                  disabled={isSavingToDatabase}
+                  className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg font-semibold text-base transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  Interested In
+                  {isSavingToDatabase ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Complete Onboarding'
+                  )}
                 </button>
               </div>
             </div>

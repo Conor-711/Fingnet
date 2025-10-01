@@ -14,6 +14,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { MessageCircle, User, Brain, Target, Sparkles, Clock, Settings, CreditCard, Send, Inbox, Users, Plus, Trash2, LogOut } from 'lucide-react';
 import AITwinConnectionAnimation from '@/components/AITwinConnectionAnimation';
+import { getAITwin, getAllAITwins, getConversations, saveConversation, upsertAITwin } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 const Main = () => {
   const navigate = useNavigate();
@@ -68,21 +70,47 @@ const Main = () => {
   };
   
   // 处理保存编辑
-  const handleSaveProfile = () => {
-    if (editedProfile && updateAITwinProfile) {
-      // 过滤掉空字符串
-      const cleanedProfile = {
-        ...editedProfile,
-        goals: editedProfile.goals?.filter(g => g.trim()) || [],
-        offers: editedProfile.offers?.filter(o => o.trim()) || [],
-        lookings: editedProfile.lookings?.filter(l => l.trim()) || [],
-        // 为向后兼容保留单个字段
-        goalRecently: editedProfile.goals?.[0] || '',
-        valueOffered: editedProfile.offers?.[0] || '',
-        valueDesired: editedProfile.lookings?.[0] || ''
-      };
+  const handleSaveProfile = async () => {
+    if (!editedProfile || !updateAITwinProfile || !user) return;
+    
+    // 过滤掉空字符串
+    const cleanedProfile = {
+      ...editedProfile,
+      goals: editedProfile.goals?.filter(g => g.trim()) || [],
+      offers: editedProfile.offers?.filter(o => o.trim()) || [],
+      lookings: editedProfile.lookings?.filter(l => l.trim()) || [],
+      // 为向后兼容保留单个字段
+      goalRecently: editedProfile.goals?.[0] || '',
+      valueOffered: editedProfile.offers?.[0] || '',
+      valueDesired: editedProfile.lookings?.[0] || ''
+    };
+    
+    try {
+      // 💾 保存到数据库
+      const { error } = await upsertAITwin(user.id, {
+        name: cleanedProfile.name,
+        avatar: cleanedProfile.avatar,
+        profile: cleanedProfile.profile,
+        goals: cleanedProfile.goals,
+        offers: cleanedProfile.offers,
+        lookings: cleanedProfile.lookings,
+        memories: cleanedProfile.memories || []
+      });
+      
+      if (error) {
+        console.error('Failed to save AI Twin profile:', error);
+        toast.error('保存失败，请重试');
+        return;
+      }
+      
+      // 更新Context
       updateAITwinProfile(cleanedProfile);
+      toast.success('AI Twin资料已更新');
       setShowEditModal(false);
+      console.log('✅ AI Twin profile updated successfully');
+    } catch (error) {
+      console.error('Error saving AI Twin profile:', error);
+      toast.error('保存时出错');
     }
   };
   
@@ -473,7 +501,7 @@ const Main = () => {
 
   // 生成AI驱动的对话
   const generateConversationsForAllChats = async () => {
-    if (!aiTwinProfile || isGeneratingConversations) return;
+    if (!aiTwinProfile || isGeneratingConversations || !user) return;
     
     setIsGeneratingConversations(true);
     
@@ -498,6 +526,33 @@ const Main = () => {
             generateAITwinConversation(twinProfile, userAITwin, 12) // 生成12轮对话
           );
           conversations[twinId] = conversationResult;
+          
+          // 💾 保存对话到数据库
+          const { error: saveError } = await saveConversation({
+            user_id: user.id,
+            partner_twin_id: null, // Mock数据暂时没有真实ID
+            partner_name: twinProfile.name,
+            messages: conversationResult.messages.map(msg => ({
+              sender: msg.sender,
+              content: msg.content,
+              timestamp: new Date().toISOString()
+            })),
+            matching_scores: {
+              compatibility: conversationResult.twin1Score.compatibility,
+              valueAlignment: conversationResult.twin1Score.valueAlignment,
+              goalSynergy: conversationResult.twin1Score.goalSynergy,
+              overall: conversationResult.twin1Score.overallScore,
+              reasoning: conversationResult.twin1Score.reasoning
+            },
+            summary: conversationResult.conversationSummary, // 修正字段名
+            recommended: (conversationResult.twin1Score.overallScore + conversationResult.twin2Score.overallScore) / 2 >= 8
+          });
+          
+          if (saveError) {
+            console.error(`Failed to save conversation for ${twinId}:`, saveError);
+          } else {
+            console.log(`✅ Saved conversation for ${twinId} to database`);
+          }
         } catch (error) {
           console.error(`Error generating conversation for ${twinId}:`, error);
           // 使用空结果，AI服务已经有fallback逻辑
@@ -530,6 +585,50 @@ const Main = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
+
+  // 从数据库加载AI Twin数据
+  useEffect(() => {
+    const loadAITwinFromDatabase = async () => {
+      if (!user) return;
+
+      try {
+        // 从数据库加载AI Twin
+        const { data: dbAITwin, error } = await getAITwin(user.id);
+        
+        if (error) {
+          console.error('Error loading AI Twin from database:', error);
+          return;
+        }
+
+        if (dbAITwin) {
+          console.log('✅ Loaded AI Twin from database:', dbAITwin);
+          
+          // 同步数据库数据到Context（确保UI使用最新数据）
+          const profileData: AITwinProfile = {
+            name: dbAITwin.name,
+            avatar: dbAITwin.avatar || '/avatars/ai_friend.png',
+            profile: dbAITwin.profile,
+            goals: dbAITwin.goals,
+            offers: dbAITwin.offers,
+            lookings: dbAITwin.lookings,
+            memories: dbAITwin.memories,
+            // 向后兼容
+            goalRecently: dbAITwin.goals?.[0] || dbAITwin.goal_recently,
+            valueOffered: dbAITwin.offers?.[0] || dbAITwin.value_offered,
+            valueDesired: dbAITwin.lookings?.[0] || dbAITwin.value_desired
+          };
+          
+          updateAITwinProfile(profileData);
+        } else {
+          console.log('ℹ️ No AI Twin found in database, using localStorage data');
+        }
+      } catch (error) {
+        console.error('Error in loadAITwinFromDatabase:', error);
+      }
+    };
+
+    loadAITwinFromDatabase();
+  }, [user]);
 
   // 当AI Twin Profile可用时生成对话
   useEffect(() => {
