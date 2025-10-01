@@ -23,6 +23,8 @@ const Landing = () => {
       try {
         setIsLoggingIn(true);
         
+        console.log('🔑 Google OAuth成功，正在获取用户信息...');
+        
         // 使用access token获取用户信息
         const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: {
@@ -32,28 +34,34 @@ const Landing = () => {
         
         const userInfo = await userInfoResponse.json();
         
-        // 创建模拟的credential用于login函数
-        const mockCredential = btoa(JSON.stringify({
-          header: { alg: 'RS256', typ: 'JWT' },
-          payload: {
-            email: userInfo.email,
-            name: userInfo.name,
-            picture: userInfo.picture,
-            sub: userInfo.sub
-          }
-        }));
+        console.log('👤 获取到用户信息:', {
+          email: userInfo.email,
+          name: userInfo.name,
+          sub: userInfo.sub
+        });
         
-        await login('header.' + mockCredential + '.signature');
+        // 直接传递Google用户信息到login函数
+        // login函数会将用户信息保存到Supabase数据库
+        await login({
+          sub: userInfo.sub,
+          email: userInfo.email,
+          name: userInfo.name,
+          picture: userInfo.picture
+        });
+        
+        console.log('✅ 登录完成，跳转到onboarding...');
         
         // 登录成功后跳转到onboarding
         navigate('/onboarding');
       } catch (error) {
-        console.error('Login failed:', error);
+        console.error('❌ 登录失败:', error);
+        alert(`登录失败: ${error instanceof Error ? error.message : '未知错误'}`);
         setIsLoggingIn(false);
       }
     },
     onError: (error) => {
-      console.error('Google login failed:', error);
+      console.error('❌ Google OAuth失败:', error);
+      alert('Google登录失败，请重试');
       setIsLoggingIn(false);
     },
   });

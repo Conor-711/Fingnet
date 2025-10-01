@@ -1,16 +1,20 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase, getOrCreateUser, type User as SupabaseUser } from '@/lib/supabase';
 
+// 扩展User类型，包含Supabase的id
 export interface User {
+  id: string; // Supabase user UUID
   email: string;
   name: string;
   picture: string;
   sub: string; // Google user ID
+  google_id: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (credential: string) => Promise<void>;
+  login: (googleUserInfo: { sub: string; email: string; name: string; picture: string }) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -33,59 +37,91 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 从localStorage加载用户信息
+  // 从Supabase和localStorage恢复会话
   useEffect(() => {
-    const storedUser = localStorage.getItem('onlymsg_user');
-    if (storedUser) {
+    const initAuth = async () => {
       try {
-        setUser(JSON.parse(storedUser));
+        // 先检查localStorage
+        const storedUser = localStorage.getItem('onlymsg_user');
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          console.log('✅ 从localStorage恢复用户会话:', parsedUser.email);
+        }
       } catch (error) {
-        console.error('Failed to parse stored user:', error);
+        console.error('Failed to restore session:', error);
         localStorage.removeItem('onlymsg_user');
+      } finally {
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false);
+    };
+
+    initAuth();
   }, []);
 
-  // 解码Google JWT token
-  const decodeJWT = (token: string): User => {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    return JSON.parse(jsonPayload);
-  };
-
-  const login = async (credential: string) => {
+  const login = async (googleUserInfo: { sub: string; email: string; name: string; picture: string }) => {
     try {
-      // 解码Google返回的JWT token
-      const userData = decodeJWT(credential);
-      
+      console.log('🔐 开始登录流程...', googleUserInfo.email);
+
+      // 在Supabase中获取或创建用户记录
+      const { user: dbUser, error } = await getOrCreateUser({
+        sub: googleUserInfo.sub,
+        email: googleUserInfo.email,
+        name: googleUserInfo.name,
+        picture: googleUserInfo.picture
+      });
+
+      if (error) {
+        console.error('❌ 数据库操作失败:', error);
+        throw new Error(`Failed to save user to database: ${error.message}`);
+      }
+
+      if (!dbUser) {
+        throw new Error('Failed to create user in database');
+      }
+
+      console.log('✅ 用户信息已保存到数据库:', {
+        id: dbUser.id,
+        email: dbUser.email,
+        name: dbUser.name
+      });
+
+      // 构建用户对象
       const user: User = {
-        email: userData.email,
-        name: userData.name,
-        picture: userData.picture,
-        sub: userData.sub
+        id: dbUser.id,
+        email: dbUser.email,
+        name: dbUser.name || '',
+        picture: dbUser.picture || '',
+        sub: dbUser.google_id,
+        google_id: dbUser.google_id
       };
 
-      // 保存用户信息
+      // 保存到状态和localStorage
       setUser(user);
       localStorage.setItem('onlymsg_user', JSON.stringify(user));
+
+      console.log('✅ 登录成功！用户信息已保存');
+
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('❌ 登录失败:', error);
       throw error;
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('onlymsg_user');
-    localStorage.removeItem('onlymsg_onboarding');
-    localStorage.removeItem('onlymsg_ai_twin_profile');
+  const logout = async () => {
+    try {
+      console.log('👋 用户登出...');
+      
+      // 清除状态和localStorage
+      setUser(null);
+      localStorage.removeItem('onlymsg_user');
+      localStorage.removeItem('onlymsg_onboarding');
+      localStorage.removeItem('onlymsg_ai_twin_profile');
+
+      console.log('✅ 登出成功');
+    } catch (error) {
+      console.error('❌ 登出失败:', error);
+    }
   };
 
   const value: AuthContextType = {
