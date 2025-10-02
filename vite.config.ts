@@ -14,6 +14,8 @@ export default defineConfig({
     allowedHosts: [
       "www.onlymsg.xyz",
       "onlymsg.xyz",
+      "www.fingnet.xyz",
+      "fingnet.xyz",
       ".railway.app"
     ]
   },
