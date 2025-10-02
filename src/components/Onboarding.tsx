@@ -918,170 +918,290 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
     );
   }
 
-  // Goal输入页面 (聊天形式)
+  // Goal输入页面 (聊天形式) - 现代未来感设计
   if (showGoalInput) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-50 flex items-center justify-center">
-        <div className="w-full max-w-4xl mx-4">
-          <Card className="h-[600px] flex flex-col">
-            <CardHeader className="pb-4 border-b">
-              <CardTitle className="text-xl font-bold text-gray-900 text-center">
-                Share Your Goal and Value with {aiTwinProfile?.name || customAITwinName || 'AI Twin'}
-              </CardTitle>
-              <CardDescription className="text-center text-gray-600">
-                Let's have a conversation about what you want to achieve
-              </CardDescription>
-              {/* 问题进度指示器 */}
-              <div className="mt-4 flex justify-center">
-                <div className="text-sm text-gray-500">
-                  Question {currentGoalQuestionIndex + 1} • {conversationContext.currentPhase === 'goal' ? 'Understanding your goals' : conversationContext.currentPhase === 'value_offered' ? 'What you can offer' : 'What you\'re seeking'} • AI-powered conversation
-                </div>
-              </div>
-            </CardHeader>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center relative overflow-hidden">
+        {/* 背景装饰元素 */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-20 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        </div>
 
-            {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {goalChatMessages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex ${message.type === 'ai' ? 'justify-start' : 'justify-end'}`}
-                >
-                  {/* AI Avatar */}
-                  {message.type === 'ai' && (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center mr-3 mt-1 flex-shrink-0 overflow-hidden">
+        <div className="w-full max-w-5xl mx-4 relative z-10">
+          {/* 玻璃态卡片容器 */}
+          <div className="backdrop-blur-xl bg-white/70 border border-white/20 shadow-2xl rounded-3xl h-[700px] flex flex-col overflow-hidden">
+            {/* Header - 简洁现代的顶部栏 */}
+            <div className="relative px-8 py-6 border-b border-gray-200/50 bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-purple-500/5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  {/* AI Twin头像 */}
+                  <div className="relative">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg ring-4 ring-blue-100/50 overflow-hidden">
                       <img
                         src={aiTwinProfile?.avatar || customAITwinAvatar}
                         alt={aiTwinProfile?.name || customAITwinName || "AI Twin"}
-                        className="w-6 h-6 rounded-full object-cover"
+                        className="w-12 h-12 rounded-xl object-cover"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
-                          const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                          if (fallback) {
-                            fallback.style.display = 'flex';
-                          }
                         }}
                       />
-                      <div
-                        className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-300 to-pink-400 flex items-center justify-center text-sm"
-                        style={{ display: 'none' }}
-                      >
-                        🤖
+                    </div>
+                    {/* 在线指示器 */}
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full animate-pulse"></div>
+                  </div>
+                  
+                  <div>
+                    <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                      {aiTwinProfile?.name || customAITwinName || 'AI Twin'}
+                    </h2>
+                    <p className="text-sm text-gray-600 font-medium">
+                      {conversationContext.currentPhase === 'goal' ? '🎯 Understanding your goals' : 
+                       conversationContext.currentPhase === 'value_offered' ? '💝 What you can offer' : 
+                       '🌟 What you\'re seeking'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 进度指示器 - 现代简约风格 */}
+                <div className="flex items-center space-x-2">
+                  <div className="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm border border-gray-200/50">
+                    <span className="text-sm font-semibold text-gray-700">
+                      Question {currentGoalQuestionIndex + 1}
+                    </span>
+                  </div>
+                  <div className="px-3 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full shadow-lg">
+                    <span className="text-xs font-medium text-white">✨ AI-Powered</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Chat Messages - 现代明亮的聊天气泡 */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-6">
+              {goalChatMessages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex ${message.type === 'ai' ? 'justify-start' : 'justify-end'} animate-fade-in`}
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  {/* AI Avatar */}
+                  {message.type === 'ai' && (
+                    <div className="mr-4 mt-1 flex-shrink-0">
+                      <div className="relative">
+                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg ring-2 ring-blue-100 overflow-hidden transform transition-transform hover:scale-110">
+                          <img
+                            src={aiTwinProfile?.avatar || customAITwinAvatar}
+                            alt={aiTwinProfile?.name || customAITwinName || "AI Twin"}
+                            className="w-9 h-9 rounded-xl object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                              if (fallback) {
+                                fallback.style.display = 'flex';
+                              }
+                            }}
+                          />
+                          <div
+                            className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-300 to-pink-400 flex items-center justify-center text-lg"
+                            style={{ display: 'none' }}
+                          >
+                            🤖
+                          </div>
+                        </div>
+                        {/* 发光效果 */}
+                        <div className="absolute inset-0 rounded-2xl bg-blue-400/30 blur-md -z-10"></div>
                       </div>
                     </div>
                   )}
                   
-                  <div
-                    className={`max-w-[70%] rounded-lg p-3 ${
-                      message.type === 'ai'
-                        ? 'bg-white border border-gray-200 text-gray-800'
-                        : 'bg-green-600 text-white'
-                    }`}
-                  >
-                    {message.type === 'ai' && index === currentTypingMessageIndex && isMessageTyping ? (
-                      <TypewriterText 
-                        text={message.content}
-                        speed={30}
-                        onComplete={handleTypingComplete}
-                        className="text-sm"
-                      />
-                    ) : (
-                      <p className="text-sm">{message.content}</p>
-                    )}
-                    <p className={`text-xs mt-1 ${
-                      message.type === 'ai' ? 'text-gray-500' : 'text-green-100'
-                    }`}>
-                      {message.timestamp.toLocaleTimeString()}
-                    </p>
+                  <div className="flex flex-col max-w-[75%]">
+                    <div
+                      className={`relative rounded-2xl p-5 shadow-lg transition-all duration-300 hover:shadow-xl ${
+                        message.type === 'ai'
+                          ? 'bg-gradient-to-br from-white to-blue-50/50 border border-blue-100/50 backdrop-blur-sm'
+                          : 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-blue-500/30'
+                      }`}
+                    >
+                      {/* AI名字标签 */}
+                      {message.type === 'ai' && (
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                            {aiTwinProfile?.name || customAITwinName || 'AI Twin'}
+                          </span>
+                          <div className="w-1 h-1 rounded-full bg-blue-400"></div>
+                          <span className="text-xs text-gray-400">AI</span>
+                        </div>
+                      )}
+                      
+                      {message.type === 'ai' && index === currentTypingMessageIndex && isMessageTyping ? (
+                        <TypewriterText 
+                          text={message.content}
+                          speed={30}
+                          onComplete={handleTypingComplete}
+                          className={`text-base leading-relaxed ${message.type === 'ai' ? 'text-gray-800' : 'text-white'}`}
+                        />
+                      ) : (
+                        <p className={`text-base leading-relaxed ${message.type === 'ai' ? 'text-gray-800' : 'text-white'}`}>
+                          {message.content}
+                        </p>
+                      )}
+                      
+                      <p className={`text-xs mt-3 flex items-center ${
+                        message.type === 'ai' ? 'text-gray-400' : 'text-blue-100'
+                      }`}>
+                        <span className="mr-1">🕐</span>
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+
+                      {/* 消息尾巴装饰 */}
+                      {message.type === 'ai' ? (
+                        <div className="absolute -left-2 top-6 w-4 h-4 bg-gradient-to-br from-white to-blue-50/50 border-l border-b border-blue-100/50 transform rotate-45"></div>
+                      ) : (
+                        <div className="absolute -right-2 top-6 w-4 h-4 bg-gradient-to-br from-blue-600 to-indigo-600 transform rotate-45"></div>
+                      )}
+                    </div>
                   </div>
+
+                  {/* 用户头像 */}
+                  {message.type === 'user' && (
+                    <div className="ml-4 mt-1 flex-shrink-0">
+                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg ring-2 ring-blue-100 transform transition-transform hover:scale-110">
+                        You
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
 
-              {/* AI Typing indicator */}
+              {/* AI Typing indicator - 现代动画效果 */}
               {isAITyping && (
-                <div className="flex justify-start">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center mr-3 mt-1 flex-shrink-0 overflow-hidden">
-                    <img
-                      src={aiTwinProfile?.avatar || customAITwinAvatar}
-                      alt="AI Twin"
-                      className="w-6 h-6 rounded-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                        if (fallback) {
-                          fallback.style.display = 'flex';
-                        }
-                      }}
-                    />
-                    <div
-                      className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-300 to-pink-400 flex items-center justify-center text-sm"
-                      style={{ display: 'none' }}
-                    >
-                      🤖
+                <div className="flex justify-start animate-fade-in">
+                  <div className="mr-4 mt-1 flex-shrink-0">
+                    <div className="relative">
+                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg ring-2 ring-blue-100 overflow-hidden">
+                        <img
+                          src={aiTwinProfile?.avatar || customAITwinAvatar}
+                          alt="AI Twin"
+                          className="w-9 h-9 rounded-xl object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                            if (fallback) {
+                              fallback.style.display = 'flex';
+                            }
+                          }}
+                        />
+                        <div
+                          className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-300 to-pink-400 flex items-center justify-center text-lg"
+                          style={{ display: 'none' }}
+                        >
+                          🤖
+                        </div>
+                      </div>
+                      {/* 脉冲动画 */}
+                      <div className="absolute inset-0 rounded-2xl bg-blue-400/30 blur-md -z-10 animate-pulse"></div>
                     </div>
                   </div>
                   
-                  <div className="bg-white border border-gray-200 rounded-lg p-3 max-w-[70%]">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-green-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="bg-gradient-to-br from-white to-blue-50/50 border border-blue-100/50 backdrop-blur-sm rounded-2xl p-5 shadow-lg max-w-[70%]">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full animate-bounce"></div>
+                      <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
+                      <div className="w-3 h-3 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Message Input */}
-            <div className="border-t p-4">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={goalUserInput}
-                  onChange={(e) => setGoalUserInput(e.target.value)}
-                  onKeyDown={handleGoalKeyPress}
-                  placeholder={currentGoalQuestionIndex === 0 ? "Share your goal here..." : "Type your answer here..."}
-                  className="flex-1 p-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  disabled={!canUserTypeGoal}
-                />
+            {/* Message Input - 现代输入框 */}
+            <div className="border-t border-gray-200/50 px-8 py-6 bg-gradient-to-r from-gray-50/50 to-blue-50/30 backdrop-blur-sm">
+              <div className="flex gap-3 items-center">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={goalUserInput}
+                    onChange={(e) => setGoalUserInput(e.target.value)}
+                    onKeyDown={handleGoalKeyPress}
+                    placeholder={currentGoalQuestionIndex === 0 ? "💭 Share your goal here..." : "✍️ Type your answer here..."}
+                    className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border-2 border-gray-200/50 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 placeholder-gray-400 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!canUserTypeGoal}
+                  />
+                  {/* 输入框装饰 */}
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300">
+                    {goalUserInput.trim() ? '✨' : '💬'}
+                  </div>
+                </div>
                 <button
                   onClick={handleGoalSendMessage}
                   disabled={!goalUserInput.trim() || !canUserTypeGoal}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl disabled:hover:shadow-lg transform hover:scale-105 disabled:hover:scale-100 flex items-center space-x-2"
                 >
-                  Send
+                  <span>Send</span>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Press Enter to send • {conversationContext.currentPhase === 'goal' ? 'Goals phase' : conversationContext.currentPhase === 'value_offered' ? 'Value offering phase' : 'Value seeking phase'}
-              </p>
+              <div className="flex items-center justify-between mt-3 px-2">
+                <p className="text-xs text-gray-500 flex items-center space-x-2">
+                  <span className="flex items-center space-x-1">
+                    <kbd className="px-2 py-1 bg-white rounded border border-gray-200 text-xs font-mono shadow-sm">Enter</kbd>
+                    <span>to send</span>
+                  </span>
+                </p>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-gray-500 font-medium">
+                    {conversationContext.currentPhase === 'goal' ? '🎯 Goals phase' : 
+                     conversationContext.currentPhase === 'value_offered' ? '💝 Value offering' : 
+                     '🌟 Value seeking'}
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* 等待Twin分析的提示 - 只在所有问题都回答完后显示 */}
             {currentGoalQuestionIndex >= goalQuestions.length && !isAITyping && (
-              <div className="border-t p-4 text-center">
-                <p className="text-sm text-gray-600 mb-2">
-                  All questions completed! Preparing to create your AI Twin...
+              <div className="border-t border-gray-200/50 px-8 py-6 text-center bg-gradient-to-r from-blue-50/30 to-indigo-50/30">
+                <div className="flex items-center justify-center space-x-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <p className="text-base font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                    All questions completed!
+                  </p>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">
+                  ✨ Preparing to create your AI Twin with advanced AI technology...
                 </p>
                 <div className="flex justify-center">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-green-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="flex space-x-2">
+                    <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full animate-bounce"></div>
+                    <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
+                    <div className="w-3 h-3 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
                   </div>
                 </div>
               </div>
             )}
-          </Card>
+          </div>
         </div>
         
-        {/* 30秒后显示的Other Goal按钮 */}
+        {/* 30秒后显示的Other Goal按钮 - 现代浮动按钮 */}
         {showOtherGoalButton && (
-          <div className="fixed bottom-8 right-8 animate-fade-in">
+          <div className="fixed bottom-8 right-8 animate-fade-in z-20">
             <button
               onClick={handleViewOtherGoals}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 max-w-sm text-sm font-medium"
+              className="group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-4 rounded-2xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 max-w-sm font-semibold transform hover:scale-105 backdrop-blur-sm border border-white/20"
             >
-              🔍 See what similar people want to achieve
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl group-hover:scale-110 transition-transform">🔍</span>
+                <span className="text-sm">See what similar people want to achieve</span>
+              </div>
             </button>
           </div>
         )}
