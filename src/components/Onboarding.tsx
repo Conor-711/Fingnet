@@ -59,9 +59,19 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
   const [userGoal, setUserGoal] = useState('');
   const [showOtherGoal, setShowOtherGoal] = useState(false);
   const [showAIIntro, setShowAIIntro] = useState(true); // AI伙伴自我介绍页面
+  const [showBasicInfo, setShowBasicInfo] = useState(false); // Basic Info页面
   const [showLoadingPage, setShowLoadingPage] = useState(false); // Goal Input后的短暂加载页面
   const [isFirstGoalInput, setIsFirstGoalInput] = useState(true); // 是否是第一次进入Goal Input页面
   const [isSavingToDatabase, setIsSavingToDatabase] = useState(false); // 是否正在保存到数据库
+  
+  // Basic Info表单数据
+  const [basicInfo, setBasicInfo] = useState({
+    ageRange: '',
+    gender: '',
+    occupation: '',
+    location: '',
+    education: ''
+  });
   
   // Goal Input聊天相关状态
   const [goalChatMessages, setGoalChatMessages] = useState<Array<{type: 'ai' | 'user', content: string, timestamp: Date}>>([]);
@@ -643,12 +653,8 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
           completeOnboarding(finalAnswers);
         }
 
-        // 直接进入Goal Input页面
-        setShowGoalInput(true);
-        setIsFirstGoalInput(true);
-        
-        // 初始化Goal Input聊天
-        initializeGoalChat();
+        // 直接进入Basic Info页面
+        setShowBasicInfo(true);
       }
       setIsAnimating(false);
     }, 300);
@@ -913,6 +919,172 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
               </div>
             </CardContent>
           </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Basic Info页面 - 用户填写基本信息
+  if (showBasicInfo) {
+    const handleBasicInfoChange = (field: string, value: string) => {
+      setBasicInfo(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    };
+
+    const handleBasicInfoSubmit = () => {
+      // 验证必填字段
+      if (!basicInfo.ageRange || !basicInfo.gender || !basicInfo.occupation) {
+        alert('Please fill in all required fields (Age Range, Gender, and Occupation)');
+        return;
+      }
+
+      // 保存基本信息到profile
+      updateAITwinProfile({
+        ...aiTwinProfile,
+        profile: {
+          gender: basicInfo.gender,
+          age: basicInfo.ageRange,
+          occupation: basicInfo.occupation,
+          location: basicInfo.location || 'Not specified'
+        }
+      });
+
+      // 跳转到Goal Input页面
+      setShowBasicInfo(false);
+      setShowGoalInput(true);
+      setIsFirstGoalInput(true);
+      
+      // 初始化Goal Input聊天
+      initializeGoalChat();
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center relative overflow-hidden">
+        {/* 背景装饰元素 */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-20 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        </div>
+
+        <div className="w-full max-w-3xl mx-4 relative z-10">
+          <div className="backdrop-blur-xl bg-white/70 border border-white/20 shadow-2xl rounded-3xl overflow-hidden">
+            {/* Header */}
+            <div className="relative px-8 py-6 border-b border-gray-200/50 bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-purple-500/5">
+              <div className="text-center">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+                  Tell Us About Yourself
+                </h1>
+                <p className="text-gray-600">
+                  Help us personalize your experience with some basic information
+                </p>
+              </div>
+            </div>
+
+            {/* Form Content */}
+            <div className="p-8 space-y-6">
+              {/* Age Range */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 flex items-center">
+                  Age Range <span className="text-red-500 ml-1">*</span>
+                </label>
+                <select
+                  value={basicInfo.ageRange}
+                  onChange={(e) => handleBasicInfoChange('ageRange', e.target.value)}
+                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                >
+                  <option value="">Select your age range</option>
+                  <option value="18-24">18-24</option>
+                  <option value="25-34">25-34</option>
+                  <option value="35-44">35-44</option>
+                  <option value="45-54">45-54</option>
+                  <option value="55+">55+</option>
+                </select>
+              </div>
+
+              {/* Gender */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 flex items-center">
+                  Gender <span className="text-red-500 ml-1">*</span>
+                </label>
+                <select
+                  value={basicInfo.gender}
+                  onChange={(e) => handleBasicInfoChange('gender', e.target.value)}
+                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                >
+                  <option value="">Select your gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Non-binary">Non-binary</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
+                </select>
+              </div>
+
+              {/* Occupation */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 flex items-center">
+                  Occupation <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={basicInfo.occupation}
+                  onChange={(e) => handleBasicInfoChange('occupation', e.target.value)}
+                  placeholder="e.g., Software Engineer, Designer, Student..."
+                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400"
+                />
+              </div>
+
+              {/* Location (Optional) */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 flex items-center">
+                  Location <span className="text-gray-400 text-xs ml-2">(Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={basicInfo.location}
+                  onChange={(e) => handleBasicInfoChange('location', e.target.value)}
+                  placeholder="e.g., San Francisco, CA"
+                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400"
+                />
+              </div>
+
+              {/* Education (Optional) */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 flex items-center">
+                  Education <span className="text-gray-400 text-xs ml-2">(Optional)</span>
+                </label>
+                <select
+                  value={basicInfo.education}
+                  onChange={(e) => handleBasicInfoChange('education', e.target.value)}
+                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                >
+                  <option value="">Select your education level</option>
+                  <option value="High School">High School</option>
+                  <option value="Bachelor's Degree">Bachelor's Degree</option>
+                  <option value="Master's Degree">Master's Degree</option>
+                  <option value="PhD">PhD</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-8 py-6 border-t border-gray-200/50 bg-gradient-to-r from-gray-50/50 to-blue-50/30">
+              <button
+                onClick={handleBasicInfoSubmit}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-2"
+              >
+                <span>Continue to Goal Setting</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
+              <p className="text-xs text-gray-500 text-center mt-3">
+                <span className="text-red-500">*</span> Required fields
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );
