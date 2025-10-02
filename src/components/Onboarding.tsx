@@ -237,11 +237,12 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
         // 处理对话结束并生成最终内容
         handleConversationComplete();
         
-        // 3秒后进入Twin分析页面
+        // 3秒后进入Choice Made页面
         setTimeout(() => {
           setShowGoalInput(false);
-          setShowTwinAnalysis(true);
-          startTwinAnalysis();
+          // 重置到第一个问题开始Choice Made流程
+          setCurrentQuestionId(onboardingQuestions[0]?.id || '');
+          setSelectedOptions([]);
         }, 3000);
       } else {
         // 当前阶段继续，生成下一个问题
@@ -521,11 +522,12 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
     setShowAIIntro(false);
   };
 
-  // 处理AI Twin名称保存
+  // 处理AI Twin名称保存并进入Basic Info页面
   const handleSaveAITwinName = () => {
     if (customAITwinName.trim()) {
       updateAITwinBasicInfo(customAITwinName.trim(), customAITwinAvatar);
       setShowAIIntro(false);
+      setShowBasicInfo(true); // 进入Basic Info页面
     }
   };
 
@@ -636,7 +638,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
         setCurrentQuestionId(nextQuestion.id);
         setSelectedOptions([]);
       } else {
-        // 完成Choice Made页面，直接进入Goal Input页面
+        // 完成Choice Made页面，进入Create Twin分析页面
         const finalAnswer: OnboardingAnswer = {
           questionId: currentQuestion.id,
           selectedOptions: answer,
@@ -653,8 +655,9 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
           completeOnboarding(finalAnswers);
         }
 
-        // 直接进入Basic Info页面
-        setShowBasicInfo(true);
+        // 进入Create Twin分析页面
+        setShowTwinAnalysis(true);
+        startTwinAnalysis();
       }
       setIsAnimating(false);
     }, 300);
@@ -815,107 +818,6 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                 <div className="w-3 h-3 bg-pink-300 rounded-full animate-bounce"></div>
                 <div className="w-3 h-3 bg-rose-300 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                 <div className="w-3 h-3 bg-pink-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  if (isAnimating) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading next question...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!currentQuestion) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-        <Card className="w-full max-w-md mx-4">
-          <CardContent className="p-8 text-center">
-            <Check className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Welcome to OnlyMsg!</h2>
-            <p className="text-gray-600 mb-6">
-              Your preferences have been saved. Let's start sharing your stories!
-            </p>
-            <Button onClick={() => navigate('/')} className="w-full">
-              Start Exploring
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // 短暂加载页面
-  if (showLoadingPage) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50 flex items-center justify-center">
-        <div className="w-full max-w-2xl mx-4">
-          <Card className="shadow-xl border-0">
-            <CardContent className="p-8 text-center">
-              {/* AI伙伴头像 */}
-              <div className="flex justify-center mb-6">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg border-4 border-white overflow-hidden">
-                  <img
-                    src={aiTwinProfile?.avatar || customAITwinAvatar}
-                    alt="AI Friend"
-                    className="w-20 h-20 rounded-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                      if (fallback) {
-                        fallback.style.display = 'flex';
-                      }
-                    }}
-                  />
-                  <div
-                    className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-300 to-orange-400 flex items-center justify-center text-4xl"
-                    style={{ display: 'none' }}
-                  >
-                    🤖
-                  </div>
-                </div>
-              </div>
-
-              {/* 加载标题 */}
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">
-                Processing your goal... ⚡
-              </h1>
-
-              {/* 加载描述 */}
-              <p className="text-lg text-gray-700 mb-8">
-                I'm analyzing your goal and finding people with similar aspirations. This will just take a moment!
-              </p>
-
-              {/* 加载动画 */}
-              <div className="flex justify-center mb-8">
-                <div className="flex space-x-2">
-                  <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div>
-                  <div className="w-3 h-3 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-3 h-3 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
-                </div>
-              </div>
-
-              {/* Other Goal入口按钮 */}
-              <div className="space-y-4">
-                <button
-                  onClick={handleViewOtherGoalsFromLoading}
-                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
-                >
-                  🔍 See what similar people want to achieve
-                </button>
-                
-                <p className="text-sm text-gray-500">
-                  Or wait a moment for automatic processing...
-                </p>
               </div>
             </CardContent>
           </Card>
@@ -1085,6 +987,107 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
               </p>
             </div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAnimating) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading next question...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentQuestion) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+        <Card className="w-full max-w-md mx-4">
+          <CardContent className="p-8 text-center">
+            <Check className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Welcome to OnlyMsg!</h2>
+            <p className="text-gray-600 mb-6">
+              Your preferences have been saved. Let's start sharing your stories!
+            </p>
+            <Button onClick={() => navigate('/')} className="w-full">
+              Start Exploring
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // 短暂加载页面
+  if (showLoadingPage) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50 flex items-center justify-center">
+        <div className="w-full max-w-2xl mx-4">
+          <Card className="shadow-xl border-0">
+            <CardContent className="p-8 text-center">
+              {/* AI伙伴头像 */}
+              <div className="flex justify-center mb-6">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg border-4 border-white overflow-hidden">
+                  <img
+                    src={aiTwinProfile?.avatar || customAITwinAvatar}
+                    alt="AI Friend"
+                    className="w-20 h-20 rounded-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                      if (fallback) {
+                        fallback.style.display = 'flex';
+                      }
+                    }}
+                  />
+                  <div
+                    className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-300 to-orange-400 flex items-center justify-center text-4xl"
+                    style={{ display: 'none' }}
+                  >
+                    🤖
+                  </div>
+                </div>
+              </div>
+
+              {/* 加载标题 */}
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                Processing your goal... ⚡
+              </h1>
+
+              {/* 加载描述 */}
+              <p className="text-lg text-gray-700 mb-8">
+                I'm analyzing your goal and finding people with similar aspirations. This will just take a moment!
+              </p>
+
+              {/* 加载动画 */}
+              <div className="flex justify-center mb-8">
+                <div className="flex space-x-2">
+                  <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div>
+                  <div className="w-3 h-3 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-3 h-3 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
+                </div>
+              </div>
+
+              {/* Other Goal入口按钮 */}
+              <div className="space-y-4">
+                <button
+                  onClick={handleViewOtherGoalsFromLoading}
+                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  🔍 See what similar people want to achieve
+                </button>
+                
+                <p className="text-sm text-gray-500">
+                  Or wait a moment for automatic processing...
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
