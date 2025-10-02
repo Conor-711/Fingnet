@@ -39,6 +39,14 @@ export interface ConversationContext {
   currentPhase: 'goal' | 'value_offered' | 'value_desired' | 'complete';
   phaseQuestionCount: number;
   extractedInfo: Record<string, any>;
+  userContext?: {
+    nickname: string;
+    occupation: string;
+    industry: string;
+    age: string;
+    location: string;
+    gender: string;
+  };
 }
 
 // AI Twin Profile for conversation generation
@@ -210,8 +218,20 @@ export const generateFollowUpQuestion = async (context: ConversationContext): Pr
   let prompt = '';
 
   if (context.currentPhase === 'goal') {
+    // 构建用户上下文信息
+    const userContextInfo = context.userContext ? `
+User Background:
+- Name: ${context.userContext.nickname}
+- Occupation: ${context.userContext.occupation}
+- Industry: ${context.userContext.industry}
+- Age: ${context.userContext.age}
+- Location: ${context.userContext.location}
+` : '';
+
     prompt = `
 You are an AI Twin having a natural conversation with a user to understand their goals better.
+
+${userContextInfo}
 
 Current conversation:
 ${conversationText}
@@ -222,23 +242,34 @@ Context:
 - You need to ask insightful follow-up questions to understand their goal situation better
 
 Guidelines for your next question:
-${context.phaseQuestionCount === 1 ? '- Ask about their current situation, experience level, or what stage they are at' : ''}
-${context.phaseQuestionCount === 2 ? '- Ask about specific challenges, obstacles, or what they have tried so far' : ''}
-${context.phaseQuestionCount === 3 ? '- Ask about what success looks like to them, or what specific outcomes they want' : ''}
+${context.phaseQuestionCount === 1 ? '- Ask about their current situation, experience level, or what stage they are at. Use their occupation/industry context to make the question more relevant.' : ''}
+${context.phaseQuestionCount === 2 ? '- Ask about specific challenges, obstacles, or what they have tried so far. Reference their profession or industry if relevant.' : ''}
+${context.phaseQuestionCount === 3 ? '- Ask about what success looks like to them, or what specific outcomes they want. Connect it to their career or industry goals.' : ''}
 
 Requirements:
+- Use their name (${context.userContext?.nickname || 'there'}) occasionally to keep it personal
 - Ask only ONE question
 - Be conversational and empathetic
 - Show genuine interest in their goal
-- Make the question specific and actionable
+- Make the question specific to their occupation/industry when relevant
 - Keep it natural and friendly
 - Don't repeat information they already shared
+- Leverage their background information to ask more targeted questions
 
 Generate your follow-up question:
 `;
   } else if (context.currentPhase === 'value_offered') {
+    const userContextInfo = context.userContext ? `
+User Background:
+- Name: ${context.userContext.nickname}
+- Occupation: ${context.userContext.occupation}
+- Industry: ${context.userContext.industry}
+` : '';
+
     prompt = `
 You are an AI Twin transitioning to understand what value the user can offer to others.
+
+${userContextInfo}
 
 Current conversation:
 ${conversationText}
@@ -250,16 +281,17 @@ Context:
 
 ${context.phaseQuestionCount === 0 ? `
 Guidelines for transitioning and first value offered question:
+- Use their name (${context.userContext?.nickname}) to keep it personal
 - Smoothly transition from goal discussion to value offering
 - Ask what skills, knowledge, or experience they can share with others
+- Reference their occupation (${context.userContext?.occupation}) and industry (${context.userContext?.industry}) to make it specific
 - Connect it to their goal if possible
-- Example transition: "That's really insightful about your goal! Now I'm curious - what valuable skills or knowledge do you have that you could share with others who might have similar goals?"
 ` : ''}
 
 ${context.phaseQuestionCount === 1 ? `
 Guidelines for follow-up value offered question:
-- Dig deeper into their specific expertise or unique experiences
-- Ask about what makes their approach or knowledge special
+- Dig deeper into their specific expertise or unique experiences in ${context.userContext?.industry || 'their field'}
+- Ask about what makes their approach or knowledge special as a ${context.userContext?.occupation || 'professional'}
 - Focus on concrete value they can provide
 ` : ''}
 
@@ -267,21 +299,32 @@ ${context.phaseQuestionCount === 2 ? `
 Guidelines for final value offered question:
 - Ask about how they prefer to help others or share their knowledge
 - Explore their teaching/mentoring style or preferred methods
-- Ask about what kind of impact they want to make
+- Ask about what kind of impact they want to make in ${context.userContext?.industry || 'their industry'}
 ` : ''}
 
 Requirements:
+- Use their name occasionally
 - Ask only ONE question
 - Be conversational and empathetic
 - Make it feel like a natural progression in the conversation
 - Keep it natural and friendly
 - Focus on understanding what value they can offer to others
+- Leverage their professional background for more relevant questions
 
 Generate your question:
 `;
   } else if (context.currentPhase === 'value_desired') {
+    const userContextInfo = context.userContext ? `
+User Background:
+- Name: ${context.userContext.nickname}
+- Occupation: ${context.userContext.occupation}
+- Industry: ${context.userContext.industry}
+` : '';
+
     prompt = `
 You are an AI Twin now exploring what value the user wants to receive from others.
+
+${userContextInfo}
 
 Current conversation:
 ${conversationText}
@@ -293,15 +336,16 @@ Context:
 
 ${context.phaseQuestionCount === 0 ? `
 Guidelines for transitioning and first value desired question:
+- Use their name (${context.userContext?.nickname}) to keep it personal
 - Smoothly transition from value offering to value seeking
-- Ask what kind of help, guidance, or support they're looking for
+- Ask what kind of help, guidance, or support they're looking for as a ${context.userContext?.occupation || 'professional'}
 - Connect it to their goal and challenges discussed earlier
-- Example transition: "It's clear you have a lot to offer! On the flip side, what kind of support or guidance are you hoping to get from others as you work toward your goal?"
+- Reference their industry context if relevant
 ` : ''}
 
 ${context.phaseQuestionCount === 1 ? `
 Guidelines for follow-up value desired question:
-- Dig deeper into specific areas where they need help
+- Dig deeper into specific areas where they need help in ${context.userContext?.industry || 'their field'}
 - Ask about their learning preferences or ideal type of mentor
 - Focus on what would be most valuable for their growth
 ` : ''}
@@ -309,16 +353,18 @@ Guidelines for follow-up value desired question:
 ${context.phaseQuestionCount === 2 ? `
 Guidelines for final value desired question:
 - Ask about their ideal learning or growth environment
-- Explore what kind of community or connections they're seeking
+- Explore what kind of community or connections they're seeking in ${context.userContext?.industry || 'their industry'}
 - Focus on long-term support needs
 ` : ''}
 
 Requirements:
+- Use their name occasionally
 - Ask only ONE question
 - Be conversational and empathetic
 - Make it feel like a natural progression in the conversation
 - Keep it natural and friendly
 - Focus on understanding what value they want to receive from others
+- Leverage their professional background for more relevant questions
 
 Generate your question:
 `;

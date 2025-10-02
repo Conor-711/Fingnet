@@ -16,6 +16,10 @@ export interface AITwinProfile {
   // AI Twin基本信息
   name: string;
   avatar: string;
+  // 用户基本信息（用于个性化对话）
+  userNickname?: string;
+  userAvatar?: string;
+  userIndustry?: string;
   // 用户档案信息
   profile: {
     gender: string;

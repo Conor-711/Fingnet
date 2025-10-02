@@ -66,11 +66,13 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
   
   // Basic Info表单数据
   const [basicInfo, setBasicInfo] = useState({
+    avatar: '',
+    nickname: '',
     ageRange: '',
     gender: '',
     occupation: '',
-    location: '',
-    education: ''
+    industry: '',
+    location: ''
   });
   
   // Goal Input聊天相关状态
@@ -265,19 +267,34 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
     setCurrentTypingMessageIndex(-1);
     setIsMessageTyping(false);
 
-    // 重置对话上下文
+    // 获取用户信息用于个性化
+    const userName = aiTwinProfile?.userNickname || 'there';
+    const userOccupation = aiTwinProfile?.profile?.occupation || '';
+    const userIndustry = aiTwinProfile?.userIndustry || '';
+
+    // 重置对话上下文，包含用户基本信息
     setConversationContext({
       userGoal: '',
       conversationHistory: [],
       questionCount: 0,
       currentPhase: 'goal',
       phaseQuestionCount: 0,
-      extractedInfo: {}
+      extractedInfo: {},
+      // 添加用户上下文信息
+      userContext: {
+        nickname: userName,
+        occupation: userOccupation,
+        industry: userIndustry,
+        age: aiTwinProfile?.profile?.age || '',
+        location: aiTwinProfile?.profile?.location || '',
+        gender: aiTwinProfile?.profile?.gender || ''
+      }
     });
 
-    // AI发送第一个问题，使用打字机效果
+    // AI发送个性化的第一个问题，使用打字机效果
     setTimeout(() => {
-      addAIMessageWithTyping("What is your goal recently?");
+      const personalizedGreeting = `Hi ${userName}! ${userOccupation ? `As a ${userOccupation}${userIndustry ? ` in ${userIndustry}` : ''}, ` : ''}what's your main goal recently?`;
+      addAIMessageWithTyping(personalizedGreeting);
     }, 1000);
 
     // 30秒后显示Other Goal按钮
@@ -837,20 +854,24 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
 
     const handleBasicInfoSubmit = () => {
       // 验证必填字段
-      if (!basicInfo.ageRange || !basicInfo.gender || !basicInfo.occupation) {
-        alert('Please fill in all required fields (Age Range, Gender, and Occupation)');
+      if (!basicInfo.avatar || !basicInfo.nickname || !basicInfo.ageRange || !basicInfo.gender || !basicInfo.occupation || !basicInfo.industry || !basicInfo.location) {
+        alert('Please fill in all required fields');
         return;
       }
 
-      // 保存基本信息到profile
+      // 保存基本信息到profile和用户数据
       updateAITwinProfile({
         ...aiTwinProfile,
         profile: {
           gender: basicInfo.gender,
           age: basicInfo.ageRange,
           occupation: basicInfo.occupation,
-          location: basicInfo.location || 'Not specified'
-        }
+          location: basicInfo.location
+        },
+        // 保存用户昵称和头像（用于个性化对话）
+        userNickname: basicInfo.nickname,
+        userAvatar: basicInfo.avatar,
+        userIndustry: basicInfo.industry
       });
 
       // 跳转到Goal Input页面
@@ -858,7 +879,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
       setShowGoalInput(true);
       setIsFirstGoalInput(true);
       
-      // 初始化Goal Input聊天
+      // 初始化Goal Input聊天（传入用户信息用于个性化）
       initializeGoalChat();
     };
 
@@ -886,41 +907,97 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
 
             {/* Form Content */}
             <div className="p-8 space-y-6">
-              {/* Age Range */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700 flex items-center">
-                  Age Range <span className="text-red-500 ml-1">*</span>
-                </label>
-                <select
-                  value={basicInfo.ageRange}
-                  onChange={(e) => handleBasicInfoChange('ageRange', e.target.value)}
-                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                >
-                  <option value="">Select your age range</option>
-                  <option value="18-24">18-24</option>
-                  <option value="25-34">25-34</option>
-                  <option value="35-44">35-44</option>
-                  <option value="45-54">45-54</option>
-                  <option value="55+">55+</option>
-                </select>
+              {/* Avatar & Nickname Row */}
+              <div className="flex items-start space-x-6 pb-6 border-b border-gray-200/50">
+                {/* Avatar */}
+                <div className="flex-shrink-0">
+                  <label className="text-sm font-semibold text-gray-700 block mb-3">
+                    Your Avatar <span className="text-red-500">*</span>
+                  </label>
+                  <div 
+                    className="w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform border-4 border-white overflow-hidden"
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*';
+                      input.onchange = (e: any) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (e) => {
+                            handleBasicInfoChange('avatar', e.target?.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      };
+                      input.click();
+                    }}
+                  >
+                    {basicInfo.avatar ? (
+                      <img src={basicInfo.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-white text-center">
+                        <div className="text-3xl mb-1">📷</div>
+                        <div className="text-xs">Upload</div>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2 text-center">Click to upload</p>
+                </div>
+
+                {/* Nickname */}
+                <div className="flex-1">
+                  <label className="text-sm font-semibold text-gray-700 flex items-center mb-2">
+                    Your Nickname <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={basicInfo.nickname}
+                    onChange={(e) => handleBasicInfoChange('nickname', e.target.value)}
+                    placeholder="How should we call you?"
+                    className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">This will be used throughout your journey</p>
+                </div>
               </div>
 
-              {/* Gender */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700 flex items-center">
-                  Gender <span className="text-red-500 ml-1">*</span>
-                </label>
-                <select
-                  value={basicInfo.gender}
-                  onChange={(e) => handleBasicInfoChange('gender', e.target.value)}
-                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                >
-                  <option value="">Select your gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Non-binary">Non-binary</option>
-                  <option value="Prefer not to say">Prefer not to say</option>
-                </select>
+              {/* Age Range & Gender Row */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Age Range */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700 flex items-center">
+                    Age Range <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <select
+                    value={basicInfo.ageRange}
+                    onChange={(e) => handleBasicInfoChange('ageRange', e.target.value)}
+                    className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  >
+                    <option value="">Select age range</option>
+                    <option value="18-24">18-24</option>
+                    <option value="25-34">25-34</option>
+                    <option value="35-44">35-44</option>
+                    <option value="45-54">45-54</option>
+                    <option value="55+">55+</option>
+                  </select>
+                </div>
+
+                {/* Gender */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700 flex items-center">
+                    Gender <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <select
+                    value={basicInfo.gender}
+                    onChange={(e) => handleBasicInfoChange('gender', e.target.value)}
+                    className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  >
+                    <option value="">Select gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
+                  </select>
+                </div>
               </div>
 
               {/* Occupation */}
@@ -937,10 +1014,37 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                 />
               </div>
 
-              {/* Location (Optional) */}
+              {/* Industry */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700 flex items-center">
-                  Location <span className="text-gray-400 text-xs ml-2">(Optional)</span>
+                  Industry <span className="text-red-500 ml-1">*</span>
+                </label>
+                <select
+                  value={basicInfo.industry}
+                  onChange={(e) => handleBasicInfoChange('industry', e.target.value)}
+                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                >
+                  <option value="">Select your industry</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Education">Education</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Design">Design</option>
+                  <option value="Media & Entertainment">Media & Entertainment</option>
+                  <option value="Consulting">Consulting</option>
+                  <option value="Real Estate">Real Estate</option>
+                  <option value="Retail">Retail</option>
+                  <option value="Manufacturing">Manufacturing</option>
+                  <option value="Non-profit">Non-profit</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              {/* Location */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 flex items-center">
+                  Location <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   type="text"
@@ -949,25 +1053,6 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                   placeholder="e.g., San Francisco, CA"
                   className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400"
                 />
-              </div>
-
-              {/* Education (Optional) */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700 flex items-center">
-                  Education <span className="text-gray-400 text-xs ml-2">(Optional)</span>
-                </label>
-                <select
-                  value={basicInfo.education}
-                  onChange={(e) => handleBasicInfoChange('education', e.target.value)}
-                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                >
-                  <option value="">Select your education level</option>
-                  <option value="High School">High School</option>
-                  <option value="Bachelor's Degree">Bachelor's Degree</option>
-                  <option value="Master's Degree">Master's Degree</option>
-                  <option value="PhD">PhD</option>
-                  <option value="Other">Other</option>
-                </select>
               </div>
             </div>
 
@@ -1594,7 +1679,6 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                             >
                               <option value="Male">Male</option>
                               <option value="Female">Female</option>
-                              <option value="Non-binary">Non-binary</option>
                               <option value="Prefer not to say">Prefer not to say</option>
                             </select>
                           </div>
