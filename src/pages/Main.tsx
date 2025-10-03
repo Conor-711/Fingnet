@@ -177,6 +177,14 @@ const Main = () => {
     }
   };
 
+  // 处理Interested按钮点击，跳转到对方AI Twin主页
+  const handleInterestedClick = (chat: any) => {
+    setShowChatDetail(false);
+    // 根据聊天伙伴的名字映射到profile ID
+    const profileId = chat.partner.toLowerCase().replace('\'s ai twin', '').replace(' ', '');
+    navigate(`/profile/${profileId}`);
+  };
+
   // 生成推荐原因
   const generateRecommendReason = (twinProfile: AITwinConversationProfile, conversationResult: AITwinConversationResult | undefined) => {
     if (!aiTwinProfile) return null;
@@ -998,7 +1006,7 @@ const Main = () => {
                 </div>
               )}
               
-              <div className="flex space-x-2">
+              <div className="flex space-x-2 mb-3">
                 {!showFullConversation && (
                   <Button
                     onClick={handleShowFullConversation}
@@ -1017,6 +1025,14 @@ const Main = () => {
                   </Button>
                 )}
               </div>
+
+              {/* Interested按钮 */}
+              <Button
+                onClick={() => handleInterestedClick(selectedChat)}
+                className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg font-semibold text-base transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+              >
+                Interested
+              </Button>
             </div>
           </div>
         </div>

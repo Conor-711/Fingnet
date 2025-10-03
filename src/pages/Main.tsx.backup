@@ -1136,7 +1136,7 @@ const Main = () => {
           
           setRealAITwins(conversationProfiles);
         } else {
-          console.log('ℹ️ No other AI Twins found in network yet');
+          console.log('ℹ️ No other AI Twins found in networ yet');
           // 如果没有其他用户，可以使用少量mock数据作为示例
           setRealAITwins([]);
         }

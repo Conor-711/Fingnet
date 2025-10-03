@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, MessageCircle, Heart, Star } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Heart, Star, Loader2 } from 'lucide-react';
+import { getAllAITwins } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 // Mock AI Twin数据 - 实际应用中会从API获取
 const mockAITwins: Record<string, any> = {
@@ -66,6 +69,7 @@ const mockAITwins: Record<string, any> = {
 export default function Profile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   // 安全获取context，处理可能的undefined情况
   let aiTwinProfile = null;
@@ -84,21 +88,104 @@ export default function Profile() {
   const [isConnectionCreated, setIsConnectionCreated] = useState(false);
   const [createdGroupId, setCreatedGroupId] = useState<string | null>(null);
   
+  // AI Twin数据加载状态
+  const [aiTwin, setAITwin] = useState<any>(null);
+  const [isLoadingTwin, setIsLoadingTwin] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  
   // 定时器ref
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
   
-  // 获取AI Twin数据
-  const aiTwin = id ? mockAITwins[id] : null;
+  // 从数据库加载AI Twin数据
+  useEffect(() => {
+    const loadAITwinData = async () => {
+      if (!id || !user) return;
+      
+      setIsLoadingTwin(true);
+      setLoadError(null);
+      
+      try {
+        // 首先尝试从mock数据加载（向后兼容）
+        if (mockAITwins[id]) {
+          setAITwin(mockAITwins[id]);
+          setIsLoadingTwin(false);
+          return;
+        }
+        
+        // 从数据库加载所有AI Twins
+        const { data: allTwins, error } = await getAllAITwins(user.id);
+        
+        if (error) {
+          console.error('Error loading AI Twins:', error);
+          setLoadError('Failed to load AI Twin data');
+          setIsLoadingTwin(false);
+          return;
+        }
+        
+        // 查找匹配的AI Twin（通过名字匹配）
+        const targetTwin = allTwins?.find(twin => {
+          const twinId = twin.name.toLowerCase().replace(/\s+/g, '');
+          return twinId === id;
+        });
+        
+        if (targetTwin) {
+          // 转换数据库格式到UI格式
+          setAITwin({
+            id: id,
+            name: targetTwin.name,
+            avatar: targetTwin.avatar || '/avatars/ai_friend.png',
+            profile: targetTwin.profile || { gender: '', age: '', occupation: '', location: '' },
+            goalRecently: targetTwin.goalRecently || targetTwin.goals?.[0] || '',
+            valueOffered: targetTwin.valueOffered || targetTwin.offers?.[0] || '',
+            valueDesired: targetTwin.valueDesired || targetTwin.lookings?.[0] || '',
+            interests: Array.isArray(targetTwin.goals) ? targetTwin.goals : [],
+            connectionStatus: 'Available',
+            rating: 4.5,
+            connectionsCount: 0
+          });
+        } else {
+          setLoadError('AI Twin not found');
+        }
+      } catch (error) {
+        console.error('Error in loadAITwinData:', error);
+        setLoadError('An error occurred while loading data');
+      } finally {
+        setIsLoadingTwin(false);
+      }
+    };
+    
+    loadAITwinData();
+  }, [id, user]);
   
-  if (!aiTwin) {
+  // 加载状态
+  if (isLoadingTwin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <Card className="w-full max-w-md mx-4">
           <CardContent className="p-8 text-center">
-            <h2 className="text-2xl font-bold mb-4">Profile Not Found</h2>
+            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
+            <h2 className="text-2xl font-bold mb-2">Loading Profile...</h2>
+            <p className="text-gray-600">
+              Please wait while we fetch the AI Twin data
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // 错误状态或未找到
+  if (!aiTwin || loadError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <Card className="w-full max-w-md mx-4">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-2xl font-bold mb-4">
+              {loadError || 'Profile Not Found'}
+            </h2>
             <p className="text-gray-600 mb-6">
-              The AI Twin profile you're looking for doesn't exist.
+              The AI Twin profile you're looking for doesn't exist or couldn't be loaded.
             </p>
             <Button onClick={() => navigate('/main')} className="w-full">
               Back to Main
@@ -291,14 +378,18 @@ export default function Profile() {
                   <div className="border-t pt-4">
                     <h3 className="font-semibold text-gray-900 mb-3">Interests</h3>
                     <div className="flex flex-wrap gap-2">
-                      {aiTwin.interests.map((interest: string, index: number) => (
-                        <span
-                          key={index}
-                          className="bg-blue-100 text-blue-800 px-2 py-1 rounded-lg text-xs font-medium"
-                        >
-                          {interest}
-                        </span>
-                      ))}
+                      {aiTwin.interests && aiTwin.interests.length > 0 ? (
+                        aiTwin.interests.map((interest: string, index: number) => (
+                          <span
+                            key={index}
+                            className="bg-blue-100 text-blue-800 px-2 py-1 rounded-lg text-xs font-medium"
+                          >
+                            {interest}
+                          </span>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500">No interests listed</p>
+                      )}
                     </div>
                   </div>
                 </div>
