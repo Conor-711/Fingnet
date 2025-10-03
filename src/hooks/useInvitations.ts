@@ -6,7 +6,8 @@ import {
   getInvitations,
   updateInvitationStatus,
   createGroup,
-  addGroupMember
+  addGroupMember,
+  checkExistingInvitation
 } from '@/lib/supabase';
 
 export function useInvitations(userId: string | undefined) {
@@ -53,19 +54,45 @@ export function useInvitations(userId: string | undefined) {
     }
 
     try {
+      // 先检查是否已存在待处理的邀请
+      const { data: existingInvitation, error: checkError } = await checkExistingInvitation(
+        userId,
+        recipientId
+      );
+
+      if (checkError) {
+        console.error('Error checking existing invitation:', checkError);
+        // 继续尝试发送，让数据库约束来处理
+      } else if (existingInvitation) {
+        toast.error('You have already sent an invitation to this user');
+        return;
+      }
+
       const { error } = await sendInvitation(userId, recipientId, message);
       
       if (error) {
         console.error('Failed to send invitation:', error);
-        toast.error('Failed to send invitation');
+        
+        // 检查是否是重复邀请错误（以防检查失败但数据库约束捕获到）
+        if (error.code === '23505' || error.message?.includes('duplicate key') || error.message?.includes('unique_invitation')) {
+          toast.error('You have already sent an invitation to this user');
+        } else {
+          toast.error('Failed to send invitation');
+        }
         return;
       }
 
       toast.success('Invitation sent successfully!');
       loadInvitations(); // 重新加载邀请列表
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending invitation:', error);
-      toast.error('Failed to send invitation');
+      
+      // 检查捕获的异常中是否包含重复键错误
+      if (error?.code === '23505' || error?.message?.includes('duplicate key') || error?.message?.includes('unique_invitation')) {
+        toast.error('You have already sent an invitation to this user');
+      } else {
+        toast.error('Failed to send invitation');
+      }
     }
   };
 

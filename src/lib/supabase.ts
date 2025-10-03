@@ -375,6 +375,24 @@ export async function getAllAITwins(excludeUserId?: string) {
 }
 
 /**
+ * 检查是否已存在待处理的邀请
+ */
+export async function checkExistingInvitation(
+  senderId: string,
+  recipientId: string
+) {
+  const { data, error } = await supabase
+    .from('invitations')
+    .select('*')
+    .eq('sender_id', senderId)
+    .eq('recipient_id', recipientId)
+    .eq('status', 'pending')
+    .maybeSingle();
+
+  return { data, error };
+}
+
+/**
  * 发送邀请
  */
 export async function sendInvitation(

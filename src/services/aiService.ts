@@ -880,6 +880,63 @@ Provide a concise, professional summary:
   }
 };
 
+// 生成核心价值总结 - 用于卡片展示
+export const generateCoreValueSummary = async (
+  partnerTwin: AITwinConversationProfile,
+  userTwin: AITwinConversationProfile,
+  conversation: GeneratedMessage[]
+): Promise<string> => {
+  const conversationText = conversation
+    .map(msg => `${msg.sender}: ${msg.content}`)
+    .join('\n');
+
+  const prompt = `
+Based on this conversation, what is the ONE core value that ${partnerTwin.name} can bring to ${userTwin.name}?
+
+Partner's Profile:
+- Name: ${partnerTwin.name}
+- Can Offer: ${partnerTwin.valueOffered}
+- Goal: ${partnerTwin.goalRecently}
+
+User's Profile:
+- Name: ${userTwin.name}
+- Looking For: ${userTwin.valueDesired}
+- Goal: ${userTwin.goalRecently}
+
+Conversation:
+${conversationText}
+
+Generate ONE sentence (maximum 12 words) that captures the MOST IMPORTANT value ${partnerTwin.name} can provide to ${userTwin.name}.
+
+Rules:
+- Start with "Can help you" or "Offers expertise in" or similar action phrases
+- Be specific and actionable
+- Focus on the most valuable benefit
+- Keep it under 12 words
+- No fluff or generic statements
+
+Output ONLY the value statement, nothing else:
+`;
+
+  try {
+    const response = await getOpenAIClient().chat.completions.create({
+      model: "gpt-4.1-nano",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 50,
+      temperature: 0.7,
+    });
+
+    const summary = response.choices[0]?.message?.content?.trim() || '';
+    // 确保不超过100个字符
+    return summary.length > 100 ? summary.substring(0, 97) + '...' : summary;
+  } catch (error) {
+    console.error('Error generating core value summary:', error);
+    // Fallback: 基于 valueOffered 生成简短总结
+    const keyword = extractKeyword(partnerTwin.valueOffered);
+    return `Can help with ${keyword}`;
+  }
+};
+
 // Mock评分生成（用于fallback）
 const generateMockScore = (
   scorer: AITwinConversationProfile,

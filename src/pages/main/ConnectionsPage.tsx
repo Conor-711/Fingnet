@@ -100,6 +100,14 @@ export default function ConnectionsPage({
                               </div>
                             </div>
                           </div>
+                          {/* 核心价值总结 */}
+                          {chat.coreValue && (
+                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-md px-3 py-2 mt-2">
+                              <p className="text-sm font-medium text-blue-900 leading-relaxed">
+                                💡 {chat.coreValue}
+                              </p>
+                            </div>
+                          )}
                           {/* 推荐原因 */}
                           {chat.recommended && chat.recommendReason && (
                             <div className="bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2 mt-2">

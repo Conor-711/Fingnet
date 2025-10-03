@@ -5,7 +5,7 @@ import { useOnboarding } from '@/contexts/OnboardingContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, MessageCircle, Heart, Star, Loader2 } from 'lucide-react';
-import { getAllAITwins, sendInvitation } from '@/lib/supabase';
+import { getAllAITwins, sendInvitation, checkExistingInvitation } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 // Mock AI Twin数据 - 实际应用中会从API获取
@@ -278,6 +278,20 @@ export default function Profile() {
         return;
       }
 
+      // 先检查是否已存在待处理的邀请
+      const { data: existingInvitation, error: checkError } = await checkExistingInvitation(
+        user.id,
+        targetTwin.user_id
+      );
+
+      if (checkError) {
+        console.error('Error checking existing invitation:', checkError);
+        // 继续尝试发送，让数据库约束来处理
+      } else if (existingInvitation) {
+        toast.error('You have already sent an invitation to this AI Twin');
+        return;
+      }
+
       // 发送邀请到数据库
       const { error } = await sendInvitation(
         user.id,
@@ -287,7 +301,13 @@ export default function Profile() {
 
       if (error) {
         console.error('Error sending invitation:', error);
-        toast.error('Failed to send invitation');
+        
+        // 检查是否是重复邀请错误（以防检查失败但数据库约束捕获到）
+        if (error.code === '23505' || error.message?.includes('duplicate key') || error.message?.includes('unique_invitation')) {
+          toast.error('You have already sent an invitation to this AI Twin');
+        } else {
+          toast.error('Failed to send invitation');
+        }
         return;
       }
 

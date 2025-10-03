@@ -27,6 +27,7 @@ import {
   summarizeGroupChat, 
   calculateAITwinMatch, 
   generateAITwinConversation,
+  generateCoreValueSummary,
   withRetry,
   type AITwinConversationProfile,
   type AITwinConversationResult,
@@ -75,6 +76,7 @@ const Main = () => {
   const [isLoadingAITwins, setIsLoadingAITwins] = useState(false);
   const [isGeneratingConversations, setIsGeneratingConversations] = useState(false);
   const [generatedConversations, setGeneratedConversations] = useState<Record<string, AITwinConversationResult>>({});
+  const [coreValueSummaries, setCoreValueSummaries] = useState<Record<string, string>>({});
   const [conversations, setConversations] = useState<any[]>([]);
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
 
@@ -298,6 +300,9 @@ const Main = () => {
       // 生成推荐原因
       const recommendReason = isRecommended ? generateRecommendReason(twinProfile, conversationResult) : null;
       
+      // 获取核心价值总结
+      const coreValue = coreValueSummaries[twinId] || null;
+      
       return {
         id: index + 1,
         partner: `${twinProfile.name}'s AI Twin`,
@@ -308,6 +313,7 @@ const Main = () => {
         topic: twinProfile.interests?.[0] || 'General Discussion',
         recommended: isRecommended,
         recommendReason, // 推荐原因
+        coreValue, // 核心价值总结
         messages: conversation.map((msg, msgIndex) => ({
           id: `${twinId}-${msg.id}-${msgIndex}`, // 生成全局唯一的ID：twin-0-msg-1-0
           sender: msg.sender,
@@ -353,6 +359,7 @@ const Main = () => {
       };
 
       const conversations: Record<string, AITwinConversationResult> = {};
+      const valueSummaries: Record<string, string> = {};
       
       // 为每个真实AI Twin生成对话
       for (const [index, twinProfile] of realAITwins.entries()) {
@@ -363,12 +370,27 @@ const Main = () => {
             generateAITwinConversation(twinProfile, userAITwin, 12)
           );
           conversations[twinId] = conversationResult;
+          
+          // 生成核心价值总结
+          try {
+            const coreValue = await generateCoreValueSummary(
+              twinProfile,
+              userAITwin,
+              conversationResult.messages
+            );
+            valueSummaries[twinId] = coreValue;
+          } catch (valueError) {
+            console.error(`Error generating core value for ${twinId}:`, valueError);
+            // Fallback
+            valueSummaries[twinId] = `Expertise in ${twinProfile.valueOffered?.substring(0, 30) || 'various areas'}`;
+          }
         } catch (error) {
           console.error(`Error generating conversation for ${twinId}:`, error);
         }
       }
       
       setGeneratedConversations(conversations);
+      setCoreValueSummaries(valueSummaries);
     } catch (error) {
       console.error('Error generating conversations:', error);
     } finally {
