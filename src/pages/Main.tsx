@@ -5,7 +5,7 @@ import { useOnboarding, type AITwinProfile } from '@/contexts/OnboardingContext'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Brain, Clock, Settings, CreditCard, Inbox, Users, LogOut, ArrowUp, X, Search, UserPlus, ChevronDown } from 'lucide-react';
+import { MessageCircle, Brain, Clock, Settings, CreditCard, Inbox, Users, LogOut, ArrowUp, X, Search, UserPlus, ChevronDown, Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   DropdownMenu,
@@ -24,6 +24,7 @@ import InvitationsPage from './main/InvitationsPage';
 import GroupChatPage from './main/GroupChatPage';
 import SubscribePage from './main/SubscribePage';
 import SettingsPage from './main/SettingsPage';
+import ReviewConnectionsPage from './main/ReviewConnectionsPage';
 
 // 导入自定义Hooks
 import { useInvitations } from '@/hooks/useInvitations';
@@ -605,6 +606,12 @@ const Main = () => {
       label: 'Build Connections',
       badge: groups.userGroups.length > 0 ? groups.userGroups.length.toString() : null
     },
+    { 
+      id: 'review-connections', 
+      icon: Star, 
+      label: 'Review Connections',
+      badge: null
+    },
   ];
 
   // 渲染当前页面
@@ -661,6 +668,15 @@ const Main = () => {
             onSaveMemory={handleSaveMemory}
             onAcceptInvitation={handleAcceptInvitation}
             onDeclineInvitation={invitations.handleDeclineInvitation}
+          />
+        );
+
+      case 'review-connections':
+        return (
+          <ReviewConnectionsPage
+            userGroups={groups.userGroups}
+            isLoadingGroups={groups.isLoadingGroups}
+            currentUserId={user?.id || ''}
           />
         );
 

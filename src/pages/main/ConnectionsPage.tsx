@@ -50,7 +50,7 @@ export default function ConnectionsPage({
                     <div className="space-y-4">
                       <div className="text-center py-4">
                         <span className="text-sm font-medium font-outfit text-black">{aiTwinName} is chatting with friends</span>
-                        <p className="text-xs text-gray-500 mt-1">Building connections...</p>
+                        <p className="text-xs text-gray-500 mt-1">Often takes 1-2 minutes to load</p>
                       </div>
                       <AITwinConnectionAnimation userAvatar={aiTwinAvatar} />
                     </div>
