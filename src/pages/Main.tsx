@@ -14,6 +14,7 @@ import AITwinPage from './main/AITwinPage';
 import ConnectionsPage from './main/ConnectionsPage';
 import InvitationsPage from './main/InvitationsPage';
 import GroupChatPage from './main/GroupChatPage';
+import SubscribePage from './main/SubscribePage';
 
 // 导入自定义Hooks
 import { useInvitations } from '@/hooks/useInvitations';
@@ -652,7 +653,7 @@ const Main = () => {
         );
 
       case 'subscribe':
-        return renderSubscribePage();
+        return <SubscribePage aiTwinProfile={aiTwinProfile} />;
 
       case 'settings':
         return renderSettingsPage();
@@ -672,14 +673,7 @@ const Main = () => {
     }
   };
 
-  // 临时的Subscribe和Settings页面
-  const renderSubscribePage = () => (
-    <div className="max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8">Subscribe to Premium</h2>
-      <p className="text-gray-600">Premium features coming soon!</p>
-    </div>
-  );
-
+  // Settings页面
   const renderSettingsPage = () => (
     <div className="max-w-4xl mx-auto space-y-6">
       <h2 className="text-3xl font-bold text-gray-900 mb-8">Settings</h2>

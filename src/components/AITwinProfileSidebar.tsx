@@ -52,7 +52,7 @@ export default function AITwinProfileSidebar({ aiTwinProfile, user }: AITwinProf
         <div className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-2 py-8 rounded-l-lg shadow-lg cursor-pointer flex flex-col items-center space-y-2">
           <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
           <Brain className="w-5 h-5" />
-          <div className="text-xs font-medium vertical-text">AI Twin</div>
+          <div className="text-xs font-medium vertical-text">{aiTwinProfile?.name || 'Your AI Twin'}</div>
         </div>
       </div>
 
@@ -75,9 +75,7 @@ export default function AITwinProfileSidebar({ aiTwinProfile, user }: AITwinProf
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">{aiTwinProfile.name || 'Your AI Twin'}</h3>
-                <p className="text-xs text-gray-600 mt-1">Your intelligent digital companion</p>
-                <Badge variant="outline" className="mt-2 bg-white">
+                <h3 className="text-xl font-bold text-gray-900">{aiTwinProfile.name || 'Your AI Twin'}</h3>                <Badge variant="outline" className="mt-2 bg-white">
                   <span className="text-emerald-600">● Active</span>
                 </Badge>
               </div>

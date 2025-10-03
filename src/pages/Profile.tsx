@@ -5,7 +5,7 @@ import { useOnboarding } from '@/contexts/OnboardingContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, MessageCircle, Heart, Star, Loader2 } from 'lucide-react';
-import { getAllAITwins } from '@/lib/supabase';
+import { getAllAITwins, sendInvitation } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 // Mock AI Twin数据 - 实际应用中会从API获取
@@ -253,20 +253,63 @@ export default function Profile() {
   };
 
   // 处理邀请发送
-  const handleSendInvitation = () => {
-    setIsInviteSent(true);
-    
-    // 2.5秒后开始淡出动画
-    dismissTimerRef.current = setTimeout(() => {
-      setIsClosing(true);
+  const handleSendInvitation = async () => {
+    if (!user || !aiTwinProfile || !aiTwin) {
+      toast.error('Unable to send invitation. Please try again.');
+      return;
+    }
+
+    try {
+      // 从数据库获取目标用户的真实 user_id
+      const { data: targetTwinData, error: fetchError } = await getAllAITwins(user.id);
       
-      // 0.5秒后完全关闭悬浮窗
-      closeTimerRef.current = setTimeout(() => {
-        setShowInvitePopup(false);
-        setIsInviteSent(false);
-        setIsClosing(false);
-      }, 500);
-    }, 2500);
+      if (fetchError || !targetTwinData) {
+        toast.error('Failed to fetch target user information');
+        return;
+      }
+
+      // 根据 aiTwin.name 找到对应的用户
+      const targetTwin = targetTwinData.find(twin => 
+        twin.name.toLowerCase().replace(/\s+/g, '') === aiTwin.id
+      );
+
+      if (!targetTwin || !targetTwin.user_id) {
+        toast.error('Target user not found');
+        return;
+      }
+
+      // 发送邀请到数据库
+      const { error } = await sendInvitation(
+        user.id,
+        targetTwin.user_id,
+        `${aiTwinProfile.name} wants to connect with ${aiTwin.name}!`
+      );
+
+      if (error) {
+        console.error('Error sending invitation:', error);
+        toast.error('Failed to send invitation');
+        return;
+      }
+
+      // 显示成功状态
+      setIsInviteSent(true);
+      toast.success(`Invitation sent to ${aiTwin.name}!`);
+      
+      // 2.5秒后开始淡出动画
+      dismissTimerRef.current = setTimeout(() => {
+        setIsClosing(true);
+        
+        // 0.5秒后完全关闭悬浮窗
+        closeTimerRef.current = setTimeout(() => {
+          setShowInvitePopup(false);
+          setIsInviteSent(false);
+          setIsClosing(false);
+        }, 500);
+      }, 2500);
+    } catch (error) {
+      console.error('Error in handleSendInvitation:', error);
+      toast.error('An error occurred while sending invitation');
+    }
   };
 
   // 手动关闭悬浮窗
@@ -287,14 +330,9 @@ export default function Profile() {
     setCreatedGroupId(null);
   };
 
-  // 处理Test按钮 - 创建connection
-  const handleTestConnection = () => {
-    // 模拟创建connection
-    setIsConnectionCreated(true);
-    
-    // 生成一个group ID（在实际应用中这应该从后端获取）
-    const groupId = `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    setCreatedGroupId(groupId);
+  // 处理Test按钮 - 发送邀请
+  const handleTestConnection = async () => {
+    await handleSendInvitation();
   };
 
   // 处理Join Group按钮
