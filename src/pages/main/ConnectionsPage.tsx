@@ -104,7 +104,7 @@ export default function ConnectionsPage({
                             </div>
                           </div>
 
-                          {/* Recommendation Reason */}
+                          {/* Recommendation Reason - 直接使用chat.recommendReason */}
                           {chat.recommended && chat.recommendReason && (
                             <div className="bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2 mt-2">
                               <p className="text-xs text-emerald-800 leading-relaxed">
