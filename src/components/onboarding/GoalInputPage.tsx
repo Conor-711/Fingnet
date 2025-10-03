@@ -116,8 +116,8 @@ export default function GoalInputPage({
     return () => clearTimeout(timer);
   }, []);
 
-  // 生成下一个问题
-  const generateNextQuestion = async () => {
+  // 生成下一个问题 - 接收最新的 context 作为参数
+  const generateNextQuestion = async (latestContext: ConversationContext) => {
     setIsGeneratingQuestion(true);
     setIsAITyping(true);
     setCanUserTypeGoal(false);
@@ -125,7 +125,13 @@ export default function GoalInputPage({
     try {
       // 检查是否应该结束对话
       // 简单策略：问了8个问题后结束（goal 阶段 5个 + value offered 2个 + value desired 1个）
-      const totalQuestions = conversationContext.questionCount;
+      const totalQuestions = latestContext.questionCount;
+      
+      console.log('🔍 当前状态:', {
+        totalQuestions,
+        currentPhase: latestContext.currentPhase,
+        phaseQuestionCount: latestContext.phaseQuestionCount
+      });
       
       if (totalQuestions >= 8) {
         // 对话结束，开始AI整合
@@ -134,14 +140,18 @@ export default function GoalInputPage({
       }
 
       // 根据问题数量切换阶段
-      let updatedContext = { ...conversationContext };
-      if (totalQuestions >= 5 && conversationContext.currentPhase === 'goal') {
+      let updatedContext = { ...latestContext };
+      if (totalQuestions >= 5 && latestContext.currentPhase === 'goal') {
+        console.log('🔄 切换到 value_offered 阶段');
         updatedContext.currentPhase = 'value_offered';
         updatedContext.phaseQuestionCount = 0;
-      } else if (totalQuestions >= 7 && conversationContext.currentPhase === 'value_offered') {
+      } else if (totalQuestions >= 7 && latestContext.currentPhase === 'value_offered') {
+        console.log('🔄 切换到 value_desired 阶段');
         updatedContext.currentPhase = 'value_desired';
         updatedContext.phaseQuestionCount = 0;
       }
+
+      console.log('📝 生成问题，使用阶段:', updatedContext.currentPhase);
 
       // 生成下一个问题
       const nextQuestion = await generateFollowUpQuestion(updatedContext);
@@ -264,8 +274,14 @@ export default function GoalInputPage({
     setGoalUserInput('');
     setCanUserTypeGoal(false);
     
-    // 生成下一个问题
-    await generateNextQuestion();
+    console.log('✅ 用户回答后，更新后的 context:', {
+      questionCount: updatedContext.questionCount,
+      currentPhase: updatedContext.currentPhase,
+      phaseQuestionCount: updatedContext.phaseQuestionCount
+    });
+    
+    // 生成下一个问题 - 传递最新的 context
+    await generateNextQuestion(updatedContext);
   };
 
   // 键盘事件处理 - Enter 自动发送
@@ -297,7 +313,7 @@ export default function GoalInputPage({
             <div className="flex items-start space-x-4 animate-fade-in">
               {/* AI Twin 头像 */}
               <div className="flex-shrink-0">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center shadow-lg overflow-hidden">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center shadow-lg overflow-hidden">
                   <img
                     src={aiTwinProfile?.avatar || customAITwinAvatar}
                     alt={aiTwinProfile?.name || customAITwinName || "AI Twin"}
@@ -381,7 +397,7 @@ export default function GoalInputPage({
             </div>
           ) : (
             <div className="bg-white/50 backdrop-blur-md rounded-3xl px-8 py-5 shadow-lg">
-              <p className="text-lg text-center text-gray-400">
+              <p className="text-lg text-center text-gray-400" style={{ fontFamily: 'Outfit, sans-serif' }}>
                 {isAIProcessing ? 'Processing...' : 'Please wait...'}
               </p>
             </div>
@@ -405,10 +421,10 @@ export default function GoalInputPage({
             
             {/* 进度文本 */}
             <div className="flex items-center justify-between mt-2 px-2">
-              <p className="text-xs text-gray-500 font-medium">
+              <p className="text-xs text-gray-500 font-medium" style={{ fontFamily: 'Outfit, sans-serif' }}>
                 Question {currentGoalQuestionIndex + 1} of {goalQuestions.length}
               </p>
-              <p className="text-xs text-gray-400 font-medium">
+              <p className="text-xs text-gray-400 font-medium" style={{ fontFamily: 'Outfit, sans-serif' }}>
                 {Math.round((currentGoalQuestionIndex + 1) / goalQuestions.length * 100)}%
               </p>
             </div>
