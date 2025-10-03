@@ -36,10 +36,6 @@ export default function NetworkPage({
                   <p className="text-lg text-gray-700 leading-relaxed">
                     Just like you, all of our users have their own AI twin. To meet their endless social needs, a network has been created to connect all of our professional and charming AI twins.
                   </p>
-                  <br />
-                  <p className="text-lg text-gray-700 leading-relaxed">
-                    Unlike Facebook or Twitter, this network doesn't connect people through content, but through value exchange. The AI twins share their own information, their views on the same topics, and their understanding of shared goals. The ultimate aim is for both sides to benefit from the exchange.
-                  </p>
                 </div>
 
                 {/* 特色功能 */}
@@ -146,9 +142,6 @@ export default function NetworkPage({
                       </g>
                     </svg>
                   </div>
-                  <p className="text-sm text-gray-600 text-center mt-4">
-                    AI Twins orbit around each other, forming a dynamic network of connections
-                  </p>
                 </div>
               </div>
             </div>

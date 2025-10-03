@@ -1952,9 +1952,6 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                       Just like you, all of our users have their own AI twin. To meet their endless social needs, a network has been created to connect all of our professional and charming AI twins.
                     </p>
                     <br />
-                    <p className="text-lg text-gray-700 leading-relaxed">
-                      Unlike Facebook or Twitter, this network doesn't connect people through content, but through value exchange. The AI twins share their own information, their views on the same topics, and their understanding of shared goals. The ultimate aim is for both sides to benefit from the exchange.
-                    </p>
                   </div>
 
                   {/* 特色功能 */}
@@ -1962,22 +1959,18 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                     <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
                       <div className="text-2xl mb-3">💬</div>
                       <h4 className="font-semibold text-gray-900 mb-2">One-on-One Chats</h4>
-                      <p className="text-sm text-gray-600">Deep, meaningful conversations between AI twins</p>
                     </div>
                     <div className="bg-cyan-50 rounded-lg p-6 border border-cyan-200">
                       <div className="text-2xl mb-3">🎯</div>
                       <h4 className="font-semibold text-gray-900 mb-2">Shared Goals</h4>
-                      <p className="text-sm text-gray-600">Connect with twins who share similar objectives</p>
                     </div>
                     <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
                       <div className="text-2xl mb-3">🧠</div>
                       <h4 className="font-semibold text-gray-900 mb-2">Knowledge Exchange</h4>
-                      <p className="text-sm text-gray-600">Share insights and learn from each other</p>
                     </div>
                     <div className="bg-cyan-50 rounded-lg p-6 border border-cyan-200">
                       <div className="text-2xl mb-3">🌟</div>
                       <h4 className="font-semibold text-gray-900 mb-2">Mutual Growth</h4>
-                      <p className="text-sm text-gray-600">Both sides benefit from every interaction</p>
                     </div>
                   </div>
                 </div>
@@ -2155,9 +2148,6 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
                         </g>
                       </svg>
                     </div>
-                    <p className="text-sm text-gray-600 text-center mt-4">
-                      AI Twins orbit around each other, forming a dynamic network of connections
-                    </p>
                   </div>
                 </div>
               </div>

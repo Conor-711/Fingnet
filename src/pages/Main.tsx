@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding, type AITwinProfile } from '@/contexts/OnboardingContext';
@@ -89,6 +89,9 @@ const Main = () => {
   // 回到顶部按钮状态
   const [showScrollToTop, setShowScrollToTop] = useState(false);
 
+  // 打字机效果定时器引用 - 用于清理
+  const typewriterTimersRef = useRef<NodeJS.Timeout[]>([]);
+
   // 切换字段展开/折叠
   const toggleFieldExpansion = (field: 'goals' | 'offers' | 'lookings' | 'memory' | 'learnedFromUser') => {
     setExpandedFields(prev => ({
@@ -117,6 +120,10 @@ const Main = () => {
 
   // 打字机效果控制
   const startTypewriterEffect = (messages: GeneratedMessage[]) => {
+    // 清理之前的所有定时器
+    typewriterTimersRef.current.forEach(timer => clearTimeout(timer));
+    typewriterTimersRef.current = [];
+    
     setDisplayedMessages([]);
     setCurrentMessageIndex(0);
     setIsTyping(true);
@@ -137,7 +144,8 @@ const Main = () => {
         const charDelay = Math.min(messageLength * 25, 2000);
         const totalDelay = baseDelay + charDelay;
         
-        setTimeout(displayNextMessage, totalDelay);
+        const timer = setTimeout(displayNextMessage, totalDelay);
+        typewriterTimersRef.current.push(timer);
       } else {
         setIsTyping(false);
         setShowFullConversation(true);
@@ -145,7 +153,8 @@ const Main = () => {
     };
     
     // 开始显示第一条消息
-    setTimeout(displayNextMessage, 1000);
+    const initialTimer = setTimeout(displayNextMessage, 1000);
+    typewriterTimersRef.current.push(initialTimer);
   };
 
   // 跳过打字机效果，直接显示所有消息
@@ -160,6 +169,10 @@ const Main = () => {
 
   // 关闭对话详情
   const handleCloseChatDetail = () => {
+    // 清理所有打字机定时器
+    typewriterTimersRef.current.forEach(timer => clearTimeout(timer));
+    typewriterTimersRef.current = [];
+    
     setShowChatDetail(false);
     setDisplayedMessages([]);
     setCurrentMessageIndex(0);
@@ -169,6 +182,10 @@ const Main = () => {
 
   // 显示完整对话
   const handleShowFullConversation = () => {
+    // 清理所有打字机定时器
+    typewriterTimersRef.current.forEach(timer => clearTimeout(timer));
+    typewriterTimersRef.current = [];
+    
     if (selectedChat?.messages) {
       setDisplayedMessages(selectedChat.messages);
       setCurrentMessageIndex(selectedChat.messages.length);
@@ -291,8 +308,8 @@ const Main = () => {
         topic: twinProfile.interests?.[0] || 'General Discussion',
         recommended: isRecommended,
         recommendReason, // 推荐原因
-        messages: conversation.map(msg => ({
-          id: msg.id,
+        messages: conversation.map((msg, msgIndex) => ({
+          id: `${twinId}-${msg.id}-${msgIndex}`, // 生成全局唯一的ID：twin-0-msg-1-0
           sender: msg.sender,
           content: msg.content,
           timestamp: msg.timestamp,
@@ -367,6 +384,14 @@ const Main = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // 组件卸载时清理所有打字机定时器
+  useEffect(() => {
+    return () => {
+      typewriterTimersRef.current.forEach(timer => clearTimeout(timer));
+      typewriterTimersRef.current = [];
+    };
   }, []);
 
   // 从数据库加载AI Twin Profile
@@ -541,7 +566,7 @@ const Main = () => {
 
     handleSaveProfile(updatedProfile);
     setIsMemorySaved(true);
-    toast.success('Memory saved to AI Twin!');
+    toast.success('Memory saved to ' + aiTwinProfile?.name || 'Your AI Twin');
   };
 
   // 处理邀请接受（带群组创建回调）
@@ -942,11 +967,11 @@ const Main = () => {
             {/* 对话内容 */}
             <div className="flex-1 overflow-y-auto p-4">
               <div className="space-y-4">
-                {displayedMessages.map((message, index) => {
+                {displayedMessages.map((message) => {
                   const isOwn = message.sender === aiTwinProfile?.name;
                   return (
                     <div
-                      key={index}
+                      key={message.id}
                       className={`flex items-start space-x-3 ${isOwn ? 'justify-end' : ''}`}
                     >
                       {!isOwn && (

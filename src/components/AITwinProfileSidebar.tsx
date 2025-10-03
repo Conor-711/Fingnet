@@ -86,7 +86,7 @@ export default function AITwinProfileSidebar({ aiTwinProfile, user }: AITwinProf
               <div>
                 <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
                   <Target className="w-4 h-4 mr-2 text-emerald-600" />
-                  Learned from User
+                  Learned from {user?.name}
                 </h4>
                 {dailyHistory.length > 0 ? (
                   <div className="space-y-3">

@@ -30,7 +30,7 @@ export default function ConnectionsPage({
     <div className="max-w-6xl mx-auto relative">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">{aiTwinName}'s Connections</h1>
-        <p className="text-gray-600">View and manage AI Twin conversations</p>
+        <p className="text-gray-600">View and manage {aiTwinName}'s' conversations</p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
