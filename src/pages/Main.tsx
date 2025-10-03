@@ -481,24 +481,6 @@ const Main = () => {
     setIsLoadingConversations(isGeneratingConversations);
   }, [realAITwins, generatedConversations, isGeneratingConversations]);
 
-  // 打字机效果 - 逐条显示对话消息
-  useEffect(() => {
-    if (!showChatDetail || !selectedChat || showFullConversation) return;
-
-    if (currentMessageIndex < selectedChat.messages.length) {
-      setIsTyping(true);
-      const timer = setTimeout(() => {
-        setDisplayedMessages(prev => [...prev, selectedChat.messages[currentMessageIndex]]);
-        setCurrentMessageIndex(prev => prev + 1);
-        setIsTyping(false);
-      }, 1500); // 每条消息延迟1.5秒
-
-      return () => clearTimeout(timer);
-    }
-  }, [showChatDetail, selectedChat, currentMessageIndex, showFullConversation]);
-
-  // 这些函数已在上面定义，删除重复定义
-
   // 保存AI Twin Profile到数据库
   const handleSaveProfile = async (updatedProfile: AITwinProfile) => {
     if (!user) return;
