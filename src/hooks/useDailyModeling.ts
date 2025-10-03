@@ -50,13 +50,12 @@ export function useDailyModeling(
       setIsLoadingDailyQuestions(true);
       try {
         const questions = await generateDailyModelingQuestions({
-          name: aiTwinProfile.userNickname || 'User',
+          nickname: aiTwinProfile.userNickname || 'User',
           occupation: aiTwinProfile.profile?.occupation || '',
-          age: aiTwinProfile.profile?.age || '',
-          location: aiTwinProfile.profile?.location || '',
-          recentGoal: aiTwinProfile.goalRecently || '',
-          previousOffered: aiTwinProfile.valueOffered || '',
-          previousDesired: aiTwinProfile.valueDesired || ''
+          industry: aiTwinProfile.userIndustry || '',
+          currentGoals: aiTwinProfile.goalRecently ? [aiTwinProfile.goalRecently] : [],
+          valueOffered: aiTwinProfile.valueOffered ? [aiTwinProfile.valueOffered] : [],
+          valueDesired: aiTwinProfile.valueDesired ? [aiTwinProfile.valueDesired] : []
         });
 
         setDailyQuestions(questions);
@@ -97,13 +96,24 @@ export function useDailyModeling(
         };
 
         // 调用AI服务集成答案
-        const updatedProfile = await integrateDailyModelingAnswers(
-          aiTwinProfile,
-          finalAnswers
+        const { updatedValueOffered, updatedValueDesired } = await integrateDailyModelingAnswers(
+          finalAnswers.valueOffered,
+          finalAnswers.valueDesired,
+          {
+            nickname: aiTwinProfile.userNickname || 'User',
+            occupation: aiTwinProfile.profile?.occupation || '',
+            industry: aiTwinProfile.userIndustry || '',
+            valueOffered: aiTwinProfile.valueOffered ? [aiTwinProfile.valueOffered] : [],
+            valueDesired: aiTwinProfile.valueDesired ? [aiTwinProfile.valueDesired] : []
+          }
         );
 
-        // 更新profile
-        updateAITwinProfile(updatedProfile);
+        // 更新profile - 只更新value字段，保留所有其他数据
+        updateAITwinProfile({
+          ...aiTwinProfile,
+          valueOffered: updatedValueOffered,
+          valueDesired: updatedValueDesired
+        });
 
         // 保存历史记录
         const today = getCurrentDate();
