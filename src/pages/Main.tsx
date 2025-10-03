@@ -184,6 +184,11 @@ const Main = () => {
                 12 // 生成12轮对话
               );
 
+              // 生成推荐原因文本
+              const recommendReason = matchScore.reasons.length > 0 
+                ? matchScore.reasons.slice(0, 3).join(' · ')
+                : null;
+
               return {
                 id: twin.user_id,
                 userId: twin.user_id,
@@ -197,18 +202,24 @@ const Main = () => {
                 goal: twin.goalRecently || twin.goals?.[0] || '',
                 matchingScore: matchScore.overallScore,
                 recommended: matchScore.overallScore >= 6,
+                recommendReason, // 推荐原因文本
                 locationMatch: matchScore.locationMatch,
                 ageMatch: matchScore.ageMatch,
                 goalMatch: matchScore.goalMatch,
                 reasons: matchScore.reasons,
                 // 添加对话数据
                 messages: conversationResult.messages,
+                messageCount: conversationResult.messages.length, // 消息数量
                 conversationSummary: conversationResult.conversationSummary
               };
             } catch (error) {
               console.error(`Error generating conversation for ${twin.name}:`, error);
               // 即使对话生成失败，也返回基本信息
               const matchScore = calculateAITwinMatch(aiTwinProfile, twin);
+              const recommendReason = matchScore.reasons.length > 0 
+                ? matchScore.reasons.slice(0, 3).join(' · ')
+                : null;
+              
               return {
                 id: twin.user_id,
                 userId: twin.user_id,
@@ -222,11 +233,13 @@ const Main = () => {
                 goal: twin.goalRecently || twin.goals?.[0] || '',
                 matchingScore: matchScore.overallScore,
                 recommended: matchScore.overallScore >= 6,
+                recommendReason, // 推荐原因文本
                 locationMatch: matchScore.locationMatch,
                 ageMatch: matchScore.ageMatch,
                 goalMatch: matchScore.goalMatch,
                 reasons: matchScore.reasons,
                 messages: [],
+                messageCount: 0, // 消息数量
                 conversationSummary: ''
               };
             }
@@ -438,8 +451,10 @@ const Main = () => {
       case 'connections':
         return (
           <ConnectionsPage
+            aiTwinName={aiTwinProfile?.name || 'Your AI Twin'}
             conversations={conversations}
             isLoadingConversations={isLoadingConversations}
+            aiTwinAvatar={aiTwinProfile?.avatar}
             onViewConversation={handleViewConversation}
           />
         );
