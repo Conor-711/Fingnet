@@ -8,14 +8,12 @@ import { Loader2, MessageCircle, Sparkles } from 'lucide-react';
 interface ConnectionsPageProps {
   conversations: any[];
   isLoadingConversations: boolean;
-  onSendInvitation: (recipientId: string, message?: string) => Promise<void>;
   onViewConversation: (chat: any) => void;
 }
 
 export default function ConnectionsPage({
   conversations,
   isLoadingConversations,
-  onSendInvitation,
   onViewConversation
 }: ConnectionsPageProps) {
   // 显示推荐原因
@@ -153,22 +151,11 @@ export default function ConnectionsPage({
                           className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onSendInvitation(chat.userId, `Hi! I'd love to connect with you.`);
-                          }}
-                        >
-                          <MessageCircle className="w-3 h-3 mr-1" />
-                          Connect
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1"
-                          onClick={(e) => {
-                            e.stopPropagation();
                             onViewConversation(chat);
                           }}
                         >
-                          View Profile
+                          <MessageCircle className="w-3 h-3 mr-1" />
+                          View Conversation
                         </Button>
                       </div>
                     </CardContent>

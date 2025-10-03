@@ -21,7 +21,7 @@ import { useDailyModeling } from '@/hooks/useDailyModeling';
 
 // 导入数据库函数
 import { getAITwin, upsertAITwin, getAllAITwins } from '@/lib/supabase';
-import { summarizeGroupChat, calculateAITwinMatch } from '@/services/aiService';
+import { summarizeGroupChat, calculateAITwinMatch, generateAITwinConversation } from '@/services/aiService';
 
 const Main = () => {
   const navigate = useNavigate();
@@ -116,9 +116,9 @@ const Main = () => {
     }
   }, [user, aiTwinProfile, updateAITwinProfile]);
 
-  // 加载所有AI Twins（用于Connections页面）
+  // 加载所有AI Twins并生成对话（用于Connections页面）
   useEffect(() => {
-    const loadAllAITwins = async () => {
+    const loadAllAITwinsAndGenerateConversations = async () => {
       if (!user || !aiTwinProfile) return;
 
       setIsLoadingConversations(true);
@@ -138,37 +138,97 @@ const Main = () => {
           return;
         }
 
-        // 计算每个AI Twin与当前用户的匹配分数
-        const conversationsWithScores = allTwins.map((twin: any) => {
-          const matchScore = calculateAITwinMatch(aiTwinProfile, twin);
-          
-          return {
-            id: twin.user_id,
-            userId: twin.user_id,
-            partner: twin.name || 'Anonymous Twin',
-            avatar: twin.avatar || '',
-            topic: twin.profile?.occupation || 'Professional',
-            location: twin.profile?.location,
-            occupation: twin.profile?.occupation,
-            age: twin.profile?.age,
-            gender: twin.profile?.gender,
-            goal: twin.goalRecently || twin.goals?.[0] || '',
-            matchingScore: matchScore.overallScore,
-            recommended: matchScore.overallScore >= 6, // 6分以上推荐
-            locationMatch: matchScore.locationMatch,
-            ageMatch: matchScore.ageMatch,
-            goalMatch: matchScore.goalMatch,
-            reasons: matchScore.reasons
-          };
-        });
+        console.log(`✅ Loaded ${allTwins.length} AI Twins, generating conversations...`);
+
+        // 为每个AI Twin生成对话
+        const conversationsWithData = await Promise.all(
+          allTwins.map(async (twin: any) => {
+            try {
+              // 计算匹配分数
+              const matchScore = calculateAITwinMatch(aiTwinProfile, twin);
+              
+              // 生成AI Twin对话
+              const userTwinProfile = {
+                name: aiTwinProfile.name || 'Your AI Twin',
+                profile: aiTwinProfile.profile,
+                goalRecently: aiTwinProfile.goalRecently || '',
+                valueOffered: aiTwinProfile.valueOffered || '',
+                valueDesired: aiTwinProfile.valueDesired || '',
+                personality: ['Unique', 'Goal-oriented'],
+                interests: aiTwinProfile.goals || []
+              };
+
+              const otherTwinProfile = {
+                name: twin.name || 'Anonymous Twin',
+                profile: twin.profile,
+                goalRecently: twin.goalRecently || twin.goals?.[0] || '',
+                valueOffered: twin.valueOffered || twin.offers?.[0] || '',
+                valueDesired: twin.valueDesired || twin.lookings?.[0] || '',
+                personality: ['Unique', 'Growth-minded'],
+                interests: twin.goals || []
+              };
+
+              const conversationResult = await generateAITwinConversation(
+                otherTwinProfile,
+                userTwinProfile,
+                12 // 生成12轮对话
+              );
+
+              return {
+                id: twin.user_id,
+                userId: twin.user_id,
+                partner: twin.name || 'Anonymous Twin',
+                avatar: twin.avatar || '',
+                topic: twin.profile?.occupation || 'Professional',
+                location: twin.profile?.location,
+                occupation: twin.profile?.occupation,
+                age: twin.profile?.age,
+                gender: twin.profile?.gender,
+                goal: twin.goalRecently || twin.goals?.[0] || '',
+                matchingScore: matchScore.overallScore,
+                recommended: matchScore.overallScore >= 6,
+                locationMatch: matchScore.locationMatch,
+                ageMatch: matchScore.ageMatch,
+                goalMatch: matchScore.goalMatch,
+                reasons: matchScore.reasons,
+                // 添加对话数据
+                messages: conversationResult.messages,
+                conversationSummary: conversationResult.conversationSummary
+              };
+            } catch (error) {
+              console.error(`Error generating conversation for ${twin.name}:`, error);
+              // 即使对话生成失败，也返回基本信息
+              const matchScore = calculateAITwinMatch(aiTwinProfile, twin);
+              return {
+                id: twin.user_id,
+                userId: twin.user_id,
+                partner: twin.name || 'Anonymous Twin',
+                avatar: twin.avatar || '',
+                topic: twin.profile?.occupation || 'Professional',
+                location: twin.profile?.location,
+                occupation: twin.profile?.occupation,
+                age: twin.profile?.age,
+                gender: twin.profile?.gender,
+                goal: twin.goalRecently || twin.goals?.[0] || '',
+                matchingScore: matchScore.overallScore,
+                recommended: matchScore.overallScore >= 6,
+                locationMatch: matchScore.locationMatch,
+                ageMatch: matchScore.ageMatch,
+                goalMatch: matchScore.goalMatch,
+                reasons: matchScore.reasons,
+                messages: [],
+                conversationSummary: ''
+              };
+            }
+          })
+        );
 
         // 按匹配分数排序（高到低）
-        conversationsWithScores.sort((a, b) => b.matchingScore - a.matchingScore);
+        conversationsWithData.sort((a, b) => b.matchingScore - a.matchingScore);
 
-        console.log(`✅ Loaded ${conversationsWithScores.length} AI Twins`);
-        console.log('Top matches:', conversationsWithScores.slice(0, 3));
+        console.log(`✅ Generated conversations for ${conversationsWithData.length} AI Twins`);
         
-        setConversations(conversationsWithScores);
+        setConversations(conversationsWithData);
       } catch (error) {
         console.error('Error loading AI Twins:', error);
         toast.error('Failed to load connections');
@@ -178,7 +238,7 @@ const Main = () => {
     };
 
     if (user && aiTwinProfile) {
-      loadAllAITwins();
+      loadAllAITwinsAndGenerateConversations();
     }
   }, [user, aiTwinProfile]);
 
@@ -324,9 +384,10 @@ const Main = () => {
           <ConnectionsPage
             conversations={conversations}
             isLoadingConversations={isLoadingConversations}
-            onSendInvitation={invitations.handleSendInvitation}
             onViewConversation={(chat) => {
-              toast.info('View conversation feature coming soon!');
+              // TODO: 实现对话查看功能
+              console.log('View conversation:', chat);
+              toast.info('View conversation feature - showing conversation details');
             }}
           />
         );
