@@ -9,7 +9,15 @@ import {
   subscribeToGroupMessages
 } from '@/lib/supabase';
 
-export function useGroups(userId: string | undefined) {
+interface UserProfile {
+  name?: string;
+  userNickname?: string;
+}
+
+export function useGroups(
+  userId: string | undefined,
+  userProfile?: UserProfile | null
+) {
   const [userGroups, setUserGroups] = useState<Group[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
@@ -64,24 +72,36 @@ export function useGroups(userId: string | undefined) {
   const handleSendGroupMessage = async () => {
     if (!userId || !selectedGroup || !newMessage.trim()) return;
 
+    // 获取用户名称
+    const senderName = userProfile?.name || userProfile?.userNickname || 'Anonymous';
+
+    console.log('📤 Sending message:', {
+      groupId: selectedGroup.id,
+      userId,
+      senderName,
+      content: newMessage.trim()
+    });
+
     setIsSendingMessage(true);
     try {
       const { error } = await sendGroupMessage(
         selectedGroup.id,
         userId,
+        senderName,
         newMessage.trim()
       );
 
       if (error) {
-        console.error('Failed to send message:', error);
+        console.error('❌ Failed to send message:', error);
         toast.error('Failed to send message');
         return;
       }
 
+      console.log('✅ Message sent successfully');
       // 清空输入框
       setNewMessage('');
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('❌ Error sending message:', error);
       toast.error('Failed to send message');
     } finally {
       setIsSendingMessage(false);

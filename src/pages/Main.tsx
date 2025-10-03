@@ -36,7 +36,7 @@ const Main = () => {
 
   // 使用自定义Hooks
   const invitations = useInvitations(user?.id);
-  const groups = useGroups(user?.id);
+  const groups = useGroups(user?.id, aiTwinProfile);
   const dailyModeling = useDailyModeling(user?.id, aiTwinProfile, updateAITwinProfile);
 
   // AI Twin Profile字段折叠状态
