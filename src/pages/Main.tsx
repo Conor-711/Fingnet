@@ -179,9 +179,17 @@ const Main = () => {
 
   // 处理Interested按钮点击，跳转到对方AI Twin主页
   const handleInterestedClick = (chat: any) => {
+    console.log('🔗 Interested clicked for chat:', chat);
+    console.log('🔗 Chat partner name:', chat.partner);
+    
     setShowChatDetail(false);
+    
     // 根据聊天伙伴的名字映射到profile ID
-    const profileId = chat.partner.toLowerCase().replace('\'s ai twin', '').replace(' ', '');
+    const profileId = chat.partner.toLowerCase().replace('\'s ai twin', '').replace(/\s+/g, '');
+    
+    console.log('🔗 Generated profile ID:', profileId);
+    console.log('🔗 Navigating to:', `/profile/${profileId}`);
+    
     navigate(`/profile/${profileId}`);
   };
 
@@ -548,12 +556,6 @@ const Main = () => {
   // Sidebar导航项
   const sidebarItems = [
     { 
-      id: 'ai-twin', 
-      icon: Brain, 
-      label: `You & ${aiTwinProfile?.name || 'Your AI Twin'}`,
-      badge: null
-    },
-    { 
       id: 'connections', 
       icon: Users, 
       label: 'Connections',
@@ -608,6 +610,8 @@ const Main = () => {
           <ConnectionsPage
             aiTwinName={aiTwinProfile?.name || 'Your AI Twin'}
             aiTwinAvatar={aiTwinProfile?.avatar}
+            aiTwinProfile={aiTwinProfile}
+            user={user}
             conversations={conversations}
             isLoadingConversations={isLoadingConversations}
             onViewConversation={handleChatClick}
@@ -836,16 +840,24 @@ const Main = () => {
                 );
               })}
 
-              {/* User Avatar */}
-              {/* <div className="ml-auto flex items-center space-x-3">
-                <Avatar className="w-9 h-9 ring-2 ring-emerald-200">
-                  <AvatarImage src={aiTwinProfile?.userAvatar} alt={user?.name} />
-                  <AvatarFallback className="bg-emerald-100 text-emerald-700">
-                    {user?.name?.charAt(0) || '👤'}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium text-gray-700">{aiTwinProfile?.userNickname || user?.name}</span>
-              </div> */}
+              {/* User Avatar - 点击进入AI Twin页面 */}
+              <div className="ml-auto">
+                <button
+                  onClick={() => setCurrentPage('ai-twin')}
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all hover:bg-gray-100 ${
+                    currentPage === 'ai-twin' ? 'bg-emerald-50 ring-2 ring-emerald-200' : ''
+                  }`}
+                  title="View Your Profile"
+                >
+                  <Avatar className="w-9 h-9 ring-2 ring-emerald-200">
+                    <AvatarImage src={aiTwinProfile?.userAvatar} alt={user?.name} />
+                    <AvatarFallback className="bg-emerald-100 text-emerald-700">
+                      {user?.name?.charAt(0) || '👤'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium text-gray-700">{aiTwinProfile?.userNickname || user?.name}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -70,16 +70,7 @@ export default function Profile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
-  // 安全获取context，处理可能的undefined情况
-  let aiTwinProfile = null;
-  try {
-    const context = useOnboarding();
-    aiTwinProfile = context?.aiTwinProfile || null;
-  } catch (error) {
-    console.error('Error accessing OnboardingContext:', error);
-    // 如果context不可用，aiTwinProfile保持为null
-  }
+  const { aiTwinProfile } = useOnboarding();
   
   // Invite悬浮窗状态
   const [showInvitePopup, setShowInvitePopup] = useState(false);
@@ -100,38 +91,60 @@ export default function Profile() {
   // 从数据库加载AI Twin数据
   useEffect(() => {
     const loadAITwinData = async () => {
-      if (!id || !user) return;
+      console.log('🔍 Profile.tsx - loadAITwinData called with id:', id);
+      
+      if (!id) {
+        console.log('❌ No id provided');
+        setIsLoadingTwin(false);
+        return;
+      }
       
       setIsLoadingTwin(true);
       setLoadError(null);
       
       try {
         // 首先尝试从mock数据加载（向后兼容）
+        console.log('🔍 Checking mock data for id:', id);
         if (mockAITwins[id]) {
+          console.log('✅ Found in mock data:', mockAITwins[id]);
           setAITwin(mockAITwins[id]);
           setIsLoadingTwin(false);
           return;
         }
         
+        // 如果没有user，使用mock数据
+        if (!user) {
+          console.log('❌ No user found');
+          setLoadError('Please login to view profiles');
+          setIsLoadingTwin(false);
+          return;
+        }
+        
         // 从数据库加载所有AI Twins
+        console.log('🔍 Loading AI Twins from database for user:', user.id);
         const { data: allTwins, error } = await getAllAITwins(user.id);
         
         if (error) {
-          console.error('Error loading AI Twins:', error);
+          console.error('❌ Error loading AI Twins:', error);
           setLoadError('Failed to load AI Twin data');
           setIsLoadingTwin(false);
           return;
         }
         
+        console.log('📊 All twins loaded:', allTwins);
+        
         // 查找匹配的AI Twin（通过名字匹配）
         const targetTwin = allTwins?.find(twin => {
           const twinId = twin.name.toLowerCase().replace(/\s+/g, '');
+          console.log(`🔍 Comparing: "${twinId}" === "${id}"`);
           return twinId === id;
         });
         
+        console.log('🎯 Target twin found:', targetTwin);
+        
         if (targetTwin) {
           // 转换数据库格式到UI格式
-          setAITwin({
+          const formattedTwin = {
             id: id,
             name: targetTwin.name,
             avatar: targetTwin.avatar || '/avatars/ai_friend.png',
@@ -143,8 +156,11 @@ export default function Profile() {
             connectionStatus: 'Available',
             rating: 4.5,
             connectionsCount: 0
-          });
+          };
+          console.log('✅ Setting AI Twin:', formattedTwin);
+          setAITwin(formattedTwin);
         } else {
+          console.log('❌ AI Twin not found for id:', id);
           setLoadError('AI Twin not found');
         }
       } catch (error) {
@@ -156,7 +172,7 @@ export default function Profile() {
     };
     
     loadAITwinData();
-  }, [id, user]);
+  }, [id, user?.id]);
   
   // 加载状态
   if (isLoadingTwin) {

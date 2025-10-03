@@ -4,10 +4,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, Sparkles } from 'lucide-react';
 import AITwinConnectionAnimation from '@/components/AITwinConnectionAnimation';
+import AITwinProfileSidebar from '@/components/AITwinProfileSidebar';
+import { type AITwinProfile } from '@/contexts/OnboardingContext';
 
 interface ConnectionsPageProps {
   aiTwinName: string;
   aiTwinAvatar?: string;
+  aiTwinProfile: AITwinProfile | null;
+  user: any;
   conversations: any[];
   isLoadingConversations: boolean;
   onViewConversation: (chat: any) => void;
@@ -16,12 +20,14 @@ interface ConnectionsPageProps {
 export default function ConnectionsPage({
   aiTwinName,
   aiTwinAvatar,
+  aiTwinProfile,
+  user,
   conversations,
   isLoadingConversations,
   onViewConversation
 }: ConnectionsPageProps) {
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto relative">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">{aiTwinName}'s Connections</h1>
         <p className="text-gray-600">View and manage AI Twin conversations</p>
@@ -166,6 +172,12 @@ export default function ConnectionsPage({
           </Card>
         </div>
       </div>
+
+      {/* AI Twin Profile Sidebar - 右侧悬浮 */}
+      <AITwinProfileSidebar 
+        aiTwinProfile={aiTwinProfile}
+        user={user}
+      />
     </div>
   );
 }
