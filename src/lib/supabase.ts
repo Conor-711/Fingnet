@@ -117,12 +117,23 @@ export interface GroupMember {
   joined_at: string;
 }
 
+// 引用消息结构
+export interface QuotedMessage {
+  id: string;
+  content: string;
+  sender: string;
+  source: 'ai_conversation' | 'group_chat';
+  conversation_id?: string;
+  timestamp?: string;
+}
+
 export interface GroupMessage {
   id: string;
   group_id: string;
   sender_id: string | null;
   sender_name: string | null;
   content: string;
+  quoted_message?: QuotedMessage | null;  // 新增：引用的消息
   created_at: string;
 }
 
@@ -333,6 +344,58 @@ export async function saveConversation(conversationData: Partial<AIConversation>
 }
 
 /**
+ * 根据 Group 获取对应的 AI 对话记录
+ * 通过匹配 Group 成员来找到对应的 AI Twin 对话
+ */
+export async function getAIConversationForGroup(groupId: string, userId: string) {
+  try {
+    // 1. 获取 Group 的所有成员
+    const { data: members, error: membersError } = await supabase
+      .from('group_members')
+      .select('user_id')
+      .eq('group_id', groupId);
+    
+    if (membersError || !members) {
+      console.error('Error fetching group members:', membersError);
+      return { data: null, error: membersError };
+    }
+    
+    // 2. 找到另一个用户（不是当前用户的那个）
+    const otherMember = members.find(m => m.user_id !== userId);
+    if (!otherMember) {
+      return { data: null, error: new Error('No other member found') };
+    }
+    
+    // 3. 获取另一个用户的 AI Twin
+    const { data: otherAITwin, error: twinError } = await supabase
+      .from('ai_twins')
+      .select('name')
+      .eq('user_id', otherMember.user_id)
+      .single();
+    
+    if (twinError || !otherAITwin) {
+      console.error('Error fetching AI Twin:', twinError);
+      return { data: null, error: twinError };
+    }
+    
+    // 4. 根据当前用户和对方 AI Twin 名称查找对话
+    const { data: conversation, error: convError } = await supabase
+      .from('ai_conversations')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('partner_name', otherAITwin.name)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+    
+    return { data: conversation, error: convError };
+  } catch (error) {
+    console.error('Error in getAIConversationForGroup:', error);
+    return { data: null, error };
+  }
+}
+
+/**
  * 获取所有AI Twins（用于匹配）
  */
 export async function getAllAITwins(excludeUserId?: string) {
@@ -535,7 +598,8 @@ export async function sendGroupMessage(
   groupId: string,
   senderId: string,
   senderName: string,
-  content: string
+  content: string,
+  quotedMessage?: QuotedMessage | null
 ) {
   const { data, error } = await supabase
     .from('group_messages')
@@ -543,7 +607,8 @@ export async function sendGroupMessage(
       group_id: groupId,
       sender_id: senderId,
       sender_name: senderName,
-      content
+      content,
+      quoted_message: quotedMessage || null
     })
     .select()
     .single();

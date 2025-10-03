@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Send, Users as UsersIcon, Brain, Inbox, Check, X, ChevronUp, ChevronDown } from 'lucide-react';
-import { type Group, type GroupMessage, type Invitation } from '@/lib/supabase';
+import { Loader2, Send, Users as UsersIcon, Brain, Inbox, Check, X, ChevronUp, ChevronDown, Quote, UserPlus } from 'lucide-react';
+import { type Group, type GroupMessage, type Invitation, type QuotedMessage } from '@/lib/supabase';
+import QuoteMessageSelector from '@/components/QuoteMessageSelector';
 
 interface GroupChatPageProps {
   userGroups: Group[];
@@ -26,14 +27,21 @@ interface GroupChatPageProps {
   sentInvitations: Invitation[];
   receivedInvitations: Invitation[];
   isLoadingInvitations: boolean;
+  // Quote props
+  aiConversationForQuote: any | null;
+  isLoadingAIConversation: boolean;
+  quotedMessage: QuotedMessage | null;
   // Event handlers
-  onSelectGroup: (group: Group) => void;
+  onSelectGroup: (group: Group, testMessages?: GroupMessage[], testConversation?: any) => void;
   onSendMessage: () => void;
   onNewMessageChange: (value: string) => void;
   onSummarizeChat: () => void;
   onSaveMemory: () => void;
   onAcceptInvitation: (invitation: Invitation) => Promise<void>;
   onDeclineInvitation: (invitationId: string) => Promise<void>;
+  onOpenQuoteSelector: () => void;
+  onSelectQuotedMessage: (message: QuotedMessage) => void;
+  onClearQuotedMessage: () => void;
 }
 
 export default function GroupChatPage({
@@ -52,13 +60,19 @@ export default function GroupChatPage({
   sentInvitations,
   receivedInvitations,
   isLoadingInvitations,
+  aiConversationForQuote,
+  isLoadingAIConversation,
+  quotedMessage,
   onSelectGroup,
   onSendMessage,
   onNewMessageChange,
   onSummarizeChat,
   onSaveMemory,
   onAcceptInvitation,
-  onDeclineInvitation
+  onDeclineInvitation,
+  onOpenQuoteSelector,
+  onSelectQuotedMessage,
+  onClearQuotedMessage
 }: GroupChatPageProps) {
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('en-US', {
@@ -96,7 +110,133 @@ export default function GroupChatPage({
   };
 
   const [isInvitationsCollapsed, setIsInvitationsCollapsed] = useState(false);
+  const [showQuoteSelector, setShowQuoteSelector] = useState(false);
   const pendingReceivedCount = receivedInvitations.filter(inv => inv.status === 'pending').length;
+
+  const handleOpenQuoteSelector = () => {
+    onOpenQuoteSelector();
+    setShowQuoteSelector(true);
+  };
+
+  const handleCloseQuoteSelector = () => {
+    setShowQuoteSelector(false);
+  };
+
+  const handleSelectQuote = (message: QuotedMessage) => {
+    onSelectQuotedMessage(message);
+    setShowQuoteSelector(false);
+  };
+
+  // 测试：创建虚拟 Group Chat
+  const handleCreateTestGroup = () => {
+    const testGroupId = 'test-group-' + Date.now();
+    const testGroup: Group = {
+      id: testGroupId,
+      name: 'Test Group',
+      avatar: null,
+      created_by: currentUserId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    // 创建测试消息
+    const testMessages: GroupMessage[] = [
+      {
+        id: 'test-msg-1',
+        group_id: testGroupId,
+        sender_id: 'other-user-123',
+        sender_name: 'Test User A',
+        content: 'Hi! I heard you are working on a new project. What is it about?',
+        created_at: new Date(Date.now() - 3600000).toISOString()
+      },
+      {
+        id: 'test-msg-2',
+        group_id: testGroupId,
+        sender_id: currentUserId,
+        sender_name: 'You',
+        content: "Yes! I'm building a social networking platform that connects people based on their goals and values.",
+        created_at: new Date(Date.now() - 3000000).toISOString()
+      },
+      {
+        id: 'test-msg-3',
+        group_id: testGroupId,
+        sender_id: 'other-user-123',
+        sender_name: 'Test User A',
+        content: 'That sounds amazing! I have experience in community building and user engagement strategies. How can I help?',
+        created_at: new Date(Date.now() - 2400000).toISOString()
+      },
+      {
+        id: 'test-msg-4',
+        group_id: testGroupId,
+        sender_id: currentUserId,
+        sender_name: 'You',
+        content: "I'd love to learn more about your strategies! Especially around keeping users engaged long-term.",
+        quoted_message: {
+          id: 'ai-msg-2',
+          content: 'I can help you develop a sustainable growth strategy for your platform',
+          sender: 'AI Twin B',
+          source: 'ai_conversation',
+          conversation_id: 'test-conv-123'
+        },
+        created_at: new Date(Date.now() - 1800000).toISOString()
+      },
+      {
+        id: 'test-msg-5',
+        group_id: testGroupId,
+        sender_id: 'other-user-123',
+        sender_name: 'Test User A',
+        content: "Great! I can share some case studies from my previous projects. Let's schedule a call next week?",
+        created_at: new Date(Date.now() - 600000).toISOString()
+      }
+    ];
+    
+    // 创建测试 AI 对话
+    const testConversation = {
+      id: 'test-conv-123',
+      partner_name: 'AI Twin B',
+      messages: [
+        {
+          id: 'ai-msg-1',
+          sender: 'Your AI Twin',
+          content: "Hi! I'm looking for someone who can help me with growth strategies for my social platform."
+        },
+        {
+          id: 'ai-msg-2',
+          sender: 'AI Twin B',
+          content: 'I can help you develop a sustainable growth strategy for your platform'
+        },
+        {
+          id: 'ai-msg-3',
+          sender: 'Your AI Twin',
+          content: 'That would be perfect! What kind of experience do you have in this area?'
+        },
+        {
+          id: 'ai-msg-4',
+          sender: 'AI Twin B',
+          content: "I've helped multiple startups achieve 10x user growth through community-driven strategies and data-driven engagement tactics."
+        },
+        {
+          id: 'ai-msg-5',
+          sender: 'Your AI Twin',
+          content: "Impressive! I'd love to learn about your approach to measuring user engagement."
+        },
+        {
+          id: 'ai-msg-6',
+          sender: 'AI Twin B',
+          content: "I focus on key metrics like DAU/MAU ratio, retention cohorts, and NPS scores. Let's collaborate!"
+        }
+      ]
+    };
+    
+    // 通知父组件选择这个测试群组，并传递测试数据
+    onSelectGroup(testGroup, testMessages, testConversation);
+    
+    console.log('✅ 创建测试群组:', {
+      group: testGroup,
+      messages: testMessages.length,
+      conversation: testConversation.messages.length
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -249,6 +389,17 @@ export default function GroupChatPage({
           {isLoadingGroups && (
             <p className="text-sm text-gray-500 mt-1">Loading...</p>
           )}
+          
+          {/* 测试按钮 */}
+          <Button
+            onClick={handleCreateTestGroup}
+            variant="outline"
+            size="sm"
+            className="w-full mt-3 border-blue-300 text-blue-600 hover:bg-blue-50"
+          >
+            <UserPlus className="w-4 h-4 mr-2" />
+            Create Test Group
+          </Button>
         </div>
 
         <ScrollArea className="h-[calc(100vh-200px)]">
@@ -385,6 +536,32 @@ export default function GroupChatPage({
                               : 'bg-white text-gray-900'
                           } rounded-lg p-4 shadow-sm`}
                         >
+                          {/* 引用消息显示 */}
+                          {message.quoted_message && (
+                            <div className={`mb-3 p-3 rounded-md border-l-4 ${
+                              isCurrentUser
+                                ? 'bg-emerald-600/30 border-emerald-300'
+                                : 'bg-gray-100 border-gray-400'
+                            }`}>
+                              <div className="flex items-center space-x-1 mb-1">
+                                <Quote className={`w-3 h-3 ${
+                                  isCurrentUser ? 'text-emerald-200' : 'text-gray-500'
+                                }`} />
+                                <p className={`text-xs font-medium ${
+                                  isCurrentUser ? 'text-emerald-100' : 'text-gray-600'
+                                }`}>
+                                  {message.quoted_message.sender}
+                                </p>
+                              </div>
+                              <p className={`text-xs leading-relaxed line-clamp-2 ${
+                                isCurrentUser ? 'text-emerald-50' : 'text-gray-700'
+                              }`}>
+                                {message.quoted_message.content}
+                              </p>
+                            </div>
+                          )}
+                          
+                          {/* 消息内容 */}
                           <div className="flex items-center space-x-2 mb-1">
                             <p className={`text-xs font-medium ${
                               isCurrentUser ? 'text-emerald-100' : 'text-emerald-600'
@@ -439,6 +616,40 @@ export default function GroupChatPage({
 
             {/* Message Input */}
             <div className="bg-white border-t border-gray-200 p-4">
+              {/* 引用预览 */}
+              {quotedMessage && (
+                <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200 relative">
+                  <button
+                    onClick={onClearQuotedMessage}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <div className="flex items-center space-x-2 mb-1">
+                    <Quote className="w-4 h-4 text-blue-600" />
+                    <p className="text-xs font-medium text-blue-800">
+                      Quote AI Conversation - {quotedMessage.sender}
+                    </p>
+                  </div>
+                  <p className="text-sm text-gray-700 line-clamp-2">
+                    {quotedMessage.content}
+                  </p>
+                </div>
+              )}
+
+              {/* 引用按钮 */}
+              <div className="flex items-center space-x-2 mb-3">
+                <Button
+                  onClick={handleOpenQuoteSelector}
+                  variant="outline"
+                  size="sm"
+                  className="border-emerald-300 text-emerald-600 hover:bg-emerald-50"
+                >
+                  <Quote className="w-4 h-4 mr-1" />
+                  Quote AI Conversation
+                </Button>
+              </div>
+
               <div className="flex space-x-3">
                 <Textarea
                   value={newMessage}
@@ -468,6 +679,15 @@ export default function GroupChatPage({
         )}
       </div>
       </div>
+
+      {/* 引用消息选择器 */}
+      <QuoteMessageSelector
+        open={showQuoteSelector}
+        onClose={handleCloseQuoteSelector}
+        conversation={aiConversationForQuote}
+        isLoading={isLoadingAIConversation}
+        onSelectMessage={handleSelectQuote}
+      />
     </div>
   );
 }

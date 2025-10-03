@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import {
   type Group,
   type GroupMessage,
+  type QuotedMessage,
   getUserGroups,
   getGroupMessages,
   sendGroupMessage,
@@ -69,7 +70,7 @@ export function useGroups(
   };
 
   // 发送群组消息
-  const handleSendGroupMessage = async () => {
+  const handleSendGroupMessage = async (quotedMessage?: QuotedMessage | null) => {
     if (!userId || !selectedGroup || !newMessage.trim()) return;
 
     // 获取用户名称
@@ -79,7 +80,8 @@ export function useGroups(
       groupId: selectedGroup.id,
       userId,
       senderName,
-      content: newMessage.trim()
+      content: newMessage.trim(),
+      quotedMessage: quotedMessage || null
     });
 
     setIsSendingMessage(true);
@@ -88,7 +90,8 @@ export function useGroups(
         selectedGroup.id,
         userId,
         senderName,
-        newMessage.trim()
+        newMessage.trim(),
+        quotedMessage || null
       );
 
       if (error) {

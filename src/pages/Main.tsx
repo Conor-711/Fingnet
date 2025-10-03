@@ -30,6 +30,7 @@ import ReviewConnectionsPage from './main/ReviewConnectionsPage';
 import { useInvitations } from '@/hooks/useInvitations';
 import { useGroups } from '@/hooks/useGroups';
 import { useDailyModeling } from '@/hooks/useDailyModeling';
+import { useQuote } from '@/hooks/useQuote';
 
 // 导入数据库函数
 import { getAITwin, upsertAITwin, getAllAITwins } from '@/lib/supabase';
@@ -59,6 +60,11 @@ const Main = () => {
   const invitations = useInvitations(user?.id);
   const groups = useGroups(user?.id, aiTwinProfile);
   const dailyModeling = useDailyModeling(user?.id, aiTwinProfile, updateAITwinProfile);
+  const quote = useQuote(groups.selectedGroup?.id || null, user?.id);
+
+  // 测试数据状态
+  const [testGroupMessages, setTestGroupMessages] = useState<any[]>([]);
+  const [testAIConversation, setTestAIConversation] = useState<any | null>(null);
 
   // AI Twin Profile字段折叠状态
   const [expandedFields, setExpandedFields] = useState<{
@@ -592,6 +598,27 @@ const Main = () => {
     });
   };
 
+  // 处理测试群组选择（包含测试数据）
+  const handleSelectGroupWithTestData = (group: any, testMessages?: any[], testConversation?: any) => {
+    // 如果是测试群组且提供了测试数据
+    if (testMessages && testMessages.length > 0) {
+      setTestGroupMessages(testMessages);
+      console.log('📝 设置测试消息:', testMessages.length);
+    } else {
+      setTestGroupMessages([]);
+    }
+    
+    if (testConversation) {
+      setTestAIConversation(testConversation);
+      console.log('💬 设置测试 AI 对话:', testConversation);
+    } else {
+      setTestAIConversation(null);
+    }
+    
+    // 调用原始的 handleSelectGroup
+    groups.handleSelectGroup(group);
+  };
+
   // Top Bar导航项（不包括Subscribe和Settings，它们在下拉菜单中）
   const topBarItems = [
     { 
@@ -648,7 +675,7 @@ const Main = () => {
           <GroupChatPage
             userGroups={groups.userGroups}
             selectedGroup={groups.selectedGroup}
-            groupMessages={groups.groupMessages}
+            groupMessages={testGroupMessages.length > 0 ? testGroupMessages : groups.groupMessages}
             newMessage={groups.newMessage}
             isLoadingGroups={groups.isLoadingGroups}
             isLoadingMessages={groups.isLoadingMessages}
@@ -661,13 +688,22 @@ const Main = () => {
             sentInvitations={invitations.sentInvitations}
             receivedInvitations={invitations.receivedInvitations}
             isLoadingInvitations={invitations.isLoadingInvitations}
-            onSelectGroup={groups.handleSelectGroup}
-            onSendMessage={groups.handleSendGroupMessage}
+            aiConversationForQuote={testAIConversation || quote.aiConversationForQuote}
+            isLoadingAIConversation={quote.isLoadingAIConversation}
+            quotedMessage={quote.quotedMessage}
+            onSelectGroup={handleSelectGroupWithTestData}
+            onSendMessage={() => {
+              groups.handleSendGroupMessage(quote.getCurrentQuotedMessage());
+              quote.handleClearQuotedMessage(); // 发送后清除引用
+            }}
             onNewMessageChange={groups.setNewMessage}
             onSummarizeChat={handleSummarizeChat}
             onSaveMemory={handleSaveMemory}
             onAcceptInvitation={handleAcceptInvitation}
             onDeclineInvitation={invitations.handleDeclineInvitation}
+            onOpenQuoteSelector={quote.handleOpenQuoteSelector}
+            onSelectQuotedMessage={quote.handleSelectQuotedMessage}
+            onClearQuotedMessage={quote.handleClearQuotedMessage}
           />
         );
 
