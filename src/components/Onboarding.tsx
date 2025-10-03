@@ -441,6 +441,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
       }
 
       // 2. 保存AI Twin数据（使用真实用户输入）
+      // 注意：只保存数据库中存在的字段
       const aiTwinData = {
         name: aiTwinProfile?.name || customAITwinName || 'AI Twin',
         avatar: aiTwinProfile?.avatar || customAITwinAvatar,
@@ -450,23 +451,27 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
           occupation: basicInfo.occupation,
           location: basicInfo.location
         },
-        userNickname: basicInfo.nickname,
-        userAvatar: basicInfo.avatar,
-        userIndustry: basicInfo.industry,
-        goals: [conversationContext.extractedInfo.goal || conversationContext.userGoal || ''],
-        offers: [conversationContext.extractedInfo.valueOffered || ''],
-        lookings: [conversationContext.extractedInfo.valueDesired || ''],
-        memories: []
+        goals: [conversationContext.extractedInfo.goal || conversationContext.userGoal || ''].filter(Boolean),
+        offers: [conversationContext.extractedInfo.valueOffered || ''].filter(Boolean),
+        lookings: [conversationContext.extractedInfo.valueDesired || ''].filter(Boolean),
+        memories: [],
+        // 向后兼容字段
+        goalRecently: conversationContext.extractedInfo.goal || conversationContext.userGoal || '',
+        valueOffered: conversationContext.extractedInfo.valueOffered || '',
+        valueDesired: conversationContext.extractedInfo.valueDesired || ''
       };
 
+      console.log('💾 Saving AI Twin data:', aiTwinData);
       const { error: aiTwinError } = await upsertAITwin(user.id, aiTwinData);
-
+      
       if (aiTwinError) {
-        console.error('Failed to save AI Twin:', aiTwinError);
+        console.error('❌ Failed to save AI Twin:', aiTwinError);
         toast.error('保存AI Twin失败，请重试');
         setIsSavingToDatabase(false);
         return;
       }
+      
+      console.log('✅ AI Twin saved successfully');
 
       toast.success('所有数据已成功保存！');
       

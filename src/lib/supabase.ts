@@ -205,6 +205,9 @@ export async function getAITwin(userId: string) {
  * 创建或更新AI Twin
  */
 export async function upsertAITwin(userId: string, aiTwinData: any) {
+  console.log('🔍 upsertAITwin called with userId:', userId);
+  console.log('🔍 Raw aiTwinData:', aiTwinData);
+  
   // 只保留数据库中存在的字段
   const dbFields = {
     user_id: userId,
@@ -229,6 +232,16 @@ export async function upsertAITwin(userId: string, aiTwinData: any) {
     }
   });
 
+  console.log('🔍 Cleaned dbFields:', dbFields);
+  console.log('🔍 Field types:', {
+    name: typeof dbFields.name,
+    avatar: typeof dbFields.avatar,
+    profile: typeof dbFields.profile,
+    goals: Array.isArray(dbFields.goals),
+    offers: Array.isArray(dbFields.offers),
+    lookings: Array.isArray(dbFields.lookings)
+  });
+
   const { data, error } = await supabase
     .from('ai_twins')
     .upsert(
@@ -240,6 +253,13 @@ export async function upsertAITwin(userId: string, aiTwinData: any) {
     )
     .select()
     .single();
+
+  if (error) {
+    console.error('❌ Supabase upsert error:', error);
+    console.error('❌ Error details:', JSON.stringify(error, null, 2));
+  } else {
+    console.log('✅ Supabase upsert success:', data);
+  }
 
   return { data, error };
 }
