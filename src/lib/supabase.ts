@@ -175,21 +175,64 @@ export async function getAITwin(userId: string) {
     .eq('user_id', userId)
     .single();
 
+  // 将数据库字段转换为前端格式（camelCase）
+  if (data) {
+    const transformedData = {
+      ...data,
+      goalRecently: data.goal_recently,
+      valueOffered: data.value_offered,
+      valueDesired: data.value_desired,
+      // 删除下划线格式的字段
+      goal_recently: undefined,
+      value_offered: undefined,
+      value_desired: undefined
+    };
+    
+    // 清理undefined字段
+    Object.keys(transformedData).forEach(key => {
+      if (transformedData[key] === undefined) {
+        delete transformedData[key];
+      }
+    });
+    
+    return { data: transformedData, error };
+  }
+
   return { data, error };
 }
 
 /**
  * 创建或更新AI Twin
  */
-export async function upsertAITwin(userId: string, aiTwinData: Partial<AITwin>) {
+export async function upsertAITwin(userId: string, aiTwinData: any) {
+  // 只保留数据库中存在的字段
+  const dbFields = {
+    user_id: userId,
+    name: aiTwinData.name,
+    avatar: aiTwinData.avatar,
+    profile: aiTwinData.profile,
+    goals: aiTwinData.goals || [],
+    offers: aiTwinData.offers || [],
+    lookings: aiTwinData.lookings || [],
+    memories: aiTwinData.memories || [],
+    // 向后兼容字段
+    goal_recently: aiTwinData.goalRecently,
+    value_offered: aiTwinData.valueOffered,
+    value_desired: aiTwinData.valueDesired,
+    updated_at: new Date().toISOString()
+  };
+
+  // 移除undefined值
+  Object.keys(dbFields).forEach(key => {
+    if (dbFields[key as keyof typeof dbFields] === undefined) {
+      delete dbFields[key as keyof typeof dbFields];
+    }
+  });
+
   const { data, error } = await supabase
     .from('ai_twins')
     .upsert(
-      {
-        user_id: userId,
-        ...aiTwinData,
-        updated_at: new Date().toISOString()
-      },
+      dbFields,
       {
         onConflict: 'user_id', // 指定冲突字段（因为有 unique_user_ai_twin 约束）
         ignoreDuplicates: false // 当冲突时更新而不是忽略
@@ -282,6 +325,32 @@ export async function getAllAITwins(excludeUserId?: string) {
   }
 
   const { data, error } = await query;
+  
+  // 将数据库字段转换为前端格式
+  if (data && Array.isArray(data)) {
+    const transformedData = data.map((item: any) => ({
+      ...item,
+      goalRecently: item.goal_recently,
+      valueOffered: item.value_offered,
+      valueDesired: item.value_desired,
+      // 删除下划线格式的字段（保持数据干净）
+      goal_recently: undefined,
+      value_offered: undefined,
+      value_desired: undefined
+    }));
+    
+    // 清理每个对象的undefined字段
+    transformedData.forEach(item => {
+      Object.keys(item).forEach(key => {
+        if (item[key] === undefined) {
+          delete item[key];
+        }
+      });
+    });
+    
+    return { data: transformedData, error };
+  }
+  
   return { data, error };
 }
 
