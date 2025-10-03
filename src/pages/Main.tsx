@@ -250,6 +250,7 @@ const Main = () => {
         conversationsWithData.sort((a, b) => b.matchingScore - a.matchingScore);
 
         console.log(`✅ Generated conversations for ${conversationsWithData.length} AI Twins`);
+        console.log('📊 Sample conversation data:', conversationsWithData[0]);
         
         setConversations(conversationsWithData);
       } catch (error) {
