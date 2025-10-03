@@ -255,7 +255,9 @@ const Main = () => {
           console.log('🔍 recommendReason:', conversationsWithData[0].recommendReason);
           console.log('🔍 messageCount:', conversationsWithData[0].messageCount);
           console.log('🔍 messages length:', conversationsWithData[0].messages?.length);
-          console.log('🔍 reasons:', conversationsWithData[0].reasons);
+          console.log('🔍 reasons array:', conversationsWithData[0].reasons);
+          console.log('🔍 reasons length:', conversationsWithData[0].reasons?.length);
+          console.log('🔍 reasons content:', JSON.stringify(conversationsWithData[0].reasons));
         }
         
         setConversations(conversationsWithData);
