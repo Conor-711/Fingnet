@@ -5,8 +5,16 @@ import { useOnboarding, type AITwinProfile } from '@/contexts/OnboardingContext'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Brain, Clock, Settings, CreditCard, Inbox, Users, LogOut, ArrowUp, X } from 'lucide-react';
+import { MessageCircle, Brain, Clock, Settings, CreditCard, Inbox, Users, LogOut, ArrowUp, X, Search, UserPlus, ChevronDown } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 
 // 导入页面组件
@@ -15,6 +23,7 @@ import ConnectionsPage from './main/ConnectionsPage';
 import InvitationsPage from './main/InvitationsPage';
 import GroupChatPage from './main/GroupChatPage';
 import SubscribePage from './main/SubscribePage';
+import SettingsPage from './main/SettingsPage';
 
 // 导入自定义Hooks
 import { useInvitations } from '@/hooks/useInvitations';
@@ -582,39 +591,19 @@ const Main = () => {
     });
   };
 
-  // Sidebar导航项
-  const sidebarItems = [
+  // Top Bar导航项（不包括Subscribe和Settings，它们在下拉菜单中）
+  const topBarItems = [
     { 
       id: 'connections', 
-      icon: Users, 
-      label: 'Connections',
+      icon: Search, 
+      label: 'Find Connections',
       badge: null
     },
     { 
       id: 'group-chat', 
-      icon: MessageCircle, 
-      label: 'Group Chat',
+      icon: UserPlus, 
+      label: 'Build Connections',
       badge: groups.userGroups.length > 0 ? groups.userGroups.length.toString() : null
-    },
-    { 
-      id: 'invitations', 
-      icon: Inbox, 
-      label: 'Invitations',
-      badge: (invitations.receivedInvitations.filter(inv => inv.status === 'pending').length > 0 || 
-              invitations.sentInvitations.some(inv => inv.status === 'accepted' || inv.status === 'declined')) 
-              ? '!' : null
-    },
-    { 
-      id: 'subscribe', 
-      icon: CreditCard, 
-      label: 'Subscribe',
-      badge: null
-    },
-    { 
-      id: 'settings', 
-      icon: Settings, 
-      label: 'Settings',
-      badge: null
     },
   ];
 
@@ -647,17 +636,6 @@ const Main = () => {
           />
         );
 
-      case 'invitations':
-        return (
-          <InvitationsPage
-            sentInvitations={invitations.sentInvitations}
-            receivedInvitations={invitations.receivedInvitations}
-            isLoadingInvitations={invitations.isLoadingInvitations}
-            onAcceptInvitation={handleAcceptInvitation}
-            onDeclineInvitation={invitations.handleDeclineInvitation}
-          />
-        );
-
       case 'group-chat':
         return (
           <GroupChatPage
@@ -673,11 +651,16 @@ const Main = () => {
             showSummary={showSummary}
             isMemorySaved={isMemorySaved}
             currentUserId={user?.id || ''}
+            sentInvitations={invitations.sentInvitations}
+            receivedInvitations={invitations.receivedInvitations}
+            isLoadingInvitations={invitations.isLoadingInvitations}
             onSelectGroup={groups.handleSelectGroup}
             onSendMessage={groups.handleSendGroupMessage}
             onNewMessageChange={groups.setNewMessage}
             onSummarizeChat={handleSummarizeChat}
             onSaveMemory={handleSaveMemory}
+            onAcceptInvitation={handleAcceptInvitation}
+            onDeclineInvitation={invitations.handleDeclineInvitation}
           />
         );
 
@@ -685,7 +668,7 @@ const Main = () => {
         return <SubscribePage aiTwinProfile={aiTwinProfile} />;
 
       case 'settings':
-        return renderSettingsPage();
+        return <SettingsPage />;
 
       default:
         return (
@@ -702,23 +685,6 @@ const Main = () => {
     }
   };
 
-  // Settings页面
-  const renderSettingsPage = () => (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8">Settings</h2>
-      <Button
-        onClick={() => {
-          logout();
-          navigate('/');
-        }}
-        variant="destructive"
-        className="w-full"
-      >
-        <LogOut className="w-4 h-4 mr-2" />
-        Logout
-      </Button>
-    </div>
-  );
 
   // 如果未登录，重定向到首页
   if (!user) {
@@ -826,9 +792,9 @@ const Main = () => {
         {/* Top Bar */}
         <div className="bg-white border-b border-gray-200 shadow-md sticky top-0 z-40">
           <div className="px-8 py-4">
-            <div className="flex items-center space-x-8">
-              {/* Logo & Brand */}
-              <div className="flex items-center space-x-2 mr-8">
+            <div className="flex items-center justify-between">
+              {/* Logo & Brand - 左侧 */}
+              <div className="flex items-center space-x-2">
                 <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
                   <Brain className="w-6 h-6 text-white" />
                 </div>
@@ -837,48 +803,94 @@ const Main = () => {
                 </span>
               </div>
 
-              {/* Navigation Items */}
-              {sidebarItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = currentPage === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setCurrentPage(item.id)}
-                    className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
-                      isActive
-                        ? 'bg-emerald-100 text-emerald-700 font-medium'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span className="text-sm">{item.label}</span>
-                    {item.badge && (
-                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
-                        {item.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+              {/* Navigation Items - 居中 */}
+              <div className="flex items-center space-x-4 absolute left-1/2 transform -translate-x-1/2">
+                {topBarItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = currentPage === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setCurrentPage(item.id)}
+                      className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                        isActive
+                          ? 'bg-emerald-100 text-emerald-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      }`}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="text-sm">{item.label}</span>
+                      {item.badge && (
+                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                          {item.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
 
-              {/* User Avatar - 点击进入AI Twin页面 */}
-              <div className="ml-auto">
-                <button
-                  onClick={() => setCurrentPage('ai-twin')}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all hover:bg-gray-100 ${
-                    currentPage === 'ai-twin' ? 'bg-emerald-50 ring-2 ring-emerald-200' : ''
-                  }`}
-                  title="View Your Profile"
-                >
-                  <Avatar className="w-9 h-9 ring-2 ring-emerald-200">
-                    <AvatarImage src={aiTwinProfile?.userAvatar} alt={user?.name} />
-                    <AvatarFallback className="bg-emerald-100 text-emerald-700">
-                      {user?.name?.charAt(0) || '👤'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium text-gray-700">{aiTwinProfile?.userNickname || user?.name}</span>
-                </button>
+              {/* User Profile Dropdown - 右侧 */}
+              <div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all hover:bg-gray-100 ${
+                        currentPage === 'ai-twin' ? 'bg-emerald-50 ring-2 ring-emerald-200' : ''
+                      }`}
+                      onMouseEnter={(e) => {
+                        // 触发 hover 打开下拉菜单
+                        const trigger = e.currentTarget;
+                        trigger.click();
+                      }}
+                    >
+                      <Avatar className="w-9 h-9 ring-2 ring-emerald-200">
+                        <AvatarImage src={aiTwinProfile?.userAvatar} alt={user?.name} />
+                        <AvatarFallback className="bg-emerald-100 text-emerald-700">
+                          {user?.name?.charAt(0) || '👤'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium text-gray-700">{aiTwinProfile?.userNickname || user?.name}</span>
+                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => setCurrentPage('ai-twin')}
+                      className="cursor-pointer"
+                    >
+                      <Brain className="w-4 h-4 mr-2" />
+                      <span>AI Twin Profile</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setCurrentPage('subscribe')}
+                      className="cursor-pointer"
+                    >
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      <span>Subscribe</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setCurrentPage('settings')}
+                      className="cursor-pointer"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => {
+                        logout();
+                        navigate('/');
+                      }}
+                      className="cursor-pointer text-red-600 focus:text-red-600"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>

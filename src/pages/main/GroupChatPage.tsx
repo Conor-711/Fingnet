@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Send, Users as UsersIcon, Brain } from 'lucide-react';
-import { type Group, type GroupMessage } from '@/lib/supabase';
+import { Loader2, Send, Users as UsersIcon, Brain, Inbox, Check, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { type Group, type GroupMessage, type Invitation } from '@/lib/supabase';
 
 interface GroupChatPageProps {
   userGroups: Group[];
@@ -22,11 +22,18 @@ interface GroupChatPageProps {
   showSummary: boolean;
   isMemorySaved: boolean;
   currentUserId: string;
+  // Invitations props
+  sentInvitations: Invitation[];
+  receivedInvitations: Invitation[];
+  isLoadingInvitations: boolean;
+  // Event handlers
   onSelectGroup: (group: Group) => void;
   onSendMessage: () => void;
   onNewMessageChange: (value: string) => void;
   onSummarizeChat: () => void;
   onSaveMemory: () => void;
+  onAcceptInvitation: (invitation: Invitation) => Promise<void>;
+  onDeclineInvitation: (invitationId: string) => Promise<void>;
 }
 
 export default function GroupChatPage({
@@ -42,11 +49,16 @@ export default function GroupChatPage({
   showSummary,
   isMemorySaved,
   currentUserId,
+  sentInvitations,
+  receivedInvitations,
+  isLoadingInvitations,
   onSelectGroup,
   onSendMessage,
   onNewMessageChange,
   onSummarizeChat,
-  onSaveMemory
+  onSaveMemory,
+  onAcceptInvitation,
+  onDeclineInvitation
 }: GroupChatPageProps) {
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('en-US', {
@@ -62,8 +74,171 @@ export default function GroupChatPage({
     }
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge className="bg-yellow-100 text-yellow-700">Pending</Badge>;
+      case 'accepted':
+        return <Badge className="bg-green-100 text-green-700">Accepted</Badge>;
+      case 'declined':
+        return <Badge className="bg-red-100 text-red-700">Declined</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
+    }
+  };
+
+  const [isInvitationsCollapsed, setIsInvitationsCollapsed] = useState(false);
+  const pendingReceivedCount = receivedInvitations.filter(inv => inv.status === 'pending').length;
+
   return (
-    <div className="h-full flex">
+    <div className="space-y-6">
+      {/* Invitations Module - 放在顶部 */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <Inbox className="w-6 h-6 mr-2 text-emerald-600" />
+              Invitations
+              {pendingReceivedCount > 0 && (
+                <Badge className="ml-3 bg-red-500 text-white">
+                  {pendingReceivedCount} new
+                </Badge>
+              )}
+            </h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsInvitationsCollapsed(!isInvitationsCollapsed)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              {isInvitationsCollapsed ? (
+                <>
+                  <ChevronDown className="w-5 h-5 mr-1" />
+                  <span className="text-sm">Expand</span>
+                </>
+              ) : (
+                <>
+                  <ChevronUp className="w-5 h-5 mr-1" />
+                  <span className="text-sm">Collapse</span>
+                </>
+              )}
+            </Button>
+          </div>
+
+          {!isInvitationsCollapsed && (
+            <>
+              {isLoadingInvitations ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+                  <span className="ml-2 text-gray-600">Loading invitations...</span>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 gap-6">
+              {/* Received Invitations */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Received ({receivedInvitations.length})
+                </h3>
+                <div className="space-y-3">
+                  {receivedInvitations.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                      <Inbox className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                      <p className="text-sm">No invitations received</p>
+                    </div>
+                  ) : (
+                    receivedInvitations.map((invitation) => (
+                      <Card key={invitation.id} className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <p className="font-medium text-gray-900">From: {invitation.sender_id.slice(0, 8)}...</p>
+                                {getStatusBadge(invitation.status)}
+                              </div>
+                              {invitation.message && (
+                                <p className="text-sm text-gray-600 mt-2">{invitation.message}</p>
+                              )}
+                              <p className="text-xs text-gray-500 mt-2">{formatDate(invitation.created_at)}</p>
+                            </div>
+                          </div>
+                          {invitation.status === 'pending' && (
+                            <div className="flex space-x-2 mt-3">
+                              <Button
+                                onClick={() => onAcceptInvitation(invitation)}
+                                size="sm"
+                                className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                              >
+                                <Check className="w-4 h-4 mr-1" />
+                                Accept
+                              </Button>
+                              <Button
+                                onClick={() => onDeclineInvitation(invitation.id)}
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <X className="w-4 h-4 mr-1" />
+                                Decline
+                              </Button>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Sent Invitations */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Sent ({sentInvitations.length})
+                </h3>
+                <div className="space-y-3">
+                  {sentInvitations.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                      <Send className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                      <p className="text-sm">No invitations sent</p>
+                    </div>
+                  ) : (
+                    sentInvitations.map((invitation) => (
+                      <Card key={invitation.id} className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <p className="font-medium text-gray-900">To: {invitation.recipient_id.slice(0, 8)}...</p>
+                                {getStatusBadge(invitation.status)}
+                              </div>
+                              {invitation.message && (
+                                <p className="text-sm text-gray-600 mt-2">{invitation.message}</p>
+                              )}
+                              <p className="text-xs text-gray-500 mt-2">{formatDate(invitation.created_at)}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Group Chat Module - 原有内容 */}
+      <div className="h-full flex">
       {/* Left Sidebar - Group List */}
       <div className="w-80 border-r border-gray-200 bg-white">
         <div className="p-4 border-b border-gray-200">
@@ -291,6 +466,7 @@ export default function GroupChatPage({
             </div>
           </>
         )}
+      </div>
       </div>
     </div>
   );
