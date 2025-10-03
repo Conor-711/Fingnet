@@ -4,6 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding, type AITwinProfile } from '@/contexts/OnboardingContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, Brain, Clock, Settings, CreditCard, Inbox, Users, LogOut, ArrowUp, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
@@ -63,6 +65,14 @@ const Main = () => {
   // Connections页面状态
   const [conversations, setConversations] = useState<any[]>([]);
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
+
+  // 对话详情悬浮窗状态
+  const [showChatDetail, setShowChatDetail] = useState(false);
+  const [selectedChat, setSelectedChat] = useState<any>(null);
+  const [displayedMessages, setDisplayedMessages] = useState<any[]>([]);
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  const [isTyping, setIsTyping] = useState(false);
+  const [showFullConversation, setShowFullConversation] = useState(false);
 
   // 回到顶部按钮状态
   const [showScrollToTop, setShowScrollToTop] = useState(false);
@@ -242,6 +252,52 @@ const Main = () => {
     }
   }, [user, aiTwinProfile]);
 
+  // 打字机效果 - 逐条显示对话消息
+  useEffect(() => {
+    if (!showChatDetail || !selectedChat || showFullConversation) return;
+
+    if (currentMessageIndex < selectedChat.messages.length) {
+      setIsTyping(true);
+      const timer = setTimeout(() => {
+        setDisplayedMessages(prev => [...prev, selectedChat.messages[currentMessageIndex]]);
+        setCurrentMessageIndex(prev => prev + 1);
+        setIsTyping(false);
+      }, 1500); // 每条消息延迟1.5秒
+
+      return () => clearTimeout(timer);
+    }
+  }, [showChatDetail, selectedChat, currentMessageIndex, showFullConversation]);
+
+  // 处理查看对话
+  const handleViewConversation = (chat: any) => {
+    console.log('📖 Viewing conversation:', chat);
+    setSelectedChat(chat);
+    setShowChatDetail(true);
+    setDisplayedMessages([]);
+    setCurrentMessageIndex(0);
+    setIsTyping(false);
+    setShowFullConversation(false);
+  };
+
+  // 关闭对话详情
+  const handleCloseChatDetail = () => {
+    setShowChatDetail(false);
+    setSelectedChat(null);
+    setDisplayedMessages([]);
+    setCurrentMessageIndex(0);
+    setIsTyping(false);
+    setShowFullConversation(false);
+  };
+
+  // 显示完整对话
+  const handleShowFullConversation = () => {
+    if (selectedChat) {
+      setShowFullConversation(true);
+      setDisplayedMessages(selectedChat.messages);
+      setIsTyping(false);
+    }
+  };
+
   // 保存AI Twin Profile到数据库
   const handleSaveProfile = async (updatedProfile: AITwinProfile) => {
     if (!user) return;
@@ -384,11 +440,7 @@ const Main = () => {
           <ConnectionsPage
             conversations={conversations}
             isLoadingConversations={isLoadingConversations}
-            onViewConversation={(chat) => {
-              // TODO: 实现对话查看功能
-              console.log('View conversation:', chat);
-              toast.info('View conversation feature - showing conversation details');
-            }}
+            onViewConversation={handleViewConversation}
           />
         );
 
@@ -669,6 +721,142 @@ const Main = () => {
               Reset Date
             </Button>
           )}
+        </div>
+      )}
+
+      {/* 对话详情悬浮窗 */}
+      {showChatDetail && selectedChat && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+          onClick={handleCloseChatDetail}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl max-w-3xl w-full mx-4 max-h-[80vh] flex flex-col" 
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 弹窗头部 */}
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={selectedChat.avatar} alt={selectedChat.partner} />
+                  <AvatarFallback className="bg-emerald-100 text-emerald-700">
+                    🤖
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-semibold text-gray-900">{selectedChat.partner}</h3>
+                  <p className="text-sm text-gray-500">{selectedChat.topic}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                {selectedChat.matchingScore && (
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                    {selectedChat.matchingScore.toFixed(1)}/10 Match
+                  </Badge>
+                )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleCloseChatDetail}
+                >
+                  ✕
+                </Button>
+              </div>
+            </div>
+
+            {/* 对话内容 */}
+            <ScrollArea className="flex-1 p-4">
+              <div className="space-y-4">
+                {displayedMessages.map((message, index) => {
+                  const isOwn = message.sender === aiTwinProfile?.name;
+                  return (
+                    <div
+                      key={index}
+                      className={`flex items-start space-x-3 ${isOwn ? 'justify-end' : ''}`}
+                    >
+                      {!isOwn && (
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={selectedChat.avatar} alt={selectedChat.partner} />
+                          <AvatarFallback className="bg-emerald-100 text-emerald-700 text-sm">
+                            🤖
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                      <div className={`flex-1 ${isOwn ? 'text-right' : ''}`}>
+                        <div className={`rounded-lg p-3 inline-block max-w-[70%] ${
+                          isOwn 
+                            ? 'bg-teal-50 text-gray-800' 
+                            : 'bg-emerald-50 text-gray-800'
+                        }`}>
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                            {message.content}
+                          </p>
+                        </div>
+                      </div>
+                      {isOwn && (
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={aiTwinProfile?.avatar || "/avatars/middle.png"} alt={aiTwinProfile?.name || "Your AI Twin"} />
+                          <AvatarFallback className="bg-teal-100 text-teal-700 text-sm">
+                            👤
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                    </div>
+                  );
+                })}
+                
+                {/* 打字中指示器 */}
+                {isTyping && (
+                  <div className="flex items-start space-x-3">
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage src={selectedChat.avatar} alt={selectedChat.partner} />
+                      <AvatarFallback className="bg-emerald-100 text-emerald-700 text-sm">
+                        🤖
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="bg-emerald-50 rounded-lg p-3">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+
+            {/* 底部操作 */}
+            <div className="p-4 border-t border-gray-100">
+              {!showFullConversation && currentMessageIndex < selectedChat.messages.length && (
+                <div className="text-center mb-3">
+                  <p className="text-sm text-gray-500">
+                    Showing {currentMessageIndex} of {selectedChat.messages.length} messages
+                  </p>
+                </div>
+              )}
+              
+              <div className="flex space-x-2">
+                {!showFullConversation && (
+                  <Button
+                    onClick={handleShowFullConversation}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    Show Full Conversation
+                  </Button>
+                )}
+                {selectedChat.conversationSummary && (
+                  <Button
+                    onClick={() => toast.info(selectedChat.conversationSummary)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    View Summary
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </>
