@@ -229,7 +229,7 @@ User Background:
 ` : '';
 
     prompt = `
-You are an AI Twin having a natural conversation with a user to understand their goals better.
+You are an AI Twin having a natural, friendly conversation with a user to understand their goals better.
 
 ${userContextInfo}
 
@@ -242,21 +242,41 @@ Context:
 - You need to ask insightful follow-up questions to understand their goal situation better
 
 Guidelines for your next question:
-${context.phaseQuestionCount === 1 ? '- Ask about their current situation, experience level, or what stage they are at. Use their occupation/industry context to make the question more relevant.' : ''}
-${context.phaseQuestionCount === 2 ? '- Ask about specific challenges, obstacles, or what they have tried so far. Reference their profession or industry if relevant.' : ''}
-${context.phaseQuestionCount === 3 ? '- Ask about what success looks like to them, or what specific outcomes they want. Connect it to their career or industry goals.' : ''}
+${context.phaseQuestionCount === 1 ? '- Ask about their current situation, experience level, or what stage they are at. Look for interesting contrasts between their background and goal - if there\'s something unexpected or intriguing, bring it up in a curious, friendly way.' : ''}
+${context.phaseQuestionCount === 2 ? '- Ask about specific challenges, obstacles, or what they have tried so far. If their professional background creates an interesting angle on their goal, explore that connection naturally.' : ''}
+${context.phaseQuestionCount === 3 ? '- Ask about what success looks like to them, or what specific outcomes they want. Consider how their career/life context might uniquely inform their vision of success.' : ''}
 
-Requirements:
-- Use their name (${context.userContext?.nickname || 'there'}) occasionally to keep it personal
-- Ask only ONE question
-- Be conversational and empathetic
-- Show genuine interest in their goal
-- Make the question specific to their occupation/industry when relevant
-- Keep it natural and friendly
+CRITICAL Requirements - Natural Human-like Conversation:
+- DO NOT start every question with their name - use it sparingly (maybe once every 3-4 questions) like in real conversations
+- DO NOT repeat "As a [occupation] in [industry]" in every question - you already know their background
+- BE OBSERVANT: Look for interesting connections or contrasts between their background (occupation, industry, age, location) and their goal
+- SHOW CURIOSITY: If something seems unexpected or intriguing (e.g., a designer wanting to get strong, a banker pursuing art, a young person with an unconventional goal), acknowledge it with genuine curiosity
+- BE PLAYFUL: It's okay to be slightly surprised, intrigued, or express a mild stereotype to show you're thinking about them as a whole person
+- Talk like you're having a real conversation with a friend who just told you something interesting
+- Ask only ONE focused question
+- Keep it natural, warm, and genuinely curious
 - Don't repeat information they already shared
-- Leverage their background information to ask more targeted questions
+- Let your personality show - you're not a formal interviewer
 
-Generate your follow-up question:
+Examples of what NOT to do (too formulaic):
+❌ "Sarah, as a Software Engineer in Technology, what challenges have you faced?"
+❌ "Hi John! As a Marketing Manager in Marketing, what's your current situation?"
+❌ "What stage are you at with this goal?" (boring, no personality)
+
+Examples of natural, human conversation:
+✅ "What's been the biggest challenge so far?"
+✅ "That sounds exciting! Where are you in the process right now?"
+✅ "Have you tried anything specific to move forward with this?"
+
+Examples of interesting observations (when there's a contrast or connection):
+✅ "That's interesting! Most designers I know are more into the aesthetic side of wellness - what got you interested in getting really strong?"
+✅ "I'm curious - a lot of finance people stick to their lane, but you're exploring something creative. What sparked that?"
+✅ "For someone in tech, this is a pretty human-centered goal. Is that intentional?"
+✅ "That's not something you hear every day! What's the story behind this goal?"
+
+Key principle: If you notice something interesting about the user's background + goal combination, mention it naturally! If not, just ask a good follow-up question.
+
+Generate your follow-up question in a natural, human-like way:
 `;
   } else if (context.currentPhase === 'value_offered') {
     const userContextInfo = context.userContext ? `
@@ -267,7 +287,7 @@ User Background:
 ` : '';
 
     prompt = `
-You are an AI Twin transitioning to understand what value the user can offer to others.
+You are an AI Twin transitioning naturally to understand what value the user can offer to others.
 
 ${userContextInfo}
 
@@ -281,17 +301,19 @@ Context:
 
 ${context.phaseQuestionCount === 0 ? `
 Guidelines for transitioning and first value offered question:
-- Use their name (${context.userContext?.nickname}) to keep it personal
-- Smoothly transition from goal discussion to value offering
+- Make a smooth, natural transition from goal discussion to value offering
 - Ask what skills, knowledge, or experience they can share with others
-- Reference their occupation (${context.userContext?.occupation}) and industry (${context.userContext?.industry}) to make it specific
-- Connect it to their goal if possible
+- Look for interesting angles: maybe their goal requires skills they already have, or maybe there's an unexpected skill they've developed through their work/life
+- Connect it to their goal if possible, or highlight an interesting aspect of their background
+- Keep the transition conversational and warm
 ` : ''}
 
 ${context.phaseQuestionCount === 1 ? `
 Guidelines for follow-up value offered question:
-- Dig deeper into their specific expertise or unique experiences in ${context.userContext?.industry || 'their field'}
-- Ask about what makes their approach or knowledge special as a ${context.userContext?.occupation || 'professional'}
+- Dig deeper into their specific expertise or unique experiences
+- Ask about what makes their approach or knowledge special
+- Consider if their occupation/background gives them a unique perspective others might not have
+- If there's something interesting about their cross-disciplinary skills, explore that
 - Focus on concrete value they can provide
 ` : ''}
 
@@ -299,19 +321,40 @@ ${context.phaseQuestionCount === 2 ? `
 Guidelines for final value offered question:
 - Ask about how they prefer to help others or share their knowledge
 - Explore their teaching/mentoring style or preferred methods
-- Ask about what kind of impact they want to make in ${context.userContext?.industry || 'their industry'}
+- Consider what kind of people would benefit most from their unique background
+- Ask about the kind of impact they want to make
+- Keep it conversational and personal
 ` : ''}
 
-Requirements:
-- Use their name occasionally
+CRITICAL Requirements - Natural Human-like Conversation:
+- DO NOT use their name in every question - save it for occasional personal touches
+- DO NOT say "as a [occupation]" or "in [industry]" unless it's genuinely relevant
+- BE OBSERVANT: Notice interesting combinations (e.g., a creative person with technical skills, someone from one industry applying knowledge to another)
+- SHOW INTEREST: If their background + goal create an interesting value proposition, acknowledge it!
+- BE THOUGHTFUL: Consider what makes their perspective or skills unique or unexpected
+- You already know their background - use that knowledge to inform questions, not to repeat it
+- Transition smoothly and naturally, like a real conversation
 - Ask only ONE question
-- Be conversational and empathetic
-- Make it feel like a natural progression in the conversation
-- Keep it natural and friendly
-- Focus on understanding what value they can offer to others
-- Leverage their professional background for more relevant questions
+- Be warm, conversational, and genuinely interested
+- Let your personality and observation skills show
 
-Generate your question:
+Examples of what NOT to do (too formulaic):
+❌ "Sarah, as a Software Engineer, what skills can you offer?"
+❌ "As someone in Technology, what expertise do you have?"
+❌ "What can you offer?" (boring, no depth)
+
+Examples of natural conversation:
+✅ "That's really insightful! What skills or knowledge do you think you could share with others?"
+✅ "What do you feel is your strongest area of expertise?"
+✅ "If someone wanted to learn from you, what would you be most excited to teach them?"
+
+Examples of interesting observations:
+✅ "You know, someone with both design sensibility AND a fitness goal is pretty rare - that's an interesting combination. What could you share from that unique perspective?"
+✅ "I bet your analytical background gives you a different approach to this. What insights do you think you could offer?"
+✅ "That's a cool crossover! How do you think your [occupation] skills apply to helping others with this?"
+✅ "Not many people have experience in both areas - what's the unique value you think that brings?"
+
+Generate your question in a natural, human-like way:
 `;
   } else if (context.currentPhase === 'value_desired') {
     const userContextInfo = context.userContext ? `
@@ -322,7 +365,7 @@ User Background:
 ` : '';
 
     prompt = `
-You are an AI Twin now exploring what value the user wants to receive from others.
+You are an AI Twin now naturally exploring what value the user wants to receive from others.
 
 ${userContextInfo}
 
@@ -336,37 +379,61 @@ Context:
 
 ${context.phaseQuestionCount === 0 ? `
 Guidelines for transitioning and first value desired question:
-- Use their name (${context.userContext?.nickname}) to keep it personal
-- Smoothly transition from value offering to value seeking
-- Ask what kind of help, guidance, or support they're looking for as a ${context.userContext?.occupation || 'professional'}
+- Make a smooth, natural transition from value offering to value seeking
+- Ask what kind of help, guidance, or support they're looking for
 - Connect it to their goal and challenges discussed earlier
-- Reference their industry context if relevant
+- Consider if there's an interesting gap between their current skills and what they're trying to achieve
+- If their background makes their need particularly interesting or unique, note it with curiosity
+- Keep the transition warm and conversational
 ` : ''}
 
 ${context.phaseQuestionCount === 1 ? `
 Guidelines for follow-up value desired question:
-- Dig deeper into specific areas where they need help in ${context.userContext?.industry || 'their field'}
+- Dig deeper into specific areas where they need help
 - Ask about their learning preferences or ideal type of mentor
+- Consider what kind of person or expertise would complement their background
+- If there's something interesting about who would be their "opposite" or complement, explore that
 - Focus on what would be most valuable for their growth
 ` : ''}
 
 ${context.phaseQuestionCount === 2 ? `
 Guidelines for final value desired question:
 - Ask about their ideal learning or growth environment
-- Explore what kind of community or connections they're seeking in ${context.userContext?.industry || 'their industry'}
+- Explore what kind of community or connections they're seeking
+- Consider how their personality/background affects what kind of support would work best
+- Think about interesting contrasts (e.g., an introvert seeking a community, a solo worker wanting collaboration)
 - Focus on long-term support needs
 ` : ''}
 
-Requirements:
-- Use their name occasionally
+CRITICAL Requirements - Natural Human-like Conversation:
+- DO NOT use their name in every question - use it sparingly
+- DO NOT say "as a [occupation]" or "in [industry]" unless truly necessary
+- BE OBSERVANT: Look for interesting mismatches or gaps between what they have and what they need
+- SHOW INSIGHT: If someone's background makes their needs particularly interesting, acknowledge it
+- BE EMPATHETIC: Everyone has gaps - make it feel normal and exciting to seek help
+- You already know their background - let it inform your understanding, not your phrasing
+- Transition naturally, like flipping sides of the same coin
 - Ask only ONE question
-- Be conversational and empathetic
-- Make it feel like a natural progression in the conversation
-- Keep it natural and friendly
-- Focus on understanding what value they want to receive from others
-- Leverage their professional background for more relevant questions
+- Be warm, empathetic, and genuinely interested
+- Let your observation and understanding show
 
-Generate your question:
+Examples of what NOT to do (too formulaic):
+❌ "Sarah, as a Software Engineer in Technology, what support do you need?"
+❌ "As someone in Marketing, what guidance are you looking for?"
+❌ "What help do you need?" (boring, no insight)
+
+Examples of natural conversation:
+✅ "That's great that you can offer so much! On the flip side, what kind of support would be most helpful for you?"
+✅ "What areas do you feel you could use some guidance in?"
+✅ "If you could connect with the perfect mentor, what would they help you with?"
+
+Examples of interesting observations:
+✅ "Interesting! You've got the technical side down, but it sounds like you might need someone from a completely different angle. What kind of perspective would complement yours?"
+✅ "I'm curious - for someone who's usually in the analytical world, what would help you most with the creative side of this?"
+✅ "That's a pretty ambitious leap! What kind of person or expertise would bridge that gap for you?"
+✅ "You know what's interesting? You're strong in A but going for B - that's a cool combo. Who would be your ideal guide for that?"
+
+Generate your question in a natural, human-like way:
 `;
   }
 
@@ -987,5 +1054,172 @@ export const summarizeGroupChat = async (
     const participantCount = new Set(messages.map(m => m.sender)).size;
     const messageCount = messages.length;
     return `This conversation includes ${messageCount} messages from ${participantCount} participants. The discussion covers various topics and ideas shared among group members.`;
+  }
+};
+
+// Daily Modeling - 生成每日建模问题
+export interface DailyModelingProfile {
+  nickname: string;
+  occupation: string;
+  industry: string;
+  currentGoals?: string[];
+  valueOffered?: string[];
+  valueDesired?: string[];
+  previousAnswers?: string[]; // 用于避免重复问题
+}
+
+export const generateDailyModelingQuestions = async (
+  profile: DailyModelingProfile
+): Promise<{ valueOfferedQuestion: string; valueDesiredQuestion: string }> => {
+  try {
+    // 构建用户背景信息
+    const profileContext = `
+User Profile:
+- Name: ${profile.nickname}
+- Occupation: ${profile.occupation}
+- Industry: ${profile.industry}
+${profile.currentGoals ? `- Current Goals: ${profile.currentGoals.join(', ')}` : ''}
+${profile.valueOffered ? `- Known Value Offered: ${profile.valueOffered.join(', ')}` : ''}
+${profile.valueDesired ? `- Known Value Desired: ${profile.valueDesired.join(', ')}` : ''}
+${profile.previousAnswers ? `\nPrevious Answers to Avoid Repetition:\n${profile.previousAnswers.join('\n')}` : ''}
+`;
+
+    const response = await getOpenAIClient().chat.completions.create({
+      model: "gpt-4.1-nano",
+      messages: [
+        {
+          role: "system",
+          content: `You are an AI Twin conducting daily user profiling to better understand the user's evolving value proposition. Your role is to:
+
+1. Ask ONE insightful question about what value they can offer to others
+2. Ask ONE insightful question about what value they want to receive from others
+
+Guidelines:
+- Be conversational and natural, like a curious friend
+- Build upon what you already know about them
+- Ask questions that reveal depth, not just surface-level info
+- Focus on specifics, concrete examples, or recent experiences
+- Keep questions concise (1-2 sentences max each)
+- Make questions feel fresh and different from previous conversations
+- Use their name occasionally to keep it personal
+
+Response Format:
+Return a JSON object with exactly two fields:
+{
+  "valueOfferedQuestion": "Your question about what they can offer",
+  "valueDesiredQuestion": "Your question about what they want to receive"
+}
+
+Examples of GOOD questions:
+- "You mentioned you're skilled in [X]. What's one thing you've learned recently that you'd love to teach someone?"
+- "When people come to you for help with [Y], what part of the process do you enjoy explaining the most?"
+- "What's an area where you'd love to find someone who could challenge your current thinking?"
+- "If you could learn from an expert in any field this week, what would it be and why?"
+
+Examples of BAD questions (too generic):
+- "What skills do you have?"
+- "What do you need help with?"
+- "What are your strengths?"
+
+Remember: You're building a relationship, not conducting an interview. Be warm, specific, and genuinely curious.`
+        },
+        {
+          role: "user",
+          content: `Based on this user profile, generate two daily modeling questions:\n\n${profileContext}`
+        }
+      ],
+      temperature: 0.8, // Higher creativity for varied questions
+      max_tokens: 250,
+      response_format: { type: "json_object" }
+    });
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error('No response from AI');
+    }
+
+    const parsed = JSON.parse(content);
+    
+    return {
+      valueOfferedQuestion: parsed.valueOfferedQuestion || "What's something you could teach someone today?",
+      valueDesiredQuestion: parsed.valueDesiredQuestion || "What kind of support would be most valuable to you right now?"
+    };
+  } catch (error) {
+    console.error('Error generating daily modeling questions:', error);
+    
+    // Fallback questions
+    return {
+      valueOfferedQuestion: `Hey ${profile.nickname}! What's one skill or insight you've gained recently that you'd love to share with someone?`,
+      valueDesiredQuestion: `On the flip side, what's an area where you'd appreciate some guidance or fresh perspective?`
+    };
+  }
+};
+
+// 整合daily modeling回答到用户profile
+export const integrateDailyModelingAnswers = async (
+  valueOfferedAnswer: string,
+  valueDesiredAnswer: string,
+  existingProfile: DailyModelingProfile
+): Promise<{ updatedValueOffered: string; updatedValueDesired: string }> => {
+  try {
+    const response = await getOpenAIClient().chat.completions.create({
+      model: "gpt-4.1-nano",
+      messages: [
+        {
+          role: "system",
+          content: `You are an AI Twin helping to build a comprehensive user profile. Your task is to integrate new daily answers into existing profile sections.
+
+Guidelines:
+- Extract key insights from the new answers
+- Integrate them naturally with existing content
+- Keep the tone conversational and authentic
+- Remove redundancy but preserve unique details
+- Each section should be 2-3 sentences max
+- Focus on concrete, actionable value
+
+Response Format:
+Return a JSON object:
+{
+  "updatedValueOffered": "Integrated description of what they can offer",
+  "updatedValueDesired": "Integrated description of what they want"
+}`
+        },
+        {
+          role: "user",
+          content: `Integrate these new answers into the existing profile:
+
+Existing Value Offered: ${existingProfile.valueOffered?.join(', ') || 'None yet'}
+New Answer about Value Offered: ${valueOfferedAnswer}
+
+Existing Value Desired: ${existingProfile.valueDesired?.join(', ') || 'None yet'}
+New Answer about Value Desired: ${valueDesiredAnswer}
+
+Please integrate the new insights into cohesive descriptions.`
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 300,
+      response_format: { type: "json_object" }
+    });
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error('No response from AI');
+    }
+
+    const parsed = JSON.parse(content);
+    
+    return {
+      updatedValueOffered: parsed.updatedValueOffered || valueOfferedAnswer,
+      updatedValueDesired: parsed.updatedValueDesired || valueDesiredAnswer
+    };
+  } catch (error) {
+    console.error('Error integrating daily modeling answers:', error);
+    
+    // Fallback: just append the new answers
+    return {
+      updatedValueOffered: valueOfferedAnswer,
+      updatedValueDesired: valueDesiredAnswer
+    };
   }
 };

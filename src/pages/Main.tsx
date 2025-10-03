@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding, type AITwinProfile, type Memory } from '@/contexts/OnboardingContext';
-import { generateAITwinConversation, withRetry, summarizeGroupChat, type AITwinConversationProfile, type GeneratedMessage, type AITwinConversationResult, type ChatMessage } from '@/services/aiService';
+import { generateAITwinConversation, withRetry, summarizeGroupChat, generateDailyModelingQuestions, integrateDailyModelingAnswers, type AITwinConversationProfile, type GeneratedMessage, type AITwinConversationResult, type ChatMessage, type DailyModelingProfile } from '@/services/aiService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { MessageCircle, User, Brain, Target, Sparkles, Clock, Settings, CreditCard, Send, Inbox, Users, Plus, Trash2, LogOut, ChevronUp, ChevronDown } from 'lucide-react';
+import { MessageCircle, User, Brain, Target, Sparkles, Clock, Settings, CreditCard, Send, Inbox, Users, Plus, Trash2, LogOut, ChevronUp, ChevronDown, Loader2, Check } from 'lucide-react';
 import AITwinConnectionAnimation from '@/components/AITwinConnectionAnimation';
 import { getAITwin, getAllAITwins, getConversations, saveConversation, upsertAITwin } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -66,6 +66,15 @@ const Main = () => {
     lookings: false,
     memory: false
   });
+  
+  // Daily Modeling状态
+  const [showDailyModeling, setShowDailyModeling] = useState(false);
+  const [dailyQuestions, setDailyQuestions] = useState<{ valueOfferedQuestion: string; valueDesiredQuestion: string } | null>(null);
+  const [currentDailyQuestion, setCurrentDailyQuestion] = useState<'valueOffered' | 'valueDesired' | 'completed'>('valueOffered');
+  const [dailyAnswers, setDailyAnswers] = useState<{ valueOffered: string; valueDesired: string }>({ valueOffered: '', valueDesired: '' });
+  const [dailyInputValue, setDailyInputValue] = useState('');
+  const [isLoadingDailyQuestions, setIsLoadingDailyQuestions] = useState(false);
+  const [isProcessingDailyAnswer, setIsProcessingDailyAnswer] = useState(false);
   
   // 真实AI Twin网络数据
   const [realAITwins, setRealAITwins] = useState<AITwinConversationProfile[]>([]);
@@ -592,6 +601,170 @@ const Main = () => {
     }
   };
 
+  // Daily Modeling相关函数
+  const checkAndInitializeDailyModeling = async () => {
+    if (!user || !aiTwinProfile) return;
+    
+    // 检查localStorage中的最后完成日期
+    const lastCompletedDate = localStorage.getItem(`dailyModeling_${user.id}_lastCompleted`);
+    // 检查是否有测试日期覆盖
+    const testDateOverride = localStorage.getItem(`dailyModeling_testDate`);
+    const today = testDateOverride || new Date().toISOString().split('T')[0];
+    
+    // 如果今天还没完成，显示Daily Modeling
+    if (lastCompletedDate !== today) {
+      setIsLoadingDailyQuestions(true);
+      
+      try {
+        // 构建用户profile用于生成问题
+        const modelingProfile: DailyModelingProfile = {
+          nickname: aiTwinProfile.userNickname || aiTwinProfile.name || 'there',
+          occupation: aiTwinProfile.profile?.occupation || 'Professional',
+          industry: aiTwinProfile.userIndustry || 'General',
+          currentGoals: aiTwinProfile.goals || [],
+          valueOffered: aiTwinProfile.offers || [],
+          valueDesired: aiTwinProfile.lookings || [],
+          previousAnswers: [] // 可以从localStorage获取历史答案
+        };
+        
+        // 生成今日问题
+        const questions = await generateDailyModelingQuestions(modelingProfile);
+        
+        setDailyQuestions(questions);
+        setShowDailyModeling(true);
+        setCurrentDailyQuestion('valueOffered');
+      } catch (error) {
+        console.error('Error initializing daily modeling:', error);
+        toast.error('Failed to load daily questions');
+      } finally {
+        setIsLoadingDailyQuestions(false);
+      }
+    }
+  };
+
+  const handleDailyAnswerSubmit = async () => {
+    if (!dailyInputValue.trim() || !user || !aiTwinProfile) return;
+    
+    setIsProcessingDailyAnswer(true);
+    
+    try {
+      if (currentDailyQuestion === 'valueOffered') {
+        // 保存第一个答案
+        setDailyAnswers(prev => ({ ...prev, valueOffered: dailyInputValue }));
+        setDailyInputValue('');
+        setCurrentDailyQuestion('valueDesired');
+      } else if (currentDailyQuestion === 'valueDesired') {
+        // 保存第二个答案
+        const finalAnswers = {
+          valueOffered: dailyAnswers.valueOffered,
+          valueDesired: dailyInputValue
+        };
+        
+        // 整合答案到用户profile
+        const modelingProfile: DailyModelingProfile = {
+          nickname: aiTwinProfile.userNickname || aiTwinProfile.name || 'there',
+          occupation: aiTwinProfile.profile?.occupation || 'Professional',
+          industry: aiTwinProfile.userIndustry || 'General',
+          valueOffered: aiTwinProfile.offers || [],
+          valueDesired: aiTwinProfile.lookings || []
+        };
+        
+        const integrated = await integrateDailyModelingAnswers(
+          finalAnswers.valueOffered,
+          finalAnswers.valueDesired,
+          modelingProfile
+        );
+        
+        // 更新AI Twin Profile
+        const updatedProfile = {
+          ...aiTwinProfile,
+          offers: [
+            ...(aiTwinProfile.offers || []),
+            integrated.updatedValueOffered
+          ],
+          lookings: [
+            ...(aiTwinProfile.lookings || []),
+            integrated.updatedValueDesired
+          ]
+        };
+        
+        updateAITwinProfile(updatedProfile);
+        
+        // 保存到Supabase
+        if (user?.id) {
+          await upsertAITwin(user.id, updatedProfile);
+        }
+        
+        // 标记今天已完成
+        const testDateOverride = localStorage.getItem(`dailyModeling_testDate`);
+        const today = testDateOverride || new Date().toISOString().split('T')[0];
+        localStorage.setItem(`dailyModeling_${user.id}_lastCompleted`, today);
+        
+        // 保存答案到历史（用于避免重复问题）
+        const history = JSON.parse(localStorage.getItem(`dailyModeling_${user.id}_history`) || '[]');
+        history.push({
+          date: today,
+          answers: finalAnswers
+        });
+        // 只保留最近7天的历史
+        localStorage.setItem(`dailyModeling_${user.id}_history`, JSON.stringify(history.slice(-7)));
+        
+        setCurrentDailyQuestion('completed');
+        
+        // 2秒后淡出
+        setTimeout(() => {
+          setShowDailyModeling(false);
+          toast.success('Your profile has been updated!');
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error processing daily answer:', error);
+      toast.error('Failed to process your answer');
+    } finally {
+      setIsProcessingDailyAnswer(false);
+    }
+  };
+
+  // 测试函数：跳到下一天
+  const handleTestNextDay = () => {
+    if (!user) return;
+    
+    // 获取当前测试日期或真实日期
+    const currentTestDate = localStorage.getItem(`dailyModeling_testDate`);
+    const currentDate = currentTestDate ? new Date(currentTestDate) : new Date();
+    
+    // 增加一天
+    currentDate.setDate(currentDate.getDate() + 1);
+    const nextDay = currentDate.toISOString().split('T')[0];
+    
+    // 保存新的测试日期
+    localStorage.setItem(`dailyModeling_testDate`, nextDay);
+    
+    // 隐藏当前的Daily Modeling模块
+    setShowDailyModeling(false);
+    
+    // 重置状态
+    setDailyQuestions(null);
+    setDailyAnswers({ valueOffered: '', valueDesired: '' });
+    setDailyInputValue('');
+    setCurrentDailyQuestion('valueOffered');
+    
+    // 显示提示
+    toast.success(`Jumped to ${nextDay}! Daily Modeling will appear in 2 seconds.`);
+    
+    // 2秒后重新检查并初始化Daily Modeling
+    setTimeout(() => {
+      checkAndInitializeDailyModeling();
+    }, 2000);
+  };
+
+  // 重置测试日期（恢复到真实日期）
+  const handleResetTestDate = () => {
+    localStorage.removeItem(`dailyModeling_testDate`);
+    setShowDailyModeling(false);
+    toast.info('Reset to real date. Refresh the page to see today\'s Daily Modeling.');
+  };
+
   // 处理URL参数导航
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -654,6 +827,18 @@ const Main = () => {
 
     loadAITwinFromDatabase();
   }, [user]);
+
+  // 初始化Daily Modeling
+  useEffect(() => {
+    if (user && aiTwinProfile) {
+      // 延迟2秒后检查，给用户一点时间看到主页
+      const timer = setTimeout(() => {
+        checkAndInitializeDailyModeling();
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [user, aiTwinProfile]);
 
   // 从数据库加载所有其他用户的AI Twins（用于匹配网络）
   useEffect(() => {
@@ -2016,7 +2201,138 @@ const Main = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 flex">
+    <>
+      {/* Daily Modeling模块 - 左上角悬浮 */}
+      {showDailyModeling && dailyQuestions && (
+        <div className={`fixed top-8 left-8 z-50 transition-all duration-500 ${
+          currentDailyQuestion === 'completed' ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+        }`}>
+          <div className="relative">
+            {/* AI Twin头像 */}
+            <div className="flex items-start space-x-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg border-4 border-white overflow-hidden flex-shrink-0">
+                <img
+                  src={aiTwinProfile?.avatar || '/avatars/ai_friend.png'}
+                  alt={aiTwinProfile?.name || 'AI Twin'}
+                  className="w-14 h-14 rounded-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 border-2 border-white rounded-full animate-pulse"></div>
+              </div>
+
+              {/* 气泡对话框 */}
+              <div className="relative max-w-md">
+                {/* 气泡尾巴 */}
+                <div className="absolute left-0 top-4 w-0 h-0 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent border-r-[12px] border-r-white -translate-x-3"></div>
+                
+                {/* 气泡内容 */}
+                <div className="bg-white rounded-2xl shadow-2xl p-5 border border-gray-100">
+                  {/* 标题 */}
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-emerald-600 flex items-center">
+                      <Sparkles className="w-4 h-4 mr-1" />
+                      Teach {aiTwinProfile?.name || 'your AI Twin'} new things
+                    </h3>
+                    <span className="text-xs text-gray-500">
+                      {currentDailyQuestion === 'valueOffered' ? '1/2' : '2/2'}
+                    </span>
+                  </div>
+
+                  {/* 问题 */}
+                  {isLoadingDailyQuestions ? (
+                    <div className="flex items-center space-x-2 py-3">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-800 mb-4 leading-relaxed">
+                      {currentDailyQuestion === 'valueOffered'
+                        ? dailyQuestions.valueOfferedQuestion
+                        : dailyQuestions.valueDesiredQuestion}
+                    </p>
+                  )}
+
+                  {/* 输入框 */}
+                  {!isLoadingDailyQuestions && currentDailyQuestion !== 'completed' && (
+                    <div className="space-y-3">
+                      <Textarea
+                        value={dailyInputValue}
+                        onChange={(e) => setDailyInputValue(e.target.value)}
+                        placeholder="Type your answer here..."
+                        className="w-full min-h-[80px] text-sm resize-none border-gray-200 focus:border-emerald-400 focus:ring-emerald-400"
+                        disabled={isProcessingDailyAnswer}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleDailyAnswerSubmit();
+                          }
+                        }}
+                      />
+                      
+                      <Button
+                        onClick={handleDailyAnswerSubmit}
+                        disabled={!dailyInputValue.trim() || isProcessingDailyAnswer}
+                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-md"
+                        size="sm"
+                      >
+                        {isProcessingDailyAnswer ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4 mr-2" />
+                            {currentDailyQuestion === 'valueOffered' ? 'Next' : 'Complete'}
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* 完成状态 */}
+                  {currentDailyQuestion === 'completed' && (
+                    <div className="flex items-center space-x-2 text-emerald-600">
+                      <Check className="w-5 h-5" />
+                      <span className="font-medium">Thanks! Your profile has been updated.</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 测试按钮 - 右下角 */}
+      {user && (
+        <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-2">
+          <Button
+            onClick={handleTestNextDay}
+            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            size="sm"
+          >
+            <Clock className="w-4 h-4 mr-2" />
+            Next Day (Test)
+          </Button>
+          
+          {localStorage.getItem(`dailyModeling_testDate`) && (
+            <Button
+              onClick={handleResetTestDate}
+              variant="outline"
+              className="bg-white/90 hover:bg-white border-gray-300 shadow-md"
+              size="sm"
+            >
+              Reset Date
+            </Button>
+          )}
+        </div>
+      )}
+
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 flex">
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200 shadow-lg">
         <div className="p-6">
@@ -2511,6 +2827,7 @@ const Main = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

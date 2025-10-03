@@ -165,7 +165,18 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
   // 获取当前问题
   const currentQuestion = getQuestionById(currentQuestionId);
   const currentIndex = onboardingQuestions.findIndex(q => q.id === currentQuestionId);
-  const progress = ((currentIndex + 1) / onboardingQuestions.length) * 100;
+  const questionProgress = ((currentIndex + 1) / onboardingQuestions.length) * 100;
+  
+  // 计算整体onboarding进度（3个主要阶段）
+  const getOverallProgress = () => {
+    if (showAIIntro) return 0;
+    if (showBasicInfo) return 33;
+    if (showGoalInput) return 66;
+    if (currentQuestion) return 66 + (questionProgress * 0.34); // Choice Made页面占34%
+    return 100;
+  };
+  
+  const overallProgress = getOverallProgress();
 
   // 处理AI驱动的多阶段聊天输入
   const handleGoalChatInput = (message: string) => {
@@ -716,128 +727,206 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
   // AI伙伴自我介绍页面
   if (showAIIntro) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-rose-50 flex items-center justify-center">
-        <div className="w-full max-w-2xl mx-4">
-          <Card className="shadow-xl border-0">
-            <CardContent className="p-8 text-center">
-              {/* AI伙伴头像 - 可点击选择 */}
-              <div className="flex justify-center mb-6">
-                <div 
-                  className="w-32 h-32 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center shadow-lg border-4 border-white overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-200"
-                  onClick={() => setShowAvatarOptions(!showAvatarOptions)}
-                >
-                  <img
-                    src={customAITwinAvatar}
-                    alt="AI Twin"
-                    className="w-28 h-28 rounded-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                      if (fallback) {
-                        fallback.style.display = 'flex';
-                      }
-                    }}
-                  />
-                  <div
-                    className="w-28 h-28 rounded-full bg-gradient-to-br from-pink-300 to-pink-400 flex items-center justify-center text-6xl"
-                    style={{ display: 'none' }}
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-rose-50 flex items-center justify-center py-8">
+        <div className="w-full max-w-7xl mx-4 flex gap-8">
+          {/* 左侧：原有的AI Twin介绍内容 */}
+          <div className="flex-1">
+            <Card className="shadow-xl border-0 h-full">
+              <CardContent className="p-8 text-center flex flex-col justify-center h-full">
+                {/* AI伙伴头像 - 可点击选择 */}
+                <div className="flex justify-center mb-6">
+                  <div 
+                    className="w-32 h-32 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center shadow-lg border-4 border-white overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-200"
+                    onClick={() => setShowAvatarOptions(!showAvatarOptions)}
                   >
-                    🤖
+                    <img
+                      src={customAITwinAvatar}
+                      alt="AI Twin"
+                      className="w-28 h-28 rounded-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                        if (fallback) {
+                          fallback.style.display = 'flex';
+                        }
+                      }}
+                    />
+                    <div
+                      className="w-28 h-28 rounded-full bg-gradient-to-br from-pink-300 to-pink-400 flex items-center justify-center text-6xl"
+                      style={{ display: 'none' }}
+                    >
+                      🤖
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* 头像选择选项 */}
-              {showAvatarOptions && (
-                <div className="mb-6 p-4 bg-white rounded-lg shadow-inner">
-                  <p className="text-sm text-gray-600 mb-3">Choose your AI Twin's avatar:</p>
-                  <div className="flex justify-center space-x-3">
-                    {avatarOptions.map((option) => (
-                      <button
-                        key={option.id}
-                        onClick={() => handleAvatarSelect(option.src)}
-                        className={`w-16 h-16 rounded-full overflow-hidden border-2 transition-all duration-200 hover:scale-110 ${
-                          customAITwinAvatar === option.src 
-                            ? 'border-pink-500 shadow-lg' 
-                            : 'border-gray-300 hover:border-pink-300'
-                        }`}
-                      >
-                        <img
-                          src={option.src}
-                          alt={option.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
+                {/* 头像选择选项 */}
+                {showAvatarOptions && (
+                  <div className="mb-6 p-4 bg-white rounded-lg shadow-inner">
+                    <p className="text-sm text-gray-600 mb-3">Choose your AI Twin's avatar:</p>
+                    <div className="flex justify-center space-x-3">
+                      {avatarOptions.map((option) => (
+                        <button
+                          key={option.id}
+                          onClick={() => handleAvatarSelect(option.src)}
+                          className={`w-16 h-16 rounded-full overflow-hidden border-2 transition-all duration-200 hover:scale-110 ${
+                            customAITwinAvatar === option.src 
+                              ? 'border-pink-500 shadow-lg' 
+                              : 'border-gray-300 hover:border-pink-300'
+                          }`}
+                        >
+                          <img
+                            src={option.src}
+                            alt={option.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* AI Twin名称输入 */}
+                <div className="mb-6">
+                  <p className="text-sm text-gray-600 mb-2">Give your AI Twin a name:</p>
+                  <Input
+                    type="text"
+                    placeholder="Enter AI Twin name..."
+                    value={customAITwinName}
+                    onChange={(e) => setCustomAITwinName(e.target.value)}
+                    className="text-center text-lg font-medium"
+                    maxLength={20}
+                  />
+                </div>
+
+                {/* 欢迎标题 - 动态显示名称 */}
+                <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                  Hi there! I'm {customAITwinName || '?'} 👋
+                </h1>
+
+                {/* 自我介绍内容 */}
+                <div className="text-lg text-gray-700 leading-relaxed mb-8 space-y-4">
+                  <p>
+                    I'm <span className="font-semibold text-rose-600"> {customAITwinName || 'your AI Twin'}</span>. My job is to really understand what you're aiming for.
+                  </p>
+                  <p>
+                    And the cool part? I'll also grow and get smarter through the connections you make.
+                  </p>
+                </div>
+
+                {/* 开始按钮 */}
+                <div className="space-y-4">
+                  <button
+                    onClick={customAITwinName.trim() ? handleSaveAITwinName : handleStartOnboarding}
+                    className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white py-4 rounded-xl font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  >
+                    {customAITwinName.trim() ? `Let's Get Started with ${customAITwinName}! 🚀` : "Let's Get Started! 🚀"}
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setShowAIIntro(false);
+                      skipToLastQuestion();
+                    }}
+                    className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
+                  >
+                    Skip to Last Question (Test Mode)
+                  </button>
+                </div>
+
+                {/* 装饰元素 */}
+                <div className="mt-8 flex justify-center space-x-4">
+                  <div className="w-3 h-3 bg-pink-300 rounded-full animate-bounce"></div>
+                  <div className="w-3 h-3 bg-rose-300 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-3 h-3 bg-pink-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* 右侧：Profiling User流程模块 */}
+          <div className="w-96">
+            <Card className="shadow-xl border-0 h-full bg-white">
+              <CardContent className="p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+                  Share with {customAITwinName || 'your AI Twin'}
+                </h2>
+
+                {/* 流程步骤 */}
+                <div className="space-y-6">
+                  {/* Step 1: Basic Info */}
+                  <div className="relative">
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                          1
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-gray-900 mb-2">Basic Info</h3>
+                          <p className="text-sm text-gray-600">
+                            Tell us about yourself - age, gender, occupation, location, and industry
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    {/* 箭头 */}
+                    <div className="flex justify-center py-3">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-gray-400">
+                        <path d="M12 5V19M12 19L6 13M12 19L18 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Step 2: Goal Input */}
+                  <div className="relative">
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                          2
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-gray-900 mb-2">Goal and Value</h3>
+                          <p className="text-sm text-gray-600">
+                            Chat with {customAITwinName || 'your AI Twin'} about your goals, what you offer, and what you seek
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    {/* 箭头 */}
+                    <div className="flex justify-center py-3">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-gray-400">
+                        <path d="M12 5V19M12 19L6 13M12 19L18 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Step 3: Choice Made */}
+                  <div className="relative">
+                    <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border-2 border-amber-200">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                          3
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-gray-900 mb-2">Something Interesting</h3>
+                          <p className="text-sm text-gray-600">
+                            Share your tools and preferences to find better matches
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              )}
 
-              {/* AI Twin名称输入 */}
-              <div className="mb-6">
-                <p className="text-sm text-gray-600 mb-2">Give your AI Twin a name:</p>
-                <Input
-                  type="text"
-                  placeholder="Enter AI Twin name..."
-                  value={customAITwinName}
-                  onChange={(e) => setCustomAITwinName(e.target.value)}
-                  className="text-center text-lg font-medium"
-                  maxLength={20}
-                />
-              </div>
-
-              {/* 欢迎标题 - 动态显示名称 */}
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                Hi there! I'm {customAITwinName || 'your AI Twin'} 👋
-              </h1>
-
-              {/* 自我介绍内容 */}
-              <div className="text-lg text-gray-700 leading-relaxed mb-8 space-y-4">
-                <p>
-                  Hey, welcome to <span className="font-bold">Fingnet</span>!
-                </p>
-                <p>
-                  This is a place that helps you easily find the people you're looking for.
-                </p>
-                <p>
-                  I'm your AI Twin <span className="font-semibold text-rose-600"> {customAITwinName || 'your AI Twin'}</span>. My job is to really understand what you're aiming for and what you can bring to the table, so I can connect you with the right people.
-                </p>
-                <p>
-                  And the cool part? I'll also grow and get smarter through the connections you make.
-                </p>
-                <p>
-                  So, let's kick things off with a quick chat to get to know each other!
-                </p>
-              </div>
-
-              {/* 开始按钮 */}
-              <div className="space-y-4">
-                <button
-                  onClick={customAITwinName.trim() ? handleSaveAITwinName : handleStartOnboarding}
-                  className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white py-4 rounded-xl font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                >
-                  {customAITwinName.trim() ? `Let's Get Started with ${customAITwinName}! 🚀` : "Let's Get Started! 🚀"}
-                </button>
-                
-                <button
-                  onClick={() => {
-                    setShowAIIntro(false);
-                    skipToLastQuestion();
-                  }}
-                  className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
-                >
-                  Skip to Last Question (Test Mode)
-                </button>
-              </div>
-
-              {/* 装饰元素 */}
-              <div className="mt-8 flex justify-center space-x-4">
-                <div className="w-3 h-3 bg-pink-300 rounded-full animate-bounce"></div>
-                <div className="w-3 h-3 bg-rose-300 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-3 h-3 bg-pink-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              </div>
-            </CardContent>
-          </Card>
+                {/* 底部提示 */}
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <p className="text-sm text-center text-gray-500">
+                    This should take about <span className="font-semibold text-gray-700">3-5 minutes</span>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     );
@@ -884,26 +973,43 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
     };
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col relative overflow-hidden">
+        {/* 进度条 */}
+        <div className="w-full bg-white/80 backdrop-blur-sm shadow-sm z-20">
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Step 1 of 3: Basic Info</span>
+              <span className="text-sm text-gray-600">{Math.round(overallProgress)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${overallProgress}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+        
         {/* 背景装饰元素 */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-20 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
 
-        <div className="w-full max-w-3xl mx-4 relative z-10">
-          <div className="backdrop-blur-xl bg-white/70 border border-white/20 shadow-2xl rounded-3xl overflow-hidden">
-            {/* Header */}
-            <div className="relative px-8 py-6 border-b border-gray-200/50 bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-purple-500/5">
-              <div className="text-center">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
-                  Tell Us About Yourself
-                </h1>
-                <p className="text-gray-600">
-                  Help us personalize your experience with some basic information
-                </p>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-full max-w-3xl mx-4 relative z-10">
+            <div className="backdrop-blur-xl bg-white/70 border border-white/20 shadow-2xl rounded-3xl overflow-hidden">
+              {/* Header */}
+              <div className="relative px-8 py-6 border-b border-gray-200/50 bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-purple-500/5">
+                <div className="text-center">
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+                    Tell Us About Yourself
+                  </h1>
+                  <p className="text-gray-600">
+                    Help us personalize your experience with some basic information
+                  </p>
+                </div>
               </div>
-            </div>
 
             {/* Form Content */}
             <div className="p-8 space-y-6">
@@ -1072,6 +1178,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
               </p>
             </div>
           </div>
+          </div>
         </div>
       </div>
     );
@@ -1181,7 +1288,23 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
   // Goal输入页面 (聊天形式) - 现代未来感设计
   if (showGoalInput) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col relative overflow-hidden">
+        {/* 进度条 */}
+        <div className="w-full bg-white/80 backdrop-blur-sm shadow-sm z-20">
+          <div className="max-w-5xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Step 2 of 3: Goal and Value</span>
+              <span className="text-sm text-gray-600">{Math.round(overallProgress)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${overallProgress}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+        
         {/* 背景装饰元素 */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-20 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl animate-pulse"></div>
@@ -1189,12 +1312,13 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
           <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
         </div>
 
-        <div className="w-full max-w-5xl mx-4 relative z-10">
-          {/* 玻璃态卡片容器 */}
-          <div className="backdrop-blur-xl bg-white/70 border border-white/20 shadow-2xl rounded-3xl h-[700px] flex flex-col overflow-hidden">
-            {/* Header - 简洁现代的顶部栏 */}
-            <div className="relative px-8 py-6 border-b border-gray-200/50 bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-purple-500/5">
-              <div className="flex items-center justify-between">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-full max-w-5xl mx-4 relative z-10">
+            {/* 玻璃态卡片容器 */}
+            <div className="backdrop-blur-xl bg-white/70 border border-white/20 shadow-2xl rounded-3xl h-[700px] flex flex-col overflow-hidden">
+              {/* Header - 简洁现代的顶部栏 */}
+              <div className="relative px-8 py-6 border-b border-gray-200/50 bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-purple-500/5">
+                <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   {/* AI Twin头像 */}
                   <div className="relative">
@@ -1465,6 +1589,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
             </button>
           </div>
         )}
+        </div>
       </div>
     );
   }
@@ -2670,15 +2795,15 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">Getting to know you</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Step 3 of 3: Something Interesting</h2>
               <span className="text-sm text-gray-600">
                 Question {currentIndex + 1} of {onboardingQuestions.length}
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
               <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-300 ease-out relative"
-                style={{ width: `${progress}%` }}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500 ease-out relative"
+                style={{ width: `${overallProgress}%` }}
               >
                 <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-white border-4 border-blue-500 rounded-full shadow-lg"></div>
               </div>

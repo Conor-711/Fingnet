@@ -1,5 +1,7 @@
 # OnlyText Onboarding Flow Documentation
 
+landing page => ai twin page => basic info page => goal input page => choice made page
+
 ## 流程概述
 
 OnlyText的onboarding流程是用户首次使用产品时的引导体验，旨在了解用户并为其提供个性化的服务。整个流程包含4个主要环节，每个环节都有明确的目的和功能。
