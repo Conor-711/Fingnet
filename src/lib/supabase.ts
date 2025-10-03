@@ -637,29 +637,40 @@ export async function deleteUserAccount(userId: string) {
     }
     console.log('✅ Onboarding 进度已删除');
 
-    // 3. 删除用户的 Memories
+    // 3. 删除用户的 Memories（如果表存在）
     const { error: memoriesError } = await supabase
       .from('memories')
       .delete()
       .eq('user_id', userId);
     
     if (memoriesError) {
-      console.error('❌ 删除 Memories 失败:', memoriesError);
-      throw memoriesError;
+      // 如果是 404 错误（表不存在），则忽略
+      if (memoriesError.code === 'PGRST116' || memoriesError.message?.includes('not found')) {
+        console.log('⚠️ Memories 表不存在或无数据，跳过删除');
+      } else {
+        console.error('❌ 删除 Memories 失败:', memoriesError);
+        // 不抛出错误，继续执行
+      }
+    } else {
+      console.log('✅ Memories 已删除');
     }
-    console.log('✅ Memories 已删除');
 
-    // 4. 删除用户的对话历史
+    // 4. 删除用户的对话历史（如果表存在）
     const { error: conversationsError } = await supabase
       .from('ai_conversations')
       .delete()
       .eq('user_id', userId);
     
     if (conversationsError) {
-      console.error('❌ 删除对话历史失败:', conversationsError);
-      throw conversationsError;
+      if (conversationsError.code === 'PGRST116' || conversationsError.message?.includes('not found')) {
+        console.log('⚠️ AI Conversations 表不存在或无数据，跳过删除');
+      } else {
+        console.error('❌ 删除对话历史失败:', conversationsError);
+        // 不抛出错误，继续执行
+      }
+    } else {
+      console.log('✅ 对话历史已删除');
     }
-    console.log('✅ 对话历史已删除');
 
     // 5. 删除用户作为成员的所有群组关系
     const { error: groupMembersError } = await supabase
@@ -668,10 +679,15 @@ export async function deleteUserAccount(userId: string) {
       .eq('user_id', userId);
     
     if (groupMembersError) {
-      console.error('❌ 删除群组成员关系失败:', groupMembersError);
-      throw groupMembersError;
+      if (groupMembersError.code === 'PGRST116' || groupMembersError.message?.includes('not found')) {
+        console.log('⚠️ Group Members 表不存在或无数据，跳过删除');
+      } else {
+        console.error('❌ 删除群组成员关系失败:', groupMembersError);
+        // 不抛出错误，继续执行
+      }
+    } else {
+      console.log('✅ 群组成员关系已删除');
     }
-    console.log('✅ 群组成员关系已删除');
 
     // 6. 删除用户创建的群组
     const { error: groupsError } = await supabase
@@ -680,10 +696,15 @@ export async function deleteUserAccount(userId: string) {
       .eq('created_by', userId);
     
     if (groupsError) {
-      console.error('❌ 删除群组失败:', groupsError);
-      throw groupsError;
+      if (groupsError.code === 'PGRST116' || groupsError.message?.includes('not found')) {
+        console.log('⚠️ Groups 表不存在或无数据，跳过删除');
+      } else {
+        console.error('❌ 删除群组失败:', groupsError);
+        // 不抛出错误，继续执行
+      }
+    } else {
+      console.log('✅ 用户创建的群组已删除');
     }
-    console.log('✅ 用户创建的群组已删除');
 
     // 7. 删除用户发送和接收的邀请
     const { error: sentInvitationsError } = await supabase
@@ -692,8 +713,14 @@ export async function deleteUserAccount(userId: string) {
       .eq('sender_id', userId);
     
     if (sentInvitationsError) {
-      console.error('❌ 删除发送的邀请失败:', sentInvitationsError);
-      throw sentInvitationsError;
+      if (sentInvitationsError.code === 'PGRST116' || sentInvitationsError.message?.includes('not found')) {
+        console.log('⚠️ Invitations 表不存在或无数据（发送），跳过删除');
+      } else {
+        console.error('❌ 删除发送的邀请失败:', sentInvitationsError);
+        // 不抛出错误，继续执行
+      }
+    } else {
+      console.log('✅ 发送的邀请已删除');
     }
 
     const { error: receivedInvitationsError } = await supabase
@@ -702,10 +729,15 @@ export async function deleteUserAccount(userId: string) {
       .eq('recipient_id', userId);
     
     if (receivedInvitationsError) {
-      console.error('❌ 删除接收的邀请失败:', receivedInvitationsError);
-      throw receivedInvitationsError;
+      if (receivedInvitationsError.code === 'PGRST116' || receivedInvitationsError.message?.includes('not found')) {
+        console.log('⚠️ Invitations 表不存在或无数据（接收），跳过删除');
+      } else {
+        console.error('❌ 删除接收的邀请失败:', receivedInvitationsError);
+        // 不抛出错误，继续执行
+      }
+    } else {
+      console.log('✅ 接收的邀请已删除');
     }
-    console.log('✅ 邀请记录已删除');
 
     // 8. 最后删除用户记录
     const { error: userError } = await supabase
