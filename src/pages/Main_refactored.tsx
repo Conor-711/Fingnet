@@ -20,8 +20,7 @@ import { useGroups } from '@/hooks/useGroups';
 import { useDailyModeling } from '@/hooks/useDailyModeling';
 
 // 导入数据库函数
-import { getAITwin, upsertAITwin } from '@/lib/supabase';
-import { summarizeGroupChat } from '@/services/aiService';
+import { getAITwin, upsertAITwin, summarizeGroupChat } from '@/lib/supabase';
 
 const Main = () => {
   const navigate = useNavigate();
@@ -210,18 +209,18 @@ const Main = () => {
       badge: null
     },
     { 
-      id: 'group-chat', 
-      icon: MessageCircle, 
-      label: 'Group Chat',
-      badge: groups.userGroups.length > 0 ? groups.userGroups.length.toString() : null
-    },
-    { 
       id: 'invitations', 
       icon: Inbox, 
       label: 'Invitations',
       badge: (invitations.receivedInvitations.filter(inv => inv.status === 'pending').length > 0 || 
               invitations.sentInvitations.some(inv => inv.status === 'accepted' || inv.status === 'declined')) 
               ? '!' : null
+    },
+    { 
+      id: 'group-chat', 
+      icon: MessageCircle, 
+      label: 'Group Chat',
+      badge: groups.userGroups.length > 0 ? groups.userGroups.length.toString() : null
     },
     { 
       id: 'subscribe', 
@@ -352,7 +351,7 @@ const Main = () => {
   }
 
   // 如果onboarding未完成，重定向到onboarding
-  if (!progress?.isCompleted) {
+  if (progress < 100) {
     navigate('/?onboarding=true');
     return null;
   }
@@ -488,7 +487,7 @@ const Main = () => {
               })}
 
               {/* User Avatar */}
-              {/* <div className="ml-auto flex items-center space-x-3">
+              <div className="ml-auto flex items-center space-x-3">
                 <Avatar className="w-9 h-9 ring-2 ring-emerald-200">
                   <AvatarImage src={aiTwinProfile?.userAvatar} alt={user?.name} />
                   <AvatarFallback className="bg-emerald-100 text-emerald-700">
@@ -496,7 +495,7 @@ const Main = () => {
                   </AvatarFallback>
                 </Avatar>
                 <span className="text-sm font-medium text-gray-700">{aiTwinProfile?.userNickname || user?.name}</span>
-              </div> */}
+              </div>
             </div>
           </div>
         </div>
