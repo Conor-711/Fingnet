@@ -1223,3 +1223,173 @@ Please integrate the new insights into cohesive descriptions.`
     };
   }
 };
+
+/**
+ * 计算两个AI Twin之间的匹配分数
+ */
+export interface AITwinMatchScore {
+  overallScore: number; // 0-10
+  locationMatch: boolean;
+  ageMatch: boolean;
+  goalMatch: boolean;
+  valueMatch: number; // 0-10
+  reasons: string[];
+}
+
+export const calculateAITwinMatch = (
+  userTwin: {
+    profile?: {
+      location?: string;
+      age?: string;
+      occupation?: string;
+      gender?: string;
+    };
+    goalRecently?: string;
+    valueOffered?: string;
+    valueDesired?: string;
+    goals?: string[];
+    offers?: string[];
+    lookings?: string[];
+  },
+  otherTwin: {
+    profile?: {
+      location?: string;
+      age?: string;
+      occupation?: string;
+      gender?: string;
+    };
+    goalRecently?: string;
+    valueOffered?: string;
+    valueDesired?: string;
+    goals?: string[];
+    offers?: string[];
+    lookings?: string[];
+  }
+): AITwinMatchScore => {
+  const reasons: string[] = [];
+  let score = 0;
+  
+  // 1. 位置匹配 (+2分)
+  const locationMatch = 
+    userTwin.profile?.location && 
+    otherTwin.profile?.location &&
+    userTwin.profile.location.toLowerCase() === otherTwin.profile.location.toLowerCase();
+  
+  if (locationMatch) {
+    score += 2;
+    reasons.push('📍 Same city');
+  }
+  
+  // 2. 年龄相仿 (+1.5分)
+  const ageMatch = 
+    userTwin.profile?.age && 
+    otherTwin.profile?.age &&
+    userTwin.profile.age === otherTwin.profile.age;
+  
+  if (ageMatch) {
+    score += 1.5;
+    reasons.push('👥 Similar age');
+  }
+  
+  // 3. 目标相似性 (+2分)
+  let goalMatch = false;
+  const userGoals = [
+    userTwin.goalRecently,
+    ...(userTwin.goals || [])
+  ].filter(Boolean).map(g => g?.toLowerCase() || '');
+  
+  const otherGoals = [
+    otherTwin.goalRecently,
+    ...(otherTwin.goals || [])
+  ].filter(Boolean).map(g => g?.toLowerCase() || '');
+  
+  // 检查是否有共同的关键词
+  const commonGoalKeywords = userGoals.some(userGoal =>
+    otherGoals.some(otherGoal =>
+      userGoal.split(' ').some(word => 
+        word.length > 4 && otherGoal.includes(word)
+      )
+    )
+  );
+  
+  if (commonGoalKeywords) {
+    goalMatch = true;
+    score += 2;
+    reasons.push('🎯 Similar goals');
+  }
+  
+  // 4. 价值匹配 (+4.5分) - 最重要的因素
+  let valueMatchScore = 0;
+  
+  // 用户能提供的 vs 对方想要的
+  const userOffers = [
+    userTwin.valueOffered,
+    ...(userTwin.offers || [])
+  ].filter(Boolean).map(v => v?.toLowerCase() || '');
+  
+  const otherLookings = [
+    otherTwin.valueDesired,
+    ...(otherTwin.lookings || [])
+  ].filter(Boolean).map(v => v?.toLowerCase() || '');
+  
+  const userOffersMatchOtherNeeds = userOffers.some(offer =>
+    otherLookings.some(looking =>
+      offer.split(' ').some(word =>
+        word.length > 4 && looking.includes(word)
+      )
+    )
+  );
+  
+  if (userOffersMatchOtherNeeds) {
+    valueMatchScore += 2.25;
+  }
+  
+  // 对方能提供的 vs 用户想要的
+  const otherOffers = [
+    otherTwin.valueOffered,
+    ...(otherTwin.offers || [])
+  ].filter(Boolean).map(v => v?.toLowerCase() || '');
+  
+  const userLookings = [
+    userTwin.valueDesired,
+    ...(userTwin.lookings || [])
+  ].filter(Boolean).map(v => v?.toLowerCase() || '');
+  
+  const otherOffersMatchUserNeeds = otherOffers.some(offer =>
+    userLookings.some(looking =>
+      offer.split(' ').some(word =>
+        word.length > 4 && looking.includes(word)
+      )
+    )
+  );
+  
+  if (otherOffersMatchUserNeeds) {
+    valueMatchScore += 2.25;
+  }
+  
+  score += valueMatchScore;
+  
+  if (valueMatchScore >= 3) {
+    reasons.push('💎 High value match');
+  } else if (valueMatchScore > 0) {
+    reasons.push('✨ Potential value match');
+  }
+  
+  // 如果没有任何匹配，给一个基础分
+  if (reasons.length === 0) {
+    score = 3; // 基础分3分
+    reasons.push('✨ Potential connection');
+  }
+  
+  // 确保分数在0-10范围内
+  const overallScore = Math.min(10, Math.max(0, score));
+  
+  return {
+    overallScore: Math.round(overallScore * 10) / 10, // 保留一位小数
+    locationMatch,
+    ageMatch,
+    goalMatch,
+    valueMatch: valueMatchScore,
+    reasons
+  };
+};

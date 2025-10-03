@@ -18,31 +18,12 @@ export default function ConnectionsPage({
   onSendInvitation,
   onViewConversation
 }: ConnectionsPageProps) {
-  // 计算推荐原因
+  // 显示推荐原因
   const getRecommendationReason = (chat: any) => {
-    const reasons = [];
-    
-    // 检查位置匹配
-    if (chat.location) {
-      reasons.push(`📍 Same city`);
+    if (chat.reasons && chat.reasons.length > 0) {
+      return chat.reasons.join(' · ');
     }
-    
-    // 检查年龄相仿
-    if (chat.ageMatch) {
-      reasons.push(`👥 Similar age`);
-    }
-    
-    // 检查价值匹配
-    if (chat.matchingScore && chat.matchingScore > 7) {
-      reasons.push(`💎 High value match`);
-    }
-    
-    // 检查目标相似
-    if (chat.goalMatch) {
-      reasons.push(`🎯 Similar goals`);
-    }
-    
-    return reasons.length > 0 ? reasons.join(' · ') : '✨ Potential connection';
+    return '✨ Potential connection';
   };
 
   if (isLoadingConversations) {
