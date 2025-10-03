@@ -3,71 +3,101 @@ import { OnboardingQuestion } from '@/types/post';
 // Onboarding问题数据 - 5个问题
 export const onboardingQuestions: OnboardingQuestion[] = [
   {
-    id: 'areas-to-elevate',
+    id: 'hobbies-interests',
     type: 'multiple-choice',
-    title: 'Choose areas you\'d like to elevate',
-    subtitle: 'The choice won\'t limit your experience',
+    title: 'What are your hobbies or interests?',
+    subtitle: 'Select all that apply',
     required: true,
     options: [
       {
-        id: 'emotions',
-        label: 'Emotions',
-        value: 'emotions'
+        id: 'reading',
+        label: 'Reading',
+        value: 'reading',
+        avatar: {
+          src: '📚',
+          alt: 'Reading',
+          bgColor: 'bg-blue-100'
+        }
       },
       {
-        id: 'motivation',
-        label: 'Motivation',
-        value: 'motivation'
+        id: 'sports',
+        label: 'Sports',
+        value: 'sports',
+        avatar: {
+          src: '⚽',
+          alt: 'Sports',
+          bgColor: 'bg-green-100'
+        }
       },
       {
-        id: 'nutrition',
-        label: 'Nutrition',
-        value: 'nutrition'
+        id: 'music',
+        label: 'Music',
+        value: 'music',
+        avatar: {
+          src: '🎵',
+          alt: 'Music',
+          bgColor: 'bg-purple-100'
+        }
       },
       {
-        id: 'habits',
-        label: 'Habits',
-        value: 'habits'
+        id: 'travel',
+        label: 'Travel',
+        value: 'travel',
+        avatar: {
+          src: '✈️',
+          alt: 'Travel',
+          bgColor: 'bg-orange-100'
+        }
       },
       {
-        id: 'confidence',
-        label: 'Confidence',
-        value: 'confidence'
+        id: 'cooking',
+        label: 'Cooking',
+        value: 'cooking',
+        avatar: {
+          src: '🍳',
+          alt: 'Cooking',
+          bgColor: 'bg-red-100'
+        }
       },
       {
-        id: 'mindset',
-        label: 'Mindset',
-        value: 'mindset'
+        id: 'art',
+        label: 'Art & Design',
+        value: 'art',
+        avatar: {
+          src: '🎨',
+          alt: 'Art',
+          bgColor: 'bg-pink-100'
+        }
       },
       {
-        id: 'self-care',
-        label: 'Self-care',
-        value: 'self-care'
+        id: 'tech',
+        label: 'Technology',
+        value: 'tech',
+        avatar: {
+          src: '💻',
+          alt: 'Technology',
+          bgColor: 'bg-indigo-100'
+        }
       },
       {
-        id: 'exercise',
-        label: 'Exercise',
-        value: 'exercise'
+        id: 'photography',
+        label: 'Photography',
+        value: 'photography',
+        avatar: {
+          src: '📷',
+          alt: 'Photography',
+          bgColor: 'bg-teal-100'
+        }
       },
       {
-        id: 'empathy',
-        label: 'Empathy',
-        value: 'empathy'
-      },
-      {
-        id: 'love-relationships',
-        label: 'Love & relationships',
-        value: 'love-relationships'
-      },
-      {
-        id: 'personal-finance',
-        label: 'Personal finance',
-        value: 'personal-finance'
-      },
-      {
-        id: 'creativity',
-        label: 'Creativity',
-        value: 'creativity'
+        id: 'gaming',
+        label: 'Gaming',
+        value: 'gaming',
+        avatar: {
+          src: '🎮',
+          alt: 'Gaming',
+          bgColor: 'bg-cyan-100'
+        }
       }
     ]
   },
@@ -170,77 +200,199 @@ export const onboardingQuestions: OnboardingQuestion[] = [
     ]
   },
   {
-    id: 'thinking-style',
-    type: 'single-choice',
-    title: 'Are you a big-picture or detail-oriented person?',
+    id: 'resonating-quotes',
+    type: 'multiple-choice',
+    title: 'Which quotes resonate with you the most?',
+    subtitle: 'Select all that apply',
     required: false,
     options: [
       {
-        id: 'big-picture',
-        label: 'Big-picture thinker',
-        value: 'big-picture',
+        id: 'quote-innovation',
+        label: 'Innovation distinguishes between a leader and a follower',
+        value: 'quote-innovation',
         avatar: {
-          src: '🌅',
-          alt: 'Big picture',
-          bgColor: 'bg-orange-100'
+          src: '💡',
+          alt: 'Innovation',
+          bgColor: 'bg-yellow-100'
         }
       },
       {
-        id: 'detail-oriented',
-        label: 'Detail-oriented',
-        value: 'detail-oriented',
+        id: 'quote-change',
+        label: 'Be the change you wish to see in the world',
+        value: 'quote-change',
         avatar: {
-          src: '🔍',
-          alt: 'Detail oriented',
+          src: '🌍',
+          alt: 'Change',
+          bgColor: 'bg-green-100'
+        }
+      },
+      {
+        id: 'quote-imagination',
+        label: 'Logic will get you from A to B. Imagination will take you everywhere',
+        value: 'quote-imagination',
+        avatar: {
+          src: '✨',
+          alt: 'Imagination',
+          bgColor: 'bg-purple-100'
+        }
+      },
+      {
+        id: 'quote-success',
+        label: 'Success is not final, failure is not fatal',
+        value: 'quote-success',
+        avatar: {
+          src: '🎯',
+          alt: 'Success',
           bgColor: 'bg-blue-100'
         }
       },
       {
-        id: 'balanced',
-        label: 'Balanced approach',
-        value: 'balanced',
+        id: 'quote-action',
+        label: 'The way to get started is to quit talking and begin doing',
+        value: 'quote-action',
         avatar: {
-          src: '⚖️',
-          alt: 'Balanced',
-          bgColor: 'bg-green-100'
+          src: '🚀',
+          alt: 'Action',
+          bgColor: 'bg-red-100'
+        }
+      },
+      {
+        id: 'quote-opportunity',
+        label: 'In the middle of difficulty lies opportunity',
+        value: 'quote-opportunity',
+        avatar: {
+          src: '🌟',
+          alt: 'Opportunity',
+          bgColor: 'bg-orange-100'
+        }
+      },
+      {
+        id: 'quote-passion',
+        label: 'The only way to do great work is to love what you do',
+        value: 'quote-passion',
+        avatar: {
+          src: '❤️',
+          alt: 'Passion',
+          bgColor: 'bg-pink-100'
+        }
+      },
+      {
+        id: 'quote-future',
+        label: 'The best way to predict the future is to create it',
+        value: 'quote-future',
+        avatar: {
+          src: '🔮',
+          alt: 'Future',
+          bgColor: 'bg-indigo-100'
+        }
+      },
+      {
+        id: 'quote-limits',
+        label: 'The only limits are the ones we set for ourselves',
+        value: 'quote-limits',
+        avatar: {
+          src: '🦅',
+          alt: 'Limits',
+          bgColor: 'bg-teal-100'
         }
       }
     ]
   },
   {
-    id: 'personality-type',
-    type: 'single-choice',
-    title: 'Which describes you best?',
+    id: 'interesting-users',
+    type: 'multiple-choice',
+    title: 'Which type of people do you find most interesting?',
+    subtitle: 'Select all that apply',
     required: false,
     options: [
       {
-        id: 'leader',
-        label: 'Leader',
-        value: 'leader',
+        id: 'entrepreneurs',
+        label: 'Entrepreneurs',
+        value: 'entrepreneurs',
         avatar: {
-          src: '🚀',
-          alt: 'Leader',
+          src: '💼',
+          alt: 'Entrepreneurs',
           bgColor: 'bg-blue-100'
         }
       },
       {
-        id: 'follower',
-        label: 'Follower',
-        value: 'follower',
+        id: 'artists',
+        label: 'Artists & Creators',
+        value: 'artists',
         avatar: {
-          src: '👣',
-          alt: 'Follower',
+          src: '🎨',
+          alt: 'Artists',
+          bgColor: 'bg-pink-100'
+        }
+      },
+      {
+        id: 'athletes',
+        label: 'Athletes',
+        value: 'athletes',
+        avatar: {
+          src: '🏆',
+          alt: 'Athletes',
           bgColor: 'bg-green-100'
         }
       },
       {
-        id: 'both',
-        label: 'A bit of both',
-        value: 'both',
+        id: 'scientists',
+        label: 'Scientists & Researchers',
+        value: 'scientists',
         avatar: {
-          src: '😎',
-          alt: 'A bit of both',
+          src: '🔬',
+          alt: 'Scientists',
           bgColor: 'bg-purple-100'
+        }
+      },
+      {
+        id: 'educators',
+        label: 'Educators & Mentors',
+        value: 'educators',
+        avatar: {
+          src: '👨‍🏫',
+          alt: 'Educators',
+          bgColor: 'bg-yellow-100'
+        }
+      },
+      {
+        id: 'activists',
+        label: 'Activists & Change-makers',
+        value: 'activists',
+        avatar: {
+          src: '✊',
+          alt: 'Activists',
+          bgColor: 'bg-red-100'
+        }
+      },
+      {
+        id: 'technologists',
+        label: 'Tech Innovators',
+        value: 'technologists',
+        avatar: {
+          src: '💻',
+          alt: 'Technologists',
+          bgColor: 'bg-indigo-100'
+        }
+      },
+      {
+        id: 'adventurers',
+        label: 'Adventurers & Explorers',
+        value: 'adventurers',
+        avatar: {
+          src: '🧭',
+          alt: 'Adventurers',
+          bgColor: 'bg-orange-100'
+        }
+      },
+      {
+        id: 'storytellers',
+        label: 'Storytellers & Writers',
+        value: 'storytellers',
+        avatar: {
+          src: '📖',
+          alt: 'Storytellers',
+          bgColor: 'bg-teal-100'
         }
       }
     ]
@@ -345,19 +497,16 @@ export const getPreviousQuestion = (currentQuestionId: string): OnboardingQuesti
 
 // AI朋友评论数据
 export const aiFriendComments: Record<string, Record<string, string>> = {
-  'areas-to-elevate': {
-    emotions: 'Understanding emotions is the key to meaningful connections.',
-    motivation: 'Staying motivated helps you achieve what matters most.',
-    nutrition: 'Fueling your body right powers everything else.',
-    habits: 'Small daily habits create lasting transformation.',
-    confidence: 'Confidence opens doors you didn\'t know existed.',
-    mindset: 'Your mindset shapes your reality.',
-    'self-care': 'Taking care of yourself isn\'t selfish—it\'s essential.',
-    exercise: 'Movement is medicine for mind and body.',
-    empathy: 'Empathy builds bridges where walls once stood.',
-    'love-relationships': 'Strong relationships are built on trust and communication.',
-    'personal-finance': 'Financial wellness brings peace of mind.',
-    creativity: 'Creativity is intelligence having fun.'
+  'hobbies-interests': {
+    reading: 'Reading opens doors to endless worlds and perspectives.',
+    sports: 'Physical activity energizes both body and mind.',
+    music: 'Music speaks what words cannot express.',
+    travel: 'Travel is the only thing you buy that makes you richer.',
+    cooking: 'Cooking is love made visible.',
+    art: 'Art enables us to find ourselves and lose ourselves at the same time.',
+    tech: 'Technology is best when it brings people together.',
+    photography: 'Photography is the story I fail to put into words.',
+    gaming: 'Gaming teaches problem-solving and strategic thinking.'
   },
   'inspiration': {
     'steve-jobs': 'Innovation distinguishes between a leader and a follower.',
@@ -370,15 +519,27 @@ export const aiFriendComments: Record<string, Record<string, string>> = {
     'kevin-hart': 'Life is too short to worry about what others say or think.',
     'brene-brown': 'Vulnerability is the birthplace of innovation, creativity and change.'
   },
-  'thinking-style': {
-    'big-picture': 'Visionaries see possibilities others miss.',
-    'detail-oriented': 'Excellence is in the details.',
-    'balanced': 'Balance brings the best of both worlds.'
+  'resonating-quotes': {
+    'quote-innovation': 'Innovation is the key to staying ahead.',
+    'quote-change': 'Be the change you want to see.',
+    'quote-imagination': 'Imagination knows no bounds.',
+    'quote-success': 'Resilience defines true success.',
+    'quote-action': 'Action turns dreams into reality.',
+    'quote-opportunity': 'Every challenge is an opportunity in disguise.',
+    'quote-passion': 'Passion fuels excellence.',
+    'quote-future': 'Create the future you want to live in.',
+    'quote-limits': 'Your potential is limitless.'
   },
-  'personality-type': {
-    leader: 'Leaders inspire others to be their best selves.',
-    follower: 'Great teams need both leaders and skilled collaborators.',
-    both: 'Adaptability is a superpower in today\'s world.'
+  'interesting-users': {
+    entrepreneurs: 'Entrepreneurs turn ideas into impact.',
+    artists: 'Artists see the world through a unique lens.',
+    athletes: 'Athletes exemplify dedication and discipline.',
+    scientists: 'Scientists unlock the mysteries of our world.',
+    educators: 'Educators shape the minds of tomorrow.',
+    activists: 'Activists drive meaningful change.',
+    technologists: 'Tech innovators build the future.',
+    adventurers: 'Adventurers embrace the unknown.',
+    storytellers: 'Storytellers connect us through shared experiences.'
   },
   'daily-tools': {
     notion: 'Organize your thoughts, organize your life.',

@@ -90,15 +90,9 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
   const [showCreateTwin, setShowCreateTwin] = useState(false); // Create Twin页面
   
   // Create Twin可编辑字段状态
-  const [profileData, setProfileData] = useState({
-    gender: 'Male',
-    age: '28',
-    occupation: 'Content Creator',
-    location: 'San Francisco, CA'
-  });
-  const [goalRecently, setGoalRecently] = useState('Growing my online presence while maintaining authentic connections and sharing valuable content that resonates with my audience.');
-  const [valueOffered, setValueOffered] = useState('Creative insights, strategic thinking, and authentic collaboration. I offer fresh perspectives on content creation and help build meaningful connections through innovative approaches.');
-  const [valueDesired, setValueDesired] = useState('Expert guidance on advanced strategies, diverse perspectives from different industries, and deep conversations that challenge and expand my thinking.');
+  // 删除硬编码的默认值，这些信息将从用户输入中获取
+  // Choice Made页面的答案存储
+  const [onboardingAnswers, setOnboardingAnswers] = useState<Record<string, string | string[]>>({});
   
   // AI对话系统相关状态
   const [conversationContext, setConversationContext] = useState<ConversationContext>({
@@ -247,8 +241,8 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
         
         setGoalChatMessages(prev => [...prev, finalResponse]);
         
-        // 处理对话结束并生成最终内容
-        handleConversationComplete();
+        // 信息已经通过AI对话提取并保存在conversationContext.extractedInfo中
+        // 不需要额外处理
         
         // 3秒后进入Choice Made页面
         setTimeout(() => {
@@ -266,6 +260,56 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
   };
 
   // 初始化AI驱动的Goal Input聊天
+  // 用basicInfo初始化Goal Chat（新版，直接接收用户信息）
+  const initializeGoalChatWithUserInfo = (userInfo: typeof basicInfo) => {
+    // 重置聊天状态
+    setGoalChatMessages([]);
+    setGoalUserInput('');
+    setIsAITyping(false);
+    setCanUserTypeGoal(false);
+    setShowOtherGoalButton(false);
+    setCurrentGoalQuestionIndex(0);
+    setGoalAnswers([]);
+    setCurrentTypingMessageIndex(-1);
+    setIsMessageTyping(false);
+
+    // 使用传入的用户信息
+    const userName = userInfo.nickname || 'there';
+    const userOccupation = userInfo.occupation || '';
+    const userIndustry = userInfo.industry || '';
+
+    // 重置对话上下文，包含用户基本信息
+    setConversationContext({
+      userGoal: '',
+      conversationHistory: [],
+      questionCount: 0,
+      currentPhase: 'goal',
+      phaseQuestionCount: 0,
+      extractedInfo: {},
+      // 添加用户上下文信息
+      userContext: {
+        nickname: userName,
+        occupation: userOccupation,
+        industry: userIndustry,
+        age: userInfo.ageRange || '',
+        location: userInfo.location || '',
+        gender: userInfo.gender || ''
+      }
+    });
+
+    // AI发送个性化的第一个问题，使用打字机效果
+    setTimeout(() => {
+      const personalizedGreeting = `Hi ${userName}! ${userOccupation ? `As a ${userOccupation}${userIndustry ? ` in ${userIndustry}` : ''}, ` : ''}what's your main goal recently?`;
+      addAIMessageWithTyping(personalizedGreeting);
+    }, 1000);
+
+    // 30秒后显示Other Goal按钮
+    setTimeout(() => {
+      setShowOtherGoalButton(true);
+    }, 30000);
+  };
+
+  // 旧版initializeGoalChat，用于兼容性（使用aiTwinProfile）
   const initializeGoalChat = () => {
     // 重置聊天状态
     setGoalChatMessages([]);
@@ -337,19 +381,27 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
 
   // 从Create Twin进入Network页面
   const handleEnterNetwork = () => {
-    // 保存AI Twin信息到Context
+    // 使用真实的用户输入数据
     const aiTwinData: AITwinProfile = {
       name: aiTwinProfile?.name || customAITwinName || 'AI Twin',
       avatar: aiTwinProfile?.avatar || customAITwinAvatar,
       profile: {
-        gender: profileData.gender,
-        age: profileData.age,
-        occupation: profileData.occupation,
-        location: profileData.location
+        gender: basicInfo.gender,
+        age: basicInfo.ageRange,
+        occupation: basicInfo.occupation,
+        location: basicInfo.location
       },
-      goalRecently,
-      valueOffered,
-      valueDesired
+      userNickname: basicInfo.nickname,
+      userAvatar: basicInfo.avatar,
+      userIndustry: basicInfo.industry,
+      // 从对话上下文中提取的信息
+      goalRecently: conversationContext.extractedInfo.goal || conversationContext.userGoal || '',
+      valueOffered: conversationContext.extractedInfo.valueOffered || '',
+      valueDesired: conversationContext.extractedInfo.valueDesired || '',
+      // 将goals/offers/lookings也保存（如果有的话）
+      goals: conversationContext.extractedInfo.goals || [],
+      offers: conversationContext.extractedInfo.offers || [],
+      lookings: conversationContext.extractedInfo.lookings || []
     };
     
     updateAITwinProfile(aiTwinData);
@@ -388,19 +440,22 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
         return;
       }
 
-      // 2. 保存AI Twin数据
+      // 2. 保存AI Twin数据（使用真实用户输入）
       const aiTwinData = {
         name: aiTwinProfile?.name || customAITwinName || 'AI Twin',
         avatar: aiTwinProfile?.avatar || customAITwinAvatar,
         profile: {
-          gender: profileData.gender,
-          age: profileData.age,
-          occupation: profileData.occupation,
-          location: profileData.location
+          gender: basicInfo.gender,
+          age: basicInfo.ageRange,
+          occupation: basicInfo.occupation,
+          location: basicInfo.location
         },
-        goals: [goalRecently],
-        offers: [valueOffered],
-        lookings: [valueDesired],
+        userNickname: basicInfo.nickname,
+        userAvatar: basicInfo.avatar,
+        userIndustry: basicInfo.industry,
+        goals: [conversationContext.extractedInfo.goal || conversationContext.userGoal || ''],
+        offers: [conversationContext.extractedInfo.valueOffered || ''],
+        lookings: [conversationContext.extractedInfo.valueDesired || ''],
         memories: []
       };
 
@@ -429,14 +484,6 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
     } finally {
       setIsSavingToDatabase(false);
     }
-  };
-
-  // 处理Profile数据变更
-  const handleProfileChange = (field: string, value: string) => {
-    setProfileData(prev => ({
-      ...prev,
-      [field]: value
-    }));
   };
 
   // AI生成下一个问题 - 支持多阶段
@@ -483,37 +530,9 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
     }
   };
 
-  // 处理对话结束并生成最终内容
-  const handleConversationComplete = async () => {
-    setIsAIProcessing(true);
-    
-    try {
-      // 使用完整对话生成Goal Recently
-      setAiProcessingStep('Integrating your goals...');
-      const integratedGoal = await withRetry(() => integrateConversationToGoal(conversationContext));
-      setGoalRecently(integratedGoal);
-      
-      // 使用完整对话生成Value Offered
-      setAiProcessingStep('Processing what you can offer...');
-      const integratedValueOffered = await withRetry(() => integrateConversationToValueOffered(conversationContext));
-      setValueOffered(integratedValueOffered);
-      
-      // 使用完整对话生成Value Desired
-      setAiProcessingStep('Understanding what you\'re seeking...');
-      const integratedValueDesired = await withRetry(() => integrateConversationToValueDesired(conversationContext));
-      setValueDesired(integratedValueDesired);
-      
-    } catch (error) {
-      console.error('Error completing conversation:', error);
-      // 使用回退逻辑
-      setGoalRecently(conversationContext.userGoal);
-      setValueOffered('I can share my experience and knowledge to help others achieve their goals.');
-      setValueDesired('I want to learn from others and get guidance to improve my approach.');
-    } finally {
-      setIsAIProcessing(false);
-      setAiProcessingStep('');
-    }
-  };
+  // 处理对话结束并提取信息到conversationContext
+  // 信息已经在对话过程中被AI提取并保存到conversationContext.extractedInfo中
+  // 不再需要单独的状态变量
 
 
   // 处理Goal聊天发送消息
@@ -656,6 +675,12 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
 
     // 更新OnboardingContext中的答案
     updateAnswer(currentQuestion.id, selectedOptions);
+    
+    // 同时更新本地状态
+    setOnboardingAnswers(prev => ({
+      ...prev,
+      [currentQuestion.id]: selectedOptions
+    }));
 
     // 获取下一题
     const nextQuestion = getNextQuestion(currentQuestion.id);
@@ -949,7 +974,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
       }
 
       // 保存基本信息到profile和用户数据
-      updateAITwinProfile({
+      const updatedProfile = {
         ...aiTwinProfile,
         profile: {
           gender: basicInfo.gender,
@@ -961,15 +986,17 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
         userNickname: basicInfo.nickname,
         userAvatar: basicInfo.avatar,
         userIndustry: basicInfo.industry
-      });
+      };
+      
+      updateAITwinProfile(updatedProfile);
 
       // 跳转到Goal Input页面
       setShowBasicInfo(false);
       setShowGoalInput(true);
       setIsFirstGoalInput(true);
       
-      // 初始化Goal Input聊天（传入用户信息用于个性化）
-      initializeGoalChat();
+      // 初始化Goal Input聊天，直接传入用户信息
+      initializeGoalChatWithUserInfo(basicInfo);
     };
 
     return (
@@ -1700,203 +1727,191 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
   // Create Twin页面 - AI Twin建模
   if (showCreateTwin) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="w-full max-w-7xl mx-4">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 py-8">
+        <div className="w-full max-w-7xl mx-auto px-4">
           <Card className="shadow-xl border-0">
-            <CardHeader className="text-center pb-6">
-              <CardTitle className="text-3xl font-bold text-gray-900 mb-4">
-                Meet {aiTwinProfile?.name || customAITwinName || 'your AI Twin'} 🎭
+            <CardHeader className="text-center pb-6 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-t-xl">
+              <CardTitle className="text-3xl font-bold mb-2">
+                Your Profile Summary
               </CardTitle>
-              <CardDescription className="text-lg text-gray-600">
-                Based on our conversation, {aiTwinProfile?.name || customAITwinName || 'your AI Twin'} has been created
+              <CardDescription className="text-lg text-white/90">
+                Review all the information you've shared with us
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8">
-              <div className="grid lg:grid-cols-2 gap-12 items-start">
-                {/* 左侧文案模块 */}
+              <div className="grid lg:grid-cols-2 gap-8 items-start">
+                {/* 左侧 - 用户信息展示 */}
                 <div className="space-y-6">
-                  <div className="bg-white rounded-xl p-8 shadow-lg border border-gray-100">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                      <span className="text-3xl mr-3">✨</span>
-                      What can {aiTwinProfile?.name || customAITwinName || 'your AI Twin'} do for you?
+                  {/* Basic Info */}
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                      <span className="text-2xl mr-2">👤</span>
+                      Basic Information
                     </h3>
-                    <div className="space-y-4 text-gray-700 leading-relaxed">
-                      <p className="text-lg">
-                        It's like <span className="font-semibold text-indigo-600">another version of yourself</span>—one that not only understands who you are, but also helps you grow.
-                      </p>
-                      <p className="text-lg">
-                      {aiTwinProfile?.name || customAITwinName || 'your AI Twin'} can engage in <span className="font-semibold text-purple-600">deep discussions</span> with you on the same topics, offering new perspectives and ideas you might not have considered.
-                      </p>
-                      <p className="text-lg">
-                      {aiTwinProfile?.name || customAITwinName || 'your AI Twin'} mirrors your strengths, yet also points out your <span className="font-semibold text-indigo-600">blind spots</span> and areas for improvement.
-                      </p>
-                      <p className="text-lg">
-                        In this way, {aiTwinProfile?.name || customAITwinName || 'your AI Twin'} becomes both a <span className="font-semibold text-purple-600">partner in growth</span> and a mirror that helps you see yourself more clearly.
-                      </p>
+                    <div className="flex items-center space-x-4 mb-4">
+                      <img
+                        src={basicInfo.avatar}
+                        alt="Your avatar"
+                        className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md"
+                      />
+                      <div>
+                        <p className="font-semibold text-lg text-gray-900">{basicInfo.nickname}</p>
+                        <p className="text-sm text-gray-600">{basicInfo.gender} • {basicInfo.ageRange}</p>
+                      </div>
                     </div>
-                    
-                    {/* 装饰性图标 */}
-                    <div className="flex justify-center mt-8 space-x-6">
-                      <div className="flex flex-col items-center">
-                        <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mb-2">
-                          <span className="text-2xl">🤝</span>
-                        </div>
-                        <span className="text-sm text-gray-600 font-medium">Partner</span>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Occupation:</span>
+                        <span className="font-medium text-gray-900">{basicInfo.occupation}</span>
                       </div>
-                      <div className="flex flex-col items-center">
-                        <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-2">
-                          <span className="text-2xl">🪞</span>
-                        </div>
-                        <span className="text-sm text-gray-600 font-medium">Mirror</span>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Industry:</span>
+                        <span className="font-medium text-gray-900">{basicInfo.industry}</span>
                       </div>
-                      <div className="flex flex-col items-center">
-                        <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mb-2">
-                          <span className="text-2xl">🌱</span>
-                        </div>
-                        <span className="text-sm text-gray-600 font-medium">Growth</span>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Location:</span>
+                        <span className="font-medium text-gray-900">{basicInfo.location}</span>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Goals & Values */}
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                      <span className="text-2xl mr-2">🎯</span>
+                      Goals & Values
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm font-medium text-purple-700 mb-1">Current Goal:</p>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {conversationContext.extractedInfo.goal || conversationContext.userGoal || 'No goal specified'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-purple-700 mb-1">What I Can Offer:</p>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {conversationContext.extractedInfo.valueOffered || 'No value specified'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-purple-700 mb-1">What I'm Looking For:</p>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {conversationContext.extractedInfo.valueDesired || 'No value specified'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Choice Made Answers */}
+                  <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-xl p-6 border border-green-200">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                      <span className="text-2xl mr-2">✅</span>
+                      Your Choices
+                    </h3>
+                    <div className="space-y-3">
+                      {Object.keys(onboardingAnswers).length > 0 ? (
+                        Object.entries(onboardingAnswers).map(([questionId, answer]) => {
+                          const question = onboardingQuestions.find(q => q.id === questionId);
+                          if (!question) return null;
+                          
+                          return (
+                            <div key={questionId} className="border-b border-green-200 pb-3 last:border-0 last:pb-0">
+                              <p className="text-sm font-medium text-green-700 mb-1">{question.title}</p>
+                              <div className="flex flex-wrap gap-1">
+                                {(Array.isArray(answer) ? answer : [answer]).map((ans, idx) => {
+                                  const option = question.options.find(opt => opt.value === ans);
+                                  return (
+                                    <span key={idx} className="inline-block px-2 py-1 bg-white rounded text-xs text-gray-700 border border-green-200">
+                                      {option?.label || ans}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <p className="text-sm text-gray-500 italic">No choices recorded yet</p>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* 右侧AI Twin展示模块 */}
-                <div className="space-y-6">
-                  {/* AI Twin头像展示 */}
-                  <div className="flex justify-center mb-8">
-                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center shadow-lg border-4 border-white overflow-hidden">
-                      <img
-                        src={aiTwinProfile?.avatar || customAITwinAvatar}
-                        alt="Your AI Twin"
-                        className="w-28 h-28 rounded-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                          if (fallback) {
-                            fallback.style.display = 'flex';
-                          }
-                        }}
-                      />
-                      <div
-                        className="w-28 h-28 rounded-full bg-gradient-to-br from-indigo-300 to-purple-400 flex items-center justify-center text-6xl"
-                        style={{ display: 'none' }}
-                      >
-                        🤖
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Twin特征展示 */}
-                  <div className="grid grid-cols-1 gap-4">
-                    {/* Profile */}
-                    <div className="bg-white rounded-lg p-6 border border-gray-200">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <span className="text-xl mr-2">👤</span>
-                        Profile
-                      </h3>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-                            <select
-                              value={profileData.gender}
-                              onChange={(e) => handleProfileChange('gender', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            >
-                              <option value="Male">Male</option>
-                              <option value="Female">Female</option>
-                              <option value="Prefer not to say">Prefer not to say</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
-                            <input
-                              type="text"
-                              value={profileData.age}
-                              onChange={(e) => handleProfileChange('age', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                              placeholder="Enter age"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Occupation</label>
-                          <input
-                            type="text"
-                            value={profileData.occupation}
-                            onChange={(e) => handleProfileChange('occupation', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            placeholder="Enter occupation"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Base Location</label>
-                          <input
-                            type="text"
-                            value={profileData.location}
-                            onChange={(e) => handleProfileChange('location', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            placeholder="Enter location"
-                          />
+                {/* 右侧 - AI Twin展示 */}
+                <div className="flex flex-col items-center justify-center h-full">
+                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-10 border-2 border-emerald-200 text-center">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                      Your AI Twin
+                    </h3>
+                    
+                    {/* AI Twin头像 */}
+                    <div className="flex justify-center mb-6">
+                      <div className="w-40 h-40 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-2xl border-4 border-white overflow-hidden">
+                        <img
+                          src={aiTwinProfile?.avatar || customAITwinAvatar}
+                          alt="Your AI Twin"
+                          className="w-36 h-36 rounded-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                            if (fallback) {
+                              fallback.style.display = 'flex';
+                            }
+                          }}
+                        />
+                        <div
+                          className="w-36 h-36 rounded-full bg-gradient-to-br from-emerald-300 to-teal-400 flex items-center justify-center text-7xl"
+                          style={{ display: 'none' }}
+                        >
+                          🤖
                         </div>
                       </div>
                     </div>
 
-                    {/* Goal Recently */}
-                    <div className="bg-white rounded-lg p-6 border border-gray-200">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <span className="text-xl mr-2">🎯</span>
-                        Goal Recently
-                      </h3>
-                      <textarea
-                        value={goalRecently}
-                        onChange={(e) => setGoalRecently(e.target.value)}
-                        className="w-full px-3 py-3 border border-gray-300 rounded-md text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                        rows={3}
-                        placeholder="Describe your recent goals..."
-                      />
+                    {/* AI Twin名称 */}
+                    <h4 className="text-3xl font-bold text-gray-900 mb-2">
+                      {aiTwinProfile?.name || customAITwinName || 'AI Twin'}
+                    </h4>
+                    <p className="text-gray-600 text-sm mb-6">
+                      Your intelligent digital companion
+                    </p>
+
+                    {/* 描述 */}
+                    <div className="bg-white rounded-lg p-6 border border-emerald-200">
+                      <p className="text-gray-700 leading-relaxed text-sm">
+                        <span className="font-semibold text-emerald-600">{aiTwinProfile?.name || customAITwinName}</span> has been created based on your profile. 
+                        It will help you connect with like-minded people and grow together.
+                      </p>
                     </div>
 
-                    {/* Value Offered */}
-                    <div className="bg-white rounded-lg p-6 border border-gray-200">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <span className="text-xl mr-2">💝</span>
-                        Value Offered
-                      </h3>
-                      <textarea
-                        value={valueOffered}
-                        onChange={(e) => setValueOffered(e.target.value)}
-                        className="w-full px-3 py-3 border border-gray-300 rounded-md text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                        rows={3}
-                        placeholder="Describe what value you can offer..."
-                      />
-                    </div>
-
-                    {/* Value Desired */}
-                    <div className="bg-white rounded-lg p-6 border border-gray-200">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <span className="text-xl mr-2">🌟</span>
-                        Value Desired
-                      </h3>
-                      <textarea
-                        value={valueDesired}
-                        onChange={(e) => setValueDesired(e.target.value)}
-                        className="w-full px-3 py-3 border border-gray-300 rounded-md text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                        rows={3}
-                        placeholder="Describe what value you desire..."
-                      />
+                    {/* 装饰性标签 */}
+                    <div className="flex flex-wrap justify-center gap-2 mt-6">
+                      <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+                        🤝 Connect
+                      </span>
+                      <span className="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-medium">
+                        💬 Chat
+                      </span>
+                      <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+                        🌱 Grow
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* 进入Network按钮 */}
+              {/* 完成按钮 */}
               <div className="text-center mt-12">
                 <button
                   onClick={handleEnterNetwork}
-                  className="w-full max-w-md py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  className="w-full max-w-md py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
-                  Explore the AI Twin Network 🌐
+                  Continue to Network 🌐
                 </button>
+                <p className="text-sm text-gray-500 mt-3">
+                  All information looks good? Let's explore your network!
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -1913,7 +1928,7 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
           <Card className="shadow-xl border-0">
             <CardHeader className="text-center pb-6">
               <CardTitle className="text-4xl font-bold text-gray-900 mb-4">
-                Welcome to the AI Twin Network 🌐
+                Welcome to the Future Network 🌐
               </CardTitle>
               <CardDescription className="text-xl text-gray-600">
                 Discover a new way to connect and grow through AI-powered conversations

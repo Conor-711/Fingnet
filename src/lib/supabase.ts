@@ -380,6 +380,22 @@ export async function createGroup(
 }
 
 /**
+ * 添加群组成员
+ */
+export async function addGroupMember(groupId: string, userId: string) {
+  const { data, error } = await supabase
+    .from('group_members')
+    .insert({
+      group_id: groupId,
+      user_id: userId
+    })
+    .select()
+    .single();
+
+  return { data, error };
+}
+
+/**
  * 获取用户的群组
  */
 export async function getUserGroups(userId: string) {
