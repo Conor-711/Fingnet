@@ -5,7 +5,6 @@ import { useOnboarding, type AITwinProfile } from '@/contexts/OnboardingContext'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, Brain, Clock, Settings, CreditCard, Inbox, Users, LogOut, ArrowUp, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
@@ -41,7 +40,7 @@ const Main = () => {
   // 页面导航状态
   const [currentPage, setCurrentPage] = useState(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.get('tab') || 'ai-twin';
+    return params.get('tab') || 'connections';
   });
 
   // 使用自定义Hooks
@@ -727,7 +726,7 @@ const Main = () => {
                 </Avatar>
                 <div>
                   <h3 className="font-semibold text-gray-900">{aiTwinProfile?.name || 'Your AI Twin'}</h3>
-                  <p className="text-xs text-gray-500">Daily Modeling</p>
+                  <p className="text-xs text-gray-500">Teach {aiTwinProfile?.name || 'Your AI Twin'} something new 🥺</p>
                 </div>
               </div>
               <button
@@ -947,7 +946,7 @@ const Main = () => {
             </div>
 
             {/* 对话内容 */}
-            <ScrollArea className="flex-1 p-4">
+            <div className="flex-1 overflow-y-auto p-4">
               <div className="space-y-4">
                 {displayedMessages.map((message, index) => {
                   const isOwn = message.sender === aiTwinProfile?.name;
@@ -1006,7 +1005,7 @@ const Main = () => {
                   </div>
                 )}
               </div>
-            </ScrollArea>
+            </div>
 
             {/* 底部操作 */}
             <div className="p-4 border-t border-gray-100">

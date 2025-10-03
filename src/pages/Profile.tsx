@@ -88,6 +88,10 @@ export default function Profile() {
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
   
+  // 用于防止重复加载的 ref
+  const hasLoadedRef = useRef<string | null>(null);
+  const userId = user?.id;
+  
   // 从数据库加载AI Twin数据
   useEffect(() => {
     const loadAITwinData = async () => {
@@ -96,6 +100,12 @@ export default function Profile() {
       if (!id) {
         console.log('❌ No id provided');
         setIsLoadingTwin(false);
+        return;
+      }
+      
+      // 防止重复加载同一个 ID
+      if (hasLoadedRef.current === id) {
+        console.log('ℹ️ Already loaded this id, skipping');
         return;
       }
       
@@ -108,6 +118,7 @@ export default function Profile() {
         if (mockAITwins[id]) {
           console.log('✅ Found in mock data:', mockAITwins[id]);
           setAITwin(mockAITwins[id]);
+          hasLoadedRef.current = id; // 标记已加载
           setIsLoadingTwin(false);
           return;
         }
@@ -159,9 +170,11 @@ export default function Profile() {
           };
           console.log('✅ Setting AI Twin:', formattedTwin);
           setAITwin(formattedTwin);
+          hasLoadedRef.current = id; // 标记已加载
         } else {
           console.log('❌ AI Twin not found for id:', id);
           setLoadError('AI Twin not found');
+          hasLoadedRef.current = id; // 即使失败也标记，避免重复尝试
         }
       } catch (error) {
         console.error('Error in loadAITwinData:', error);
@@ -172,7 +185,19 @@ export default function Profile() {
     };
     
     loadAITwinData();
-  }, [id, user?.id]);
+  }, [id, userId]); // 使用解构后的 userId 而不是 user?.id
+  
+  // 清理定时器的useEffect - 必须在所有条件渲染之前
+  useEffect(() => {
+    return () => {
+      if (dismissTimerRef.current) {
+        clearTimeout(dismissTimerRef.current);
+      }
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
   
   // 加载状态
   if (isLoadingTwin) {
@@ -282,18 +307,6 @@ export default function Profile() {
       navigate(`/main?tab=group-chat&groupId=${createdGroupId}`);
     }
   };
-
-  // 清理定时器的useEffect
-  useEffect(() => {
-    return () => {
-      if (dismissTimerRef.current) {
-        clearTimeout(dismissTimerRef.current);
-      }
-      if (closeTimerRef.current) {
-        clearTimeout(closeTimerRef.current);
-      }
-    };
-  }, []);
 
   const handleAddToFavorites = () => {
     // 添加到收藏夹功能
