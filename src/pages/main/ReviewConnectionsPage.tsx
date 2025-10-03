@@ -200,7 +200,7 @@ export default function ReviewConnectionsPage({
       {/* 页面标题 */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Review Connections</h1>
-        <p className="text-gray-600">Rate and review your AI Twin connections to help improve future matches</p>
+        <p className="text-gray-600">We shape other people, therefore other people will shape us.</p>
       </div>
 
       {/* 统计卡片 */}
