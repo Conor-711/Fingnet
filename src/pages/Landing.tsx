@@ -5,18 +5,40 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import NetworkBackground from '@/components/NetworkBackground';
+import { checkOnboardingCompleted } from '@/lib/supabase';
 
 const Landing = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login, user } = useAuth();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // 如果已经登录，直接跳转到onboarding
+  // 如果已经登录，检查是否完成 onboarding 后再决定跳转
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/onboarding');
-    }
-  }, [isAuthenticated, navigate]);
+    const checkAndRedirect = async () => {
+      if (isAuthenticated && user) {
+        console.log('🔍 用户已登录，检查 Onboarding 状态...');
+        
+        const { completed, error } = await checkOnboardingCompleted(user.id);
+        
+        if (error) {
+          console.error('❌ 检查 Onboarding 状态失败:', error);
+          // 出错时默认跳转到 onboarding
+          navigate('/onboarding');
+          return;
+        }
+
+        if (completed) {
+          console.log('✅ Onboarding 已完成，跳转到主页');
+          navigate('/main');
+        } else {
+          console.log('⏳ Onboarding 未完成，跳转到 onboarding');
+          navigate('/onboarding');
+        }
+      }
+    };
+
+    checkAndRedirect();
+  }, [isAuthenticated, user, navigate]);
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -42,17 +64,30 @@ const Landing = () => {
         
         // 直接传递Google用户信息到login函数
         // login函数会将用户信息保存到Supabase数据库
-        await login({
+        const loggedInUser = await login({
           sub: userInfo.sub,
           email: userInfo.email,
           name: userInfo.name,
           picture: userInfo.picture
         });
         
-        console.log('✅ 登录完成，跳转到onboarding...');
+        console.log('✅ 登录完成，检查 Onboarding 状态...');
         
-        // 登录成功后跳转到onboarding
-        navigate('/onboarding');
+        // 登录成功后检查是否完成 onboarding
+        if (loggedInUser) {
+          const { completed } = await checkOnboardingCompleted(loggedInUser.id);
+          
+          if (completed) {
+            console.log('✅ Onboarding 已完成，跳转到主页');
+            navigate('/main');
+          } else {
+            console.log('⏳ Onboarding 未完成，跳转到 onboarding');
+            navigate('/onboarding');
+          }
+        } else {
+          // 如果没有返回用户信息，默认跳转到 onboarding
+          navigate('/onboarding');
+        }
       } catch (error) {
         console.error('❌ 登录失败:', error);
         alert(`登录失败: ${error instanceof Error ? error.message : '未知错误'}`);

@@ -14,7 +14,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (googleUserInfo: { sub: string; email: string; name: string; picture: string }) => Promise<void>;
+  login: (googleUserInfo: { sub: string; email: string; name: string; picture: string }) => Promise<User | null>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     initAuth();
   }, []);
 
-  const login = async (googleUserInfo: { sub: string; email: string; name: string; picture: string }) => {
+  const login = async (googleUserInfo: { sub: string; email: string; name: string; picture: string }): Promise<User | null> => {
     try {
       console.log('🔐 开始登录流程...', googleUserInfo.email);
 
@@ -102,6 +102,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       console.log('✅ 登录成功！用户信息已保存');
 
+      return user; // 返回用户对象
+
     } catch (error) {
       console.error('❌ 登录失败:', error);
       throw error;
@@ -112,11 +114,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       console.log('👋 用户登出...');
       
-      // 清除状态和localStorage
+      // 只清除用户会话信息，不删除 onboarding 和 AI Twin 数据
+      // 因为这些数据存储在数据库中，下次登录时会自动恢复
       setUser(null);
       localStorage.removeItem('onlymsg_user');
-      localStorage.removeItem('onlymsg_onboarding');
-      localStorage.removeItem('onlymsg_ai_twin_profile');
 
       console.log('✅ 登出成功');
     } catch (error) {

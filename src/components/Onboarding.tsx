@@ -18,7 +18,7 @@ import TypewriterText from '@/components/TypewriterText';
 import { integrateGoalAnswers, integrateValueOffered, integrateValueDesired, withRetry, generateFollowUpQuestion, integrateConversationToGoal, integrateConversationToValueOffered, integrateConversationToValueDesired, type GoalIntegrationInput, type ConversationContext } from '@/services/aiService';
 import { ArrowRight, ArrowLeft, Check, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { saveOnboardingProgress, upsertAITwin } from '@/lib/supabase';
+import { saveOnboardingProgress, upsertAITwin, checkOnboardingCompleted } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 // Goal Input AI问题序列
@@ -135,6 +135,24 @@ export const Onboarding = ({ onComplete, onSkip }: OnboardingProps) => {
 
   // 检查是否为强制测试模式
   const forceTest = searchParams.get('force') === 'true';
+
+  // 检查用户是否已完成 onboarding，如果已完成则重定向到 main
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      if (user && !forceTest) {
+        console.log('🔍 检查用户是否已完成 Onboarding...');
+        const { completed } = await checkOnboardingCompleted(user.id);
+        
+        if (completed) {
+          console.log('✅ 用户已完成 Onboarding，重定向到主页');
+          toast.info('您已完成 Onboarding，正在跳转到主页...');
+          navigate('/main');
+        }
+      }
+    };
+
+    checkOnboarding();
+  }, [user, forceTest, navigate]);
 
   // Connect页面5秒后显示聊天对话框的逻辑
   useEffect(() => {

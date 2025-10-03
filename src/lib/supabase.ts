@@ -605,3 +605,154 @@ export async function signOut() {
   return { error };
 }
 
+/**
+ * 删除用户账号及所有相关数据
+ * 注意：这是一个不可逆的操作
+ */
+export async function deleteUserAccount(userId: string) {
+  try {
+    console.log('🗑️ 开始删除用户账号及所有数据...', userId);
+
+    // 1. 删除用户的 AI Twin
+    const { error: aiTwinError } = await supabase
+      .from('ai_twins')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (aiTwinError) {
+      console.error('❌ 删除 AI Twin 失败:', aiTwinError);
+      throw aiTwinError;
+    }
+    console.log('✅ AI Twin 已删除');
+
+    // 2. 删除用户的 Onboarding 进度
+    const { error: onboardingError } = await supabase
+      .from('onboarding_progress')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (onboardingError) {
+      console.error('❌ 删除 Onboarding 进度失败:', onboardingError);
+      throw onboardingError;
+    }
+    console.log('✅ Onboarding 进度已删除');
+
+    // 3. 删除用户的 Memories
+    const { error: memoriesError } = await supabase
+      .from('memories')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (memoriesError) {
+      console.error('❌ 删除 Memories 失败:', memoriesError);
+      throw memoriesError;
+    }
+    console.log('✅ Memories 已删除');
+
+    // 4. 删除用户的对话历史
+    const { error: conversationsError } = await supabase
+      .from('ai_conversations')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (conversationsError) {
+      console.error('❌ 删除对话历史失败:', conversationsError);
+      throw conversationsError;
+    }
+    console.log('✅ 对话历史已删除');
+
+    // 5. 删除用户作为成员的所有群组关系
+    const { error: groupMembersError } = await supabase
+      .from('group_members')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (groupMembersError) {
+      console.error('❌ 删除群组成员关系失败:', groupMembersError);
+      throw groupMembersError;
+    }
+    console.log('✅ 群组成员关系已删除');
+
+    // 6. 删除用户创建的群组
+    const { error: groupsError } = await supabase
+      .from('groups')
+      .delete()
+      .eq('created_by', userId);
+    
+    if (groupsError) {
+      console.error('❌ 删除群组失败:', groupsError);
+      throw groupsError;
+    }
+    console.log('✅ 用户创建的群组已删除');
+
+    // 7. 删除用户发送和接收的邀请
+    const { error: sentInvitationsError } = await supabase
+      .from('invitations')
+      .delete()
+      .eq('sender_id', userId);
+    
+    if (sentInvitationsError) {
+      console.error('❌ 删除发送的邀请失败:', sentInvitationsError);
+      throw sentInvitationsError;
+    }
+
+    const { error: receivedInvitationsError } = await supabase
+      .from('invitations')
+      .delete()
+      .eq('recipient_id', userId);
+    
+    if (receivedInvitationsError) {
+      console.error('❌ 删除接收的邀请失败:', receivedInvitationsError);
+      throw receivedInvitationsError;
+    }
+    console.log('✅ 邀请记录已删除');
+
+    // 8. 最后删除用户记录
+    const { error: userError } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', userId);
+    
+    if (userError) {
+      console.error('❌ 删除用户记录失败:', userError);
+      throw userError;
+    }
+    console.log('✅ 用户记录已删除');
+
+    console.log('✅ 所有用户数据已成功删除');
+    return { error: null };
+
+  } catch (error) {
+    console.error('❌ 删除用户账号失败:', error);
+    return { error };
+  }
+}
+
+/**
+ * 检查用户是否已完成 Onboarding
+ */
+export async function checkOnboardingCompleted(userId: string): Promise<{ completed: boolean; error: any }> {
+  try {
+    const { data, error } = await supabase
+      .from('onboarding_progress')
+      .select('completed')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('❌ 检查 Onboarding 状态失败:', error);
+      return { completed: false, error };
+    }
+
+    // 如果没有记录，说明用户还没开始 onboarding
+    if (!data) {
+      return { completed: false, error: null };
+    }
+
+    return { completed: data.completed || false, error: null };
+  } catch (error) {
+    console.error('❌ 检查 Onboarding 状态异常:', error);
+    return { completed: false, error };
+  }
+}
+
