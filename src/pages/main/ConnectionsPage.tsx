@@ -7,27 +7,23 @@ import AITwinConnectionAnimation from '@/components/AITwinConnectionAnimation';
 
 interface ConnectionsPageProps {
   aiTwinName: string;
+  aiTwinAvatar?: string;
   conversations: any[];
   isLoadingConversations: boolean;
-  aiTwinAvatar?: string;
   onViewConversation: (chat: any) => void;
 }
 
 export default function ConnectionsPage({
   aiTwinName,
+  aiTwinAvatar,
   conversations,
   isLoadingConversations,
-  aiTwinAvatar,
   onViewConversation
 }: ConnectionsPageProps) {
-  
   return (
     <div className="max-w-6xl mx-auto">
-      {/* Page Title */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {aiTwinName}'s Connections
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{aiTwinName}'s Connections</h1>
         <p className="text-gray-600">View and manage AI Twin conversations</p>
       </div>
 
@@ -47,9 +43,7 @@ export default function ConnectionsPage({
                   {isLoadingConversations ? (
                     <div className="space-y-4">
                       <div className="text-center py-4">
-                        <span className="text-sm font-medium font-outfit text-black">
-                          {aiTwinName} is chatting with friends
-                        </span>
+                        <span className="text-sm font-medium font-outfit text-black">{aiTwinName} is chatting with friends</span>
                         <p className="text-xs text-gray-500 mt-1">Building connections...</p>
                       </div>
                       <AITwinConnectionAnimation userAvatar={aiTwinAvatar} />
@@ -67,7 +61,6 @@ export default function ConnectionsPage({
                           style={{ animationDelay: `${index * 0.1}s` }}
                           onClick={() => onViewConversation(chat)}
                         >
-                          {/* Badges Row */}
                           <div className="mb-3">
                             <div className="flex items-center justify-between mb-2">
                               {chat.recommended && (
@@ -86,8 +79,6 @@ export default function ConnectionsPage({
                               )}
                             </div>
                           </div>
-
-                          {/* Avatar and Name Row */}
                           <div className="flex items-start space-x-4">
                             <Avatar className="w-12 h-12">
                               <AvatarImage src={chat.avatar} alt={chat.partner} />
@@ -103,8 +94,7 @@ export default function ConnectionsPage({
                               </div>
                             </div>
                           </div>
-
-                          {/* Recommendation Reason - 直接使用chat.recommendReason */}
+                          {/* 推荐原因 */}
                           {chat.recommended && chat.recommendReason && (
                             <div className="bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2 mt-2">
                               <p className="text-xs text-emerald-800 leading-relaxed">
@@ -131,9 +121,7 @@ export default function ConnectionsPage({
             <CardContent className="p-6">
               <div className="space-y-4">
                 <div className="text-center p-4 bg-emerald-50 rounded-lg">
-                  <div className="text-3xl font-bold text-emerald-600">
-                    {conversations.length}
-                  </div>
+                  <div className="text-3xl font-bold text-emerald-600">{conversations.length}</div>
                   <div className="text-sm text-gray-600 mt-1">Active Chats</div>
                 </div>
                 <div className="text-center p-4 bg-teal-50 rounded-lg">

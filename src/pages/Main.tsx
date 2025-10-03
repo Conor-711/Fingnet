@@ -23,7 +23,15 @@ import { useDailyModeling } from '@/hooks/useDailyModeling';
 
 // 导入数据库函数
 import { getAITwin, upsertAITwin, getAllAITwins } from '@/lib/supabase';
-import { summarizeGroupChat, calculateAITwinMatch, generateAITwinConversation } from '@/services/aiService';
+import { 
+  summarizeGroupChat, 
+  calculateAITwinMatch, 
+  generateAITwinConversation,
+  withRetry,
+  type AITwinConversationProfile,
+  type AITwinConversationResult,
+  type GeneratedMessage
+} from '@/services/aiService';
 
 const Main = () => {
   const navigate = useNavigate();
@@ -62,7 +70,11 @@ const Main = () => {
   const [showSummary, setShowSummary] = useState(false);
   const [isMemorySaved, setIsMemorySaved] = useState(false);
 
-  // Connections页面状态
+  // Connections页面状态 - 真实AI Twin网络数据
+  const [realAITwins, setRealAITwins] = useState<AITwinConversationProfile[]>([]);
+  const [isLoadingAITwins, setIsLoadingAITwins] = useState(false);
+  const [isGeneratingConversations, setIsGeneratingConversations] = useState(false);
+  const [generatedConversations, setGeneratedConversations] = useState<Record<string, AITwinConversationResult>>({});
   const [conversations, setConversations] = useState<any[]>([]);
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
 
@@ -88,6 +100,247 @@ const Main = () => {
   // 回到顶部
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // ========== Connections页面核心函数 ==========
+  
+  // 处理聊天点击
+  const handleChatClick = (chat: any) => {
+    setSelectedChat(chat);
+    setShowChatDetail(true);
+    
+    // 启动打字机效果
+    if (chat.messages && chat.messages.length > 0) {
+      startTypewriterEffect(chat.messages);
+    }
+  };
+
+  // 打字机效果控制
+  const startTypewriterEffect = (messages: GeneratedMessage[]) => {
+    setDisplayedMessages([]);
+    setCurrentMessageIndex(0);
+    setIsTyping(true);
+    setShowFullConversation(false);
+    
+    let messageIndex = 0;
+    
+    const displayNextMessage = () => {
+      if (messageIndex < messages.length) {
+        const message = messages[messageIndex];
+        setDisplayedMessages(prev => [...prev, message]);
+        setCurrentMessageIndex(messageIndex + 1);
+        messageIndex++;
+        
+        // 根据消息长度调整延迟时间
+        const messageLength = message.content.length;
+        const baseDelay = 800;
+        const charDelay = Math.min(messageLength * 25, 2000);
+        const totalDelay = baseDelay + charDelay;
+        
+        setTimeout(displayNextMessage, totalDelay);
+      } else {
+        setIsTyping(false);
+        setShowFullConversation(true);
+      }
+    };
+    
+    // 开始显示第一条消息
+    setTimeout(displayNextMessage, 1000);
+  };
+
+  // 跳过打字机效果，直接显示所有消息
+  const skipTypewriterEffect = () => {
+    if (selectedChat?.messages) {
+      setDisplayedMessages(selectedChat.messages);
+      setCurrentMessageIndex(selectedChat.messages.length);
+      setIsTyping(false);
+      setShowFullConversation(true);
+    }
+  };
+
+  // 关闭对话详情
+  const handleCloseChatDetail = () => {
+    setShowChatDetail(false);
+    setDisplayedMessages([]);
+    setCurrentMessageIndex(0);
+    setIsTyping(false);
+    setShowFullConversation(false);
+  };
+
+  // 显示完整对话
+  const handleShowFullConversation = () => {
+    if (selectedChat?.messages) {
+      setDisplayedMessages(selectedChat.messages);
+      setCurrentMessageIndex(selectedChat.messages.length);
+      setIsTyping(false);
+      setShowFullConversation(true);
+    }
+  };
+
+  // 生成推荐原因
+  const generateRecommendReason = (twinProfile: AITwinConversationProfile, conversationResult: AITwinConversationResult | undefined) => {
+    if (!aiTwinProfile) return null;
+    
+    const reasons: string[] = [];
+    
+    // 检查地理位置
+    if (twinProfile.profile.location && aiTwinProfile.profile?.location) {
+      const twinCity = twinProfile.profile.location.split(',')[0].trim();
+      const userCity = aiTwinProfile.profile.location.split(',')[0].trim();
+      if (twinCity === userCity) {
+        reasons.push(`📍 Same city: ${twinCity}`);
+      }
+    }
+    
+    // 检查年龄相仿
+    if (twinProfile.profile.age && aiTwinProfile.profile?.age) {
+      const twinAge = parseInt(twinProfile.profile.age);
+      const userAge = parseInt(aiTwinProfile.profile.age);
+      if (!isNaN(twinAge) && !isNaN(userAge) && Math.abs(twinAge - userAge) <= 5) {
+        reasons.push(`👥 Similar age group`);
+      }
+    }
+    
+    // 检查职业相关
+    if (twinProfile.profile.occupation && aiTwinProfile.profile?.occupation) {
+      const twinOccupation = twinProfile.profile.occupation.toLowerCase();
+      const userOccupation = aiTwinProfile.profile.occupation.toLowerCase();
+      if (twinOccupation.includes(userOccupation.split(' ')[0]) || userOccupation.includes(twinOccupation.split(' ')[0])) {
+        reasons.push(`💼 Related fields`);
+      }
+    }
+    
+    // 检查价值匹配
+    if (conversationResult) {
+      const valueScore = conversationResult.twin1Score.valueAlignment;
+      if (valueScore >= 8) {
+        reasons.push(`💎 High value alignment (${valueScore}/10)`);
+      }
+    }
+    
+    // 检查目标协同
+    if (conversationResult) {
+      const goalScore = conversationResult.twin1Score.goalSynergy;
+      if (goalScore >= 8) {
+        reasons.push(`🎯 Strong goal synergy (${goalScore}/10)`);
+      }
+    }
+    
+    // 检查兴趣重叠
+    if (twinProfile.interests && aiTwinProfile.goals) {
+      const hasCommonInterest = twinProfile.interests.some(interest => 
+        aiTwinProfile.goals?.some(goal => 
+          goal.toLowerCase().includes(interest.toLowerCase()) || 
+          interest.toLowerCase().includes(goal.toLowerCase())
+        )
+      );
+      if (hasCommonInterest) {
+        reasons.push(`⭐ Shared interests`);
+      }
+    }
+    
+    return reasons.length > 0 ? reasons.slice(0, 3).join(' • ') : null;
+  };
+
+  // 动态生成聊天历史记录（使用真实AI Twins）
+  const getDynamicChatHistory = () => {
+    if (realAITwins.length === 0) {
+      return [];
+    }
+    
+    return realAITwins.map((twinProfile, index) => {
+      const twinId = `twin-${index}`;
+      const conversationResult = generatedConversations[twinId];
+      const conversation = conversationResult?.messages || [];
+      const lastMessage = conversation.length > 0 
+        ? conversation[conversation.length - 1].content 
+        : `Hi! I'm ${twinProfile.name}'s AI Twin. Let's connect and share insights!`;
+      
+      // 计算推荐程度（基于AI评分）
+      const averageScore = conversationResult 
+        ? (conversationResult.twin1Score.overallScore + conversationResult.twin2Score.overallScore) / 2 
+        : 7; // 默认评分
+      const isRecommended = averageScore >= 8 || index < 2;
+      
+      // 生成推荐原因
+      const recommendReason = isRecommended ? generateRecommendReason(twinProfile, conversationResult) : null;
+      
+      return {
+        id: index + 1,
+        partner: `${twinProfile.name}'s AI Twin`,
+        avatar: `/avatars/${(index % 4) + 1}.png`,
+        lastMessage: lastMessage.substring(0, 80) + (lastMessage.length > 80 ? '...' : ''),
+        timestamp: conversation.length > 0 ? conversation[conversation.length - 1].timestamp : 'Just now',
+        messageCount: conversation.length,
+        topic: twinProfile.interests?.[0] || 'General Discussion',
+        recommended: isRecommended,
+        recommendReason, // 推荐原因
+        messages: conversation.map(msg => ({
+          id: msg.id,
+          sender: msg.sender,
+          content: msg.content,
+          timestamp: msg.timestamp,
+          isOwn: msg.isOwn
+        })),
+        twinProfile,
+        conversationResult,
+        matchingScore: averageScore
+      };
+    });
+  };
+
+  // 生成AI驱动的对话
+  const generateConversationsForAllChats = async () => {
+    if (!aiTwinProfile || isGeneratingConversations || !user) return;
+    
+    // 如果没有真实AI Twins且没有加载中，先等待加载
+    if (realAITwins.length === 0 && !isLoadingAITwins) {
+      console.log('ℹ️ No AI Twins available for conversation generation');
+      setIsGeneratingConversations(false);
+      return;
+    }
+    
+    setIsGeneratingConversations(true);
+    
+    try {
+      // 创建用户的AI Twin Profile
+      const userAITwin: AITwinConversationProfile = {
+        name: aiTwinProfile.name || "Your AI Twin",
+        profile: aiTwinProfile.profile || {
+          gender: '',
+          age: '',
+          occupation: '',
+          location: ''
+        },
+        goalRecently: aiTwinProfile.goalRecently || '',
+        valueOffered: aiTwinProfile.valueOffered || '',
+        valueDesired: aiTwinProfile.valueDesired || '',
+        personality: ["Unique", "Goal-oriented", "Growth-minded"],
+        interests: ["Personal Development", "Networking", "Learning"]
+      };
+
+      const conversations: Record<string, AITwinConversationResult> = {};
+      
+      // 为每个真实AI Twin生成对话
+      for (const [index, twinProfile] of realAITwins.entries()) {
+        const twinId = `twin-${index}`;
+        
+        try {
+          const conversationResult = await withRetry(() => 
+            generateAITwinConversation(twinProfile, userAITwin, 12)
+          );
+          conversations[twinId] = conversationResult;
+        } catch (error) {
+          console.error(`Error generating conversation for ${twinId}:`, error);
+        }
+      }
+      
+      setGeneratedConversations(conversations);
+    } catch (error) {
+      console.error('Error generating conversations:', error);
+    } finally {
+      setIsGeneratingConversations(false);
+    }
   };
 
   // 监听滚动事件
@@ -126,153 +379,66 @@ const Main = () => {
     }
   }, [user, aiTwinProfile, updateAITwinProfile]);
 
-  // 加载所有AI Twins并生成对话（用于Connections页面）
+  // 从数据库加载所有其他用户的AI Twins（用于匹配网络）
   useEffect(() => {
-    const loadAllAITwinsAndGenerateConversations = async () => {
-      if (!user || !aiTwinProfile) return;
+    const loadAllAITwins = async () => {
+      if (!user) return;
 
-      setIsLoadingConversations(true);
+      setIsLoadingAITwins(true);
+      
       try {
-        // 加载所有AI Twins，排除当前用户
-        const { data: allTwins, error } = await getAllAITwins(user.id);
+        // 获取所有AI Twins，排除当前用户
+        const { data: twins, error } = await getAllAITwins(user.id);
         
         if (error) {
-          console.error('Failed to load AI Twins:', error);
-          toast.error('Failed to load connections');
+          console.error('Error loading AI Twins network:', error);
+          toast.error('加载AI Twin网络失败');
           return;
         }
 
-        if (!allTwins || allTwins.length === 0) {
+        if (twins && twins.length > 0) {
+          console.log(`✅ Loaded ${twins.length} AI Twins from network`);
+          
+          // 转换为 AITwinConversationProfile 格式
+          const conversationProfiles: AITwinConversationProfile[] = twins.map(twin => ({
+            name: twin.name,
+            profile: twin.profile,
+            goalRecently: twin.goals?.[0] || twin.goalRecently || '',
+            valueOffered: twin.offers?.[0] || twin.valueOffered || '',
+            valueDesired: twin.lookings?.[0] || twin.valueDesired || '',
+            personality: ["Unique", "Growth-minded"],
+            interests: twin.goals || []
+          }));
+          
+          setRealAITwins(conversationProfiles);
+        } else {
           console.log('ℹ️ No other AI Twins found in network yet');
-          setConversations([]);
-          return;
+          setRealAITwins([]);
         }
-
-        console.log(`✅ Loaded ${allTwins.length} AI Twins, generating conversations...`);
-
-        // 为每个AI Twin生成对话
-        const conversationsWithData = await Promise.all(
-          allTwins.map(async (twin: any) => {
-            try {
-              // 计算匹配分数
-              const matchScore = calculateAITwinMatch(aiTwinProfile, twin);
-              
-              // 生成AI Twin对话
-              const userTwinProfile = {
-                name: aiTwinProfile.name || 'Your AI Twin',
-                profile: aiTwinProfile.profile,
-                goalRecently: aiTwinProfile.goalRecently || '',
-                valueOffered: aiTwinProfile.valueOffered || '',
-                valueDesired: aiTwinProfile.valueDesired || '',
-                personality: ['Unique', 'Goal-oriented'],
-                interests: aiTwinProfile.goals || []
-              };
-
-              const otherTwinProfile = {
-                name: twin.name || 'Anonymous Twin',
-                profile: twin.profile,
-                goalRecently: twin.goalRecently || twin.goals?.[0] || '',
-                valueOffered: twin.valueOffered || twin.offers?.[0] || '',
-                valueDesired: twin.valueDesired || twin.lookings?.[0] || '',
-                personality: ['Unique', 'Growth-minded'],
-                interests: twin.goals || []
-              };
-
-              const conversationResult = await generateAITwinConversation(
-                otherTwinProfile,
-                userTwinProfile,
-                12 // 生成12轮对话
-              );
-
-              // 生成推荐原因文本
-              const recommendReason = matchScore.reasons.length > 0 
-                ? matchScore.reasons.slice(0, 3).join(' · ')
-                : null;
-
-              return {
-                id: twin.user_id,
-                userId: twin.user_id,
-                partner: twin.name || 'Anonymous Twin',
-                avatar: twin.avatar || '',
-                topic: twin.profile?.occupation || 'Professional',
-                location: twin.profile?.location,
-                occupation: twin.profile?.occupation,
-                age: twin.profile?.age,
-                gender: twin.profile?.gender,
-                goal: twin.goalRecently || twin.goals?.[0] || '',
-                matchingScore: matchScore.overallScore,
-                recommended: matchScore.overallScore >= 6,
-                recommendReason, // 推荐原因文本
-                locationMatch: matchScore.locationMatch,
-                ageMatch: matchScore.ageMatch,
-                goalMatch: matchScore.goalMatch,
-                reasons: matchScore.reasons,
-                // 添加对话数据
-                messages: conversationResult.messages,
-                messageCount: conversationResult.messages.length, // 消息数量
-                conversationSummary: conversationResult.conversationSummary
-              };
-            } catch (error) {
-              console.error(`Error generating conversation for ${twin.name}:`, error);
-              // 即使对话生成失败，也返回基本信息
-              const matchScore = calculateAITwinMatch(aiTwinProfile, twin);
-              const recommendReason = matchScore.reasons.length > 0 
-                ? matchScore.reasons.slice(0, 3).join(' · ')
-                : null;
-              
-              return {
-                id: twin.user_id,
-                userId: twin.user_id,
-                partner: twin.name || 'Anonymous Twin',
-                avatar: twin.avatar || '',
-                topic: twin.profile?.occupation || 'Professional',
-                location: twin.profile?.location,
-                occupation: twin.profile?.occupation,
-                age: twin.profile?.age,
-                gender: twin.profile?.gender,
-                goal: twin.goalRecently || twin.goals?.[0] || '',
-                matchingScore: matchScore.overallScore,
-                recommended: matchScore.overallScore >= 6,
-                recommendReason, // 推荐原因文本
-                locationMatch: matchScore.locationMatch,
-                ageMatch: matchScore.ageMatch,
-                goalMatch: matchScore.goalMatch,
-                reasons: matchScore.reasons,
-                messages: [],
-                messageCount: 0, // 消息数量
-                conversationSummary: ''
-              };
-            }
-          })
-        );
-
-        // 按匹配分数排序（高到低）
-        conversationsWithData.sort((a, b) => b.matchingScore - a.matchingScore);
-
-        console.log(`✅ Generated conversations for ${conversationsWithData.length} AI Twins`);
-        if (conversationsWithData[0]) {
-          console.log('📊 Sample conversation data:', conversationsWithData[0]);
-          console.log('🔍 recommendReason:', conversationsWithData[0].recommendReason);
-          console.log('🔍 messageCount:', conversationsWithData[0].messageCount);
-          console.log('🔍 messages length:', conversationsWithData[0].messages?.length);
-          console.log('🔍 reasons array:', conversationsWithData[0].reasons);
-          console.log('🔍 reasons length:', conversationsWithData[0].reasons?.length);
-          console.log('🔍 reasons content:', JSON.stringify(conversationsWithData[0].reasons));
-        }
-        
-        setConversations(conversationsWithData);
       } catch (error) {
-        console.error('Error loading AI Twins:', error);
-        toast.error('Failed to load connections');
+        console.error('Error in loadAllAITwins:', error);
+        toast.error('加载网络数据时出错');
       } finally {
-        setIsLoadingConversations(false);
+        setIsLoadingAITwins(false);
       }
     };
 
-    if (user && aiTwinProfile) {
-      loadAllAITwinsAndGenerateConversations();
+    loadAllAITwins();
+  }, [user]);
+
+  // 当AI Twin Profile和真实AI Twins都可用时生成对话
+  useEffect(() => {
+    if (aiTwinProfile && realAITwins.length > 0 && Object.keys(generatedConversations).length === 0) {
+      generateConversationsForAllChats();
     }
-  }, [user, aiTwinProfile]);
+  }, [aiTwinProfile, realAITwins, generatedConversations]);
+
+  // 使用getDynamicChatHistory()生成最终的conversations数据
+  useEffect(() => {
+    const chatHistory = getDynamicChatHistory();
+    setConversations(chatHistory);
+    setIsLoadingConversations(isGeneratingConversations);
+  }, [realAITwins, generatedConversations, isGeneratingConversations]);
 
   // 打字机效果 - 逐条显示对话消息
   useEffect(() => {
@@ -290,35 +456,7 @@ const Main = () => {
     }
   }, [showChatDetail, selectedChat, currentMessageIndex, showFullConversation]);
 
-  // 处理查看对话
-  const handleViewConversation = (chat: any) => {
-    console.log('📖 Viewing conversation:', chat);
-    setSelectedChat(chat);
-    setShowChatDetail(true);
-    setDisplayedMessages([]);
-    setCurrentMessageIndex(0);
-    setIsTyping(false);
-    setShowFullConversation(false);
-  };
-
-  // 关闭对话详情
-  const handleCloseChatDetail = () => {
-    setShowChatDetail(false);
-    setSelectedChat(null);
-    setDisplayedMessages([]);
-    setCurrentMessageIndex(0);
-    setIsTyping(false);
-    setShowFullConversation(false);
-  };
-
-  // 显示完整对话
-  const handleShowFullConversation = () => {
-    if (selectedChat) {
-      setShowFullConversation(true);
-      setDisplayedMessages(selectedChat.messages);
-      setIsTyping(false);
-    }
-  };
+  // 这些函数已在上面定义，删除重复定义
 
   // 保存AI Twin Profile到数据库
   const handleSaveProfile = async (updatedProfile: AITwinProfile) => {
@@ -461,10 +599,10 @@ const Main = () => {
         return (
           <ConnectionsPage
             aiTwinName={aiTwinProfile?.name || 'Your AI Twin'}
+            aiTwinAvatar={aiTwinProfile?.avatar}
             conversations={conversations}
             isLoadingConversations={isLoadingConversations}
-            aiTwinAvatar={aiTwinProfile?.avatar}
-            onViewConversation={handleViewConversation}
+            onViewConversation={handleChatClick}
           />
         );
 
