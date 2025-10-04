@@ -709,8 +709,13 @@ export async function deleteUserAccount(userId: string) {
       .eq('user_id', userId);
     
     if (memoriesError) {
-      // 如果是 404 错误（表不存在），则忽略
-      if (memoriesError.code === 'PGRST116' || memoriesError.message?.includes('not found')) {
+      // 如果是表不存在错误（PGRST116=无数据, PGRST205=表不存在），则忽略
+      if (
+        memoriesError.code === 'PGRST116' || 
+        memoriesError.code === 'PGRST205' || 
+        memoriesError.message?.includes('not found') ||
+        memoriesError.message?.includes('schema cache')
+      ) {
         console.log('⚠️ Memories 表不存在或无数据，跳过删除');
       } else {
         console.error('❌ 删除 Memories 失败:', memoriesError);
@@ -727,7 +732,12 @@ export async function deleteUserAccount(userId: string) {
       .eq('user_id', userId);
     
     if (conversationsError) {
-      if (conversationsError.code === 'PGRST116' || conversationsError.message?.includes('not found')) {
+      if (
+        conversationsError.code === 'PGRST116' || 
+        conversationsError.code === 'PGRST205' || 
+        conversationsError.message?.includes('not found') ||
+        conversationsError.message?.includes('schema cache')
+      ) {
         console.log('⚠️ AI Conversations 表不存在或无数据，跳过删除');
       } else {
         console.error('❌ 删除对话历史失败:', conversationsError);
@@ -744,7 +754,12 @@ export async function deleteUserAccount(userId: string) {
       .eq('user_id', userId);
     
     if (groupMembersError) {
-      if (groupMembersError.code === 'PGRST116' || groupMembersError.message?.includes('not found')) {
+      if (
+        groupMembersError.code === 'PGRST116' || 
+        groupMembersError.code === 'PGRST205' || 
+        groupMembersError.message?.includes('not found') ||
+        groupMembersError.message?.includes('schema cache')
+      ) {
         console.log('⚠️ Group Members 表不存在或无数据，跳过删除');
       } else {
         console.error('❌ 删除群组成员关系失败:', groupMembersError);
@@ -761,7 +776,12 @@ export async function deleteUserAccount(userId: string) {
       .eq('created_by', userId);
     
     if (groupsError) {
-      if (groupsError.code === 'PGRST116' || groupsError.message?.includes('not found')) {
+      if (
+        groupsError.code === 'PGRST116' || 
+        groupsError.code === 'PGRST205' || 
+        groupsError.message?.includes('not found') ||
+        groupsError.message?.includes('schema cache')
+      ) {
         console.log('⚠️ Groups 表不存在或无数据，跳过删除');
       } else {
         console.error('❌ 删除群组失败:', groupsError);
@@ -778,7 +798,12 @@ export async function deleteUserAccount(userId: string) {
       .eq('sender_id', userId);
     
     if (sentInvitationsError) {
-      if (sentInvitationsError.code === 'PGRST116' || sentInvitationsError.message?.includes('not found')) {
+      if (
+        sentInvitationsError.code === 'PGRST116' || 
+        sentInvitationsError.code === 'PGRST205' || 
+        sentInvitationsError.message?.includes('not found') ||
+        sentInvitationsError.message?.includes('schema cache')
+      ) {
         console.log('⚠️ Invitations 表不存在或无数据（发送），跳过删除');
       } else {
         console.error('❌ 删除发送的邀请失败:', sentInvitationsError);
@@ -794,7 +819,12 @@ export async function deleteUserAccount(userId: string) {
       .eq('recipient_id', userId);
     
     if (receivedInvitationsError) {
-      if (receivedInvitationsError.code === 'PGRST116' || receivedInvitationsError.message?.includes('not found')) {
+      if (
+        receivedInvitationsError.code === 'PGRST116' || 
+        receivedInvitationsError.code === 'PGRST205' || 
+        receivedInvitationsError.message?.includes('not found') ||
+        receivedInvitationsError.message?.includes('schema cache')
+      ) {
         console.log('⚠️ Invitations 表不存在或无数据（接收），跳过删除');
       } else {
         console.error('❌ 删除接收的邀请失败:', receivedInvitationsError);
