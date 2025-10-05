@@ -208,7 +208,7 @@ const Landing = () => {
           </div>
 
           {/* Feature Highlights */}
-          <div className="mt-20 grid md:grid-cols-3 gap-8 text-left">
+          {/* <div className="mt-20 grid md:grid-cols-3 gap-8 text-left">
             <div className="space-y-3">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <span className="text-2xl">🤖</span>
@@ -244,7 +244,7 @@ const Landing = () => {
                 Let your AI twin work as your superconnector, finding and building relationships 24/7.
               </p>
             </div>
-          </div>
+          </div> */}
         </div>
       </main>
 
