@@ -9,7 +9,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "npx serve dist -s -l ${PORT:-8080}",
+    "start": "serve dist -s -l $PORT",
     "start:vite": "vite preview --port ${PORT:-8080} --host 0.0.0.0",
     "test:db": "tsx test-supabase.ts"
   },
@@ -63,6 +63,7 @@
     "react-resizable-panels": "^2.1.9",
     "react-router-dom": "^6.30.1",
     "recharts": "^2.15.4",
+    "serve": "^14.2.5",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
