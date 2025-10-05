@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Extension Auth Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 5px;
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .section {
+      margin: 20px 0;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    .section h3 {
+      margin-top: 0;
+      color: #667eea;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 6px;
+      margin: 10px 0;
+    }
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .status.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    pre {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 13px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    .badge.success {
+      background: #48bb78;
+      color: white;
+    }
+    .badge.warning {
+      background: #ed8936;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Extension Auth Test</h1>
+    <p class="subtitle">模拟 Chrome 插件的登录流程</p>
+
+    <!-- Step 1: 打开登录窗口 -->
+    <div class="section">
+      <h3>Step 1: 打开登录窗口</h3>
+      <p>点击下方按钮模拟插件打开登录窗口</p>
+      <button id="openLoginBtn" onclick="openLoginWindow()">
+        🚀 Open Login Window
+      </button>
+      <div id="loginStatus"></div>
+    </div>
+
+    <!-- Step 2: 监听登录结果 -->
+    <div class="section">
+      <h3>Step 2: 登录结果</h3>
+      <p>等待登录窗口返回数据...</p>
+      <div id="authResult"></div>
+      <div id="userData"></div>
+    </div>
+
+    <!-- Step 3: 测试 API -->
+    <div class="section">
+      <h3>Step 3: 测试 API 调用</h3>
+      <button id="getProfileBtn" onclick="getProfile()" disabled>
+        📋 Get Profile
+      </button>
+      <button id="updateProfileBtn" onclick="updateProfile()" disabled>
+        ✏️ Update Profile
+      </button>
+      <button id="refreshTokenBtn" onclick="refreshToken()" disabled>
+        🔄 Refresh Token
+      </button>
+      <div id="apiResult"></div>
+    </div>
+
+    <!-- Step 4: 存储的数据 -->
+    <div class="section">
+      <h3>Step 4: 本地存储</h3>
+      <button onclick="showStoredData()">
+        💾 Show Stored Data
+      </button>
+      <button onclick="clearStoredData()">
+        🗑️ Clear Storage
+      </button>
+      <div id="storageData"></div>
+    </div>
+  </div>
+
+  <script>
+    let loginWindow = null;
+    let sessionData = null;
+    let profileData = null;
+
+    // 从 localStorage 恢复数据
+    function restoreSession() {
+      const stored = localStorage.getItem('fingnet_test_session');
+      if (stored) {
+        try {
+          const data = JSON.parse(stored);
+          sessionData = data.session;
+          profileData = data.profile;
+          
+          if (sessionData) {
+            document.getElementById('getProfileBtn').disabled = false;
+            document.getElementById('updateProfileBtn').disabled = false;
+            document.getElementById('refreshTokenBtn').disabled = false;
+            
+            showStatus('loginStatus', 'info', '✅ 已恢复之前的登录会话');
+          }
+        } catch (e) {
+          console.error('Failed to restore session:', e);
+        }
+      }
+    }
+
+    // 打开登录窗口
+    function openLoginWindow() {
+      const extensionId = 'test-extension-id';
+      const baseUrl = window.location.origin;
+      const loginUrl = `${baseUrl}/auth/extension-login?source=extension&ext_id=${extensionId}`;
+      
+      console.log('🔗 Opening login URL:', loginUrl);
+      
+      // 打开新窗口
+      loginWindow = window.open(
+        loginUrl,
+        'FingnetLogin',
+        'width=500,height=700,menubar=no,toolbar=no,location=no'
+      );
+
+      if (loginWindow) {
+        showStatus('loginStatus', 'info', '✅ 登录窗口已打开，等待用户完成登录...');
+        document.getElementById('openLoginBtn').disabled = true;
+      } else {
+        showStatus('loginStatus', 'error', '❌ 无法打开登录窗口，请检查浏览器弹窗设置');
+      }
+    }
+
+    // 监听来自登录窗口的消息
+    window.addEventListener('message', (event) => {
+      console.log('📨 Received message:', event);
+
+      // 安全检查：验证来源
+      const allowedOrigins = [
+        window.location.origin,
+        'http://localhost:8080',
+        'https://fingnet.xyz'
+      ];
+
+      if (!allowedOrigins.includes(event.origin)) {
+        console.warn('⚠️ 忽略来自未知来源的消息:', event.origin);
+        return;
+      }
+
+      const { type, session, profile, aiTwin, needsOnboarding, isFirstLogin } = event.data;
+
+      if (type === 'FINGNET_AUTH_SUCCESS') {
+        console.log('✅ 登录成功！');
+        
+        // 保存数据
+        sessionData = session;
+        profileData = profile;
+
+        // 存储到 localStorage
+        localStorage.setItem('fingnet_test_session', JSON.stringify({
+          session,
+          profile,
+          aiTwin,
+          needsOnboarding,
+          isFirstLogin
+        }));
+
+        // 启用 API 测试按钮
+        document.getElementById('getProfileBtn').disabled = false;
+        document.getElementById('updateProfileBtn').disabled = false;
+        document.getElementById('refreshTokenBtn').disabled = false;
+        document.getElementById('openLoginBtn').disabled = false;
+
+        // 显示结果
+        showStatus('authResult', 'success', '✅ 登录成功！');
+        
+        const userInfo = `
+          <div style="margin-top: 15px;">
+            <h4>用户信息:</h4>
+            <p><strong>Email:</strong> ${profile.email}</p>
+            <p><strong>Name:</strong> ${profile.name}</p>
+            <p><strong>ID:</strong> ${profile.id}</p>
+            ${needsOnboarding ? '<span class="badge warning">需要 Onboarding</span>' : '<span class="badge success">已完成 Onboarding</span>'}
+            ${isFirstLogin ? '<span class="badge warning">首次登录</span>' : ''}
+            ${aiTwin ? `<p><strong>AI Twin:</strong> ${aiTwin.name}</p>` : ''}
+          </div>
+          <pre>${JSON.stringify({ profile, aiTwin, needsOnboarding, isFirstLogin }, null, 2)}</pre>
+        `;
+        
+        document.getElementById('userData').innerHTML = userInfo;
+
+        // 关闭登录窗口（如果还开着）
+        if (loginWindow && !loginWindow.closed) {
+          setTimeout(() => {
+            loginWindow.close();
+          }, 2000);
+        }
+
+      } else if (type === 'FINGNET_AUTH_ERROR') {
+        console.error('❌ 登录失败:', event.data.error);
+        showStatus('authResult', 'error', `❌ 登录失败: ${event.data.error}`);
+        document.getElementById('openLoginBtn').disabled = false;
+      }
+    });
+
+    // 获取用户资料
+    async function getProfile() {
+      if (!sessionData) {
+        showStatus('apiResult', 'error', '❌ 请先登录');
+        return;
+      }
+
+      try {
+        showStatus('apiResult', 'info', '⏳ 正在获取用户资料...');
+
+        // 调用真实的 API
+        const baseUrl = window.location.origin;
+        const apiUrl = `${baseUrl}/api/extension?action=profile&token=${sessionData.access_token}`;
+        
+        const response = await fetch(apiUrl);
+        const result = await response.json();
+
+        if (result.success) {
+          showStatus('apiResult', 'success', '✅ 获取成功');
+          document.getElementById('apiResult').innerHTML += `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+        } else {
+          throw new Error(result.error || 'Failed to get profile');
+        }
+      } catch (error) {
+        showStatus('apiResult', 'error', `❌ 获取失败: ${error.message}`);
+      }
+    }
+
+    // 更新用户资料
+    async function updateProfile() {
+      if (!sessionData) {
+        showStatus('apiResult', 'error', '❌ 请先登录');
+        return;
+      }
+
+      const newName = prompt('输入新的名字:', profileData?.name || '');
+      if (!newName) return;
+
+      try {
+        showStatus('apiResult', 'info', '⏳ 正在更新用户资料...');
+
+        // 调用真实的 API
+        const baseUrl = window.location.origin;
+        const apiUrl = `${baseUrl}/api/extension?action=update&token=${sessionData.access_token}&name=${encodeURIComponent(newName)}`;
+        
+        const response = await fetch(apiUrl);
+        const result = await response.json();
+
+        if (result.success) {
+          profileData = result.data;
+          
+          // 更新存储
+          const stored = JSON.parse(localStorage.getItem('fingnet_test_session') || '{}');
+          stored.profile = profileData;
+          localStorage.setItem('fingnet_test_session', JSON.stringify(stored));
+
+          showStatus('apiResult', 'success', `✅ 更新成功！新名字: ${newName}`);
+          document.getElementById('apiResult').innerHTML += `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+        } else {
+          throw new Error(result.error || 'Failed to update profile');
+        }
+      } catch (error) {
+        showStatus('apiResult', 'error', `❌ 更新失败: ${error.message}`);
+      }
+    }
+
+    // 刷新 Token
+    async function refreshToken() {
+      if (!sessionData) {
+        showStatus('apiResult', 'error', '❌ 请先登录');
+        return;
+      }
+
+      try {
+        showStatus('apiResult', 'info', '⏳ 正在刷新 Token...');
+
+        // 调用真实的 API
+        const baseUrl = window.location.origin;
+        const apiUrl = `${baseUrl}/api/extension?action=refresh&refresh_token=${sessionData.refresh_token}`;
+        
+        const response = await fetch(apiUrl);
+        const result = await response.json();
+
+        if (result.success) {
+          sessionData = result.session;
+          
+          // 更新存储
+          const stored = JSON.parse(localStorage.getItem('fingnet_test_session') || '{}');
+          stored.session = sessionData;
+          localStorage.setItem('fingnet_test_session', JSON.stringify(stored));
+
+          showStatus('apiResult', 'success', '✅ Token 刷新成功！');
+          document.getElementById('apiResult').innerHTML += `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+        } else {
+          throw new Error(result.error || 'Failed to refresh token');
+        }
+      } catch (error) {
+        showStatus('apiResult', 'error', `❌ 刷新失败: ${error.message}`);
+      }
+    }
+
+    // 显示存储的数据
+    function showStoredData() {
+      const stored = localStorage.getItem('fingnet_test_session');
+      if (stored) {
+        const data = JSON.parse(stored);
+        document.getElementById('storageData').innerHTML = `
+          <h4>存储的数据:</h4>
+          <pre>${JSON.stringify(data, null, 2)}</pre>
+        `;
+      } else {
+        document.getElementById('storageData').innerHTML = `
+          <p style="color: #666;">暂无存储数据</p>
+        `;
+      }
+    }
+
+    // 清除存储
+    function clearStoredData() {
+      if (confirm('确定要清除所有存储的数据吗？')) {
+        localStorage.removeItem('fingnet_test_session');
+        sessionData = null;
+        profileData = null;
+        
+        document.getElementById('getProfileBtn').disabled = true;
+        document.getElementById('updateProfileBtn').disabled = true;
+        document.getElementById('refreshTokenBtn').disabled = true;
+        
+        document.getElementById('storageData').innerHTML = '';
+        document.getElementById('userData').innerHTML = '';
+        document.getElementById('authResult').innerHTML = '';
+        
+        showStatus('storageData', 'success', '✅ 存储已清除');
+      }
+    }
+
+    // 显示状态消息
+    function showStatus(elementId, type, message) {
+      const element = document.getElementById(elementId);
+      element.innerHTML = `<div class="status ${type}">${message}</div>`;
+    }
+
+    // 页面加载时恢复会话
+    window.addEventListener('load', restoreSession);
+  </script>
+</body>
+</html>

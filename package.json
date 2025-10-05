@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "vite preview --port ${PORT:-8080} --host 0.0.0.0",
+    "start": "npx serve dist -s -l ${PORT:-8080}",
+    "start:vite": "vite preview --port ${PORT:-8080} --host 0.0.0.0",
     "test:db": "tsx test-supabase.ts"
   },
   "dependencies": {

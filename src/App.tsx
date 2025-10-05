@@ -13,6 +13,9 @@ import Landing from "./pages/Landing";
 import Main from "./pages/Main";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import ExtensionLogin from "./pages/auth/ExtensionLogin";
+import ExtensionCallback from "./pages/auth/ExtensionCallback";
+import ExtensionApiHandler from "./pages/api/ExtensionApiHandler";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +40,13 @@ const App = () => (
                 <Routes>
                   {/* Landing Page - Public */}
                   <Route path="/" element={<Landing />} />
+                  
+                  {/* Extension Auth Routes - Public (不需要 ProtectedRoute) */}
+                  <Route path="/auth/extension-login" element={<ExtensionLogin />} />
+                  <Route path="/auth/extension-callback" element={<ExtensionCallback />} />
+                  
+                  {/* Extension API Routes - Public */}
+                  <Route path="/api/extension" element={<ExtensionApiHandler />} />
                   
                   {/* Onboarding Route - Protected */}
                   <Route 
