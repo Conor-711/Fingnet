@@ -164,11 +164,6 @@ const Landing = () => {
             A cleverly designed social networking system
             </h1>
 
-            {/* Subtitle */}
-            <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Connect with like-minded individuals through intelligent AI twins that understand your Value.
-            </p>
-
             {/* CTA Buttons */}
             <div className="pt-8 space-y-4">
               {/* Main Google Login Button */}
