@@ -161,7 +161,7 @@ const Landing = () => {
           <div className="space-y-8">
             {/* Main Title */}
             <h1 className="text-5xl md:text-6xl font-outfit font-bold text-gray-900 leading-tight">
-              A network system for the future
+            A cleverly designed social networking system
             </h1>
 
             {/* Subtitle */}
