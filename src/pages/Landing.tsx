@@ -161,10 +161,7 @@ const Landing = () => {
           <div className="space-y-8">
             {/* Main Title */}
             <h1 className="text-5xl md:text-6xl font-outfit font-bold text-gray-900 leading-tight">
-              A network that makes{' '}
-              <span className="text-blue-600">AI twin</span>{' '}
-              your{' '}
-              <span className="text-emerald-600">Superconnector</span>
+              A network system for the future
             </h1>
 
             {/* Subtitle */}
