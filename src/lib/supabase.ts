@@ -150,18 +150,50 @@ export async function getOrCreateUser(googleUser: {
   name: string;
   picture: string;
 }) {
-  // 先尝试查找用户
-  const { data: existingUser, error: fetchError } = await supabase
+  // 1. 先尝试通过 google_id 查找用户
+  const { data: userByGoogleId, error: googleIdError } = await supabase
     .from('users')
     .select('*')
     .eq('google_id', googleUser.sub)
-    .single();
+    .maybeSingle();
 
-  if (existingUser) {
-    return { user: existingUser, error: null };
+  if (userByGoogleId) {
+    console.log('✅ 通过 google_id 找到用户:', userByGoogleId.email);
+    return { user: userByGoogleId, error: null };
   }
 
-  // 用户不存在，创建新用户
+  // 2. 如果通过 google_id 没找到，尝试通过 email 查找
+  const { data: userByEmail, error: emailError } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', googleUser.email)
+    .maybeSingle();
+
+  if (userByEmail) {
+    console.log('✅ 通过 email 找到用户，更新 google_id:', userByEmail.email);
+    
+    // 找到了用户，但是没有 google_id，更新它
+    const { data: updatedUser, error: updateError } = await supabase
+      .from('users')
+      .update({
+        google_id: googleUser.sub,
+        name: googleUser.name, // 同时更新名称
+        picture: googleUser.picture // 同时更新头像
+      })
+      .eq('id', userByEmail.id)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('❌ 更新用户 google_id 失败:', updateError);
+      return { user: null, error: updateError };
+    }
+
+    return { user: updatedUser, error: null };
+  }
+
+  // 3. 用户完全不存在，创建新用户
+  console.log('📝 创建新用户:', googleUser.email);
   const { data: newUser, error: createError } = await supabase
     .from('users')
     .insert({
@@ -173,7 +205,12 @@ export async function getOrCreateUser(googleUser: {
     .select()
     .single();
 
-  return { user: newUser, error: createError };
+  if (createError) {
+    console.error('❌ 创建用户失败:', createError);
+    return { user: null, error: createError };
+  }
+
+  return { user: newUser, error: null };
 }
 
 /**
