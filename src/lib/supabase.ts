@@ -958,3 +958,16 @@ export async function checkEmailInWaitlist(email: string) {
   return { data, error };
 }
 
+/**
+ * 获取所有 Waitlist 条目（仅用于管理后台）
+ * 注意：RLS 已禁用，此函数应仅在管理后台调用
+ */
+export async function getWaitlistEntries() {
+  const { data, error } = await supabase
+    .from('waitlist')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  return { data, error };
+}
+
