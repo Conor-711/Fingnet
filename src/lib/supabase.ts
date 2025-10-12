@@ -137,6 +137,15 @@ export interface GroupMessage {
   created_at: string;
 }
 
+export interface WaitlistEntry {
+  id: string;
+  email: string;
+  status: 'pending' | 'approved' | 'rejected';
+  source: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // ============================================
 // 数据库辅助函数
 // ============================================
@@ -918,5 +927,34 @@ export async function checkOnboardingCompleted(userId: string): Promise<{ comple
     console.error('❌ 检查 Onboarding 状态异常:', error);
     return { completed: false, error };
   }
+}
+
+/**
+ * 提交 email 到 Waitlist
+ */
+export async function submitToWaitlist(email: string, source: string = 'landing_page') {
+  const { data, error } = await supabase
+    .from('waitlist')
+    .insert({
+      email: email.toLowerCase().trim(),
+      source
+    })
+    .select()
+    .single();
+
+  return { data, error };
+}
+
+/**
+ * 检查 email 是否已在 Waitlist 中
+ */
+export async function checkEmailInWaitlist(email: string) {
+  const { data, error } = await supabase
+    .from('waitlist')
+    .select('*')
+    .eq('email', email.toLowerCase().trim())
+    .maybeSingle();
+
+  return { data, error };
 }
 

@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import NetworkBackground from '@/components/NetworkBackground';
 import { checkOnboardingCompleted } from '@/lib/supabase';
+import WaitlistForm from '@/components/WaitlistForm';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -247,6 +248,19 @@ const Landing = () => {
           </div> */}
         </div>
       </main>
+
+      {/* Waitlist Section */}
+      <section className="w-full px-6 py-16 bg-gray-50 relative z-10">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-outfit font-bold text-gray-900 mb-4">
+            Join the Waitlist
+          </h2>
+          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            Be the first to know when Fingnet launches. Get early access to our AI-powered social networking platform.
+          </p>
+          <WaitlistForm />
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="w-full px-6 py-8 border-t border-gray-100">
