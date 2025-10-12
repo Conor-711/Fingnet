@@ -165,46 +165,12 @@ const Landing = () => {
             A cleverly designed social networking system
             </h1>
 
-            {/* CTA Buttons */}
-            <div className="pt-8 space-y-4">
-              {/* Main Google Login Button */}
-              <Button
-                onClick={handleGetStarted}
-                disabled={isLoggingIn}
-                size="lg"
-                className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 text-lg font-medium rounded-lg transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoggingIn ? (
-                  <>
-                    <span className="animate-spin mr-2">⏳</span>
-                    Connecting...
-                  </>
-                ) : (
-                  <>
-                    Let your Value flow
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </>
-                )}
-              </Button>
-              <p className="text-sm text-gray-500">
-                Sign in with Google to get started
+            {/* Waitlist Form - Centered */}
+            <div className="pt-12">
+              <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+                Be the first to know when Fingnet launches. Join our waitlist for early access.
               </p>
-
-              {/* Test Mode Button */}
-              <div className="pt-4 border-t border-gray-200 mt-6">
-                <Button
-                  onClick={handleTestMode}
-                  disabled={isLoggingIn}
-                  variant="outline"
-                  size="sm"
-                  className="text-gray-600 hover:text-gray-900 border-gray-300 hover:border-gray-400"
-                >
-                  🧪 Test Mode (Skip Google Login)
-                </Button>
-                <p className="text-xs text-gray-400 mt-2">
-                  For testing purposes only
-                </p>
-              </div>
+              <WaitlistForm />
             </div>
           </div>
 
@@ -249,23 +215,22 @@ const Landing = () => {
         </div>
       </main>
 
-      {/* Waitlist Section */}
-      <section className="w-full px-6 py-16 bg-gray-50 relative z-10">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-outfit font-bold text-gray-900 mb-4">
-            Join the Waitlist
-          </h2>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Be the first to know when Fingnet launches. Get early access to our AI-powered social networking platform.
-          </p>
-          <WaitlistForm />
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="w-full px-6 py-8 border-t border-gray-100">
-        <div className="max-w-6xl mx-auto text-center text-gray-500 text-sm">
-          © 2025 Fingnet. All rights reserved.
+      <footer className="w-full px-6 py-8 border-t border-gray-100 relative z-10">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="text-gray-500 text-sm">
+            © 2025 Fingnet. All rights reserved.
+          </p>
+          <p className="text-gray-400 text-xs mt-2">
+            Already have access?{' '}
+            <button
+              onClick={handleGetStarted}
+              disabled={isLoggingIn}
+              className="text-gray-600 hover:text-gray-900 underline disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Sign in
+            </button>
+          </p>
         </div>
       </footer>
     </div>

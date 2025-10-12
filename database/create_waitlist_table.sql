@@ -16,15 +16,17 @@ CREATE INDEX IF NOT EXISTS idx_waitlist_created_at ON waitlist(created_at DESC);
 -- 启用 RLS
 ALTER TABLE waitlist ENABLE ROW LEVEL SECURITY;
 
--- RLS 策略：允许任何人插入
-CREATE POLICY "Allow public insert" ON waitlist
+-- RLS 策略：明确允许匿名用户和认证用户插入
+CREATE POLICY "Enable insert for anonymous users" ON waitlist
   FOR INSERT
+  TO anon, authenticated
   WITH CHECK (true);
 
--- RLS 策略：只允许认证用户查询（管理员）
-CREATE POLICY "Allow authenticated select" ON waitlist
+-- RLS 策略：允许认证用户查询
+CREATE POLICY "Enable read for authenticated users" ON waitlist
   FOR SELECT
-  USING (auth.role() = 'authenticated');
+  TO authenticated
+  USING (true);
 
 -- 添加注释
 COMMENT ON TABLE waitlist IS 'Waitlist submissions from landing page';
