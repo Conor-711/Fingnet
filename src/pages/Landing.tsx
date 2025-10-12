@@ -168,7 +168,7 @@ const Landing = () => {
             {/* Waitlist Form - Centered */}
             <div className="pt-12">
               <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-                Be the first to know when Fingnet launches. Join our waitlist for early access.
+               Join our waitlist for early access.
               </p>
               <WaitlistForm />
             </div>
@@ -216,7 +216,7 @@ const Landing = () => {
       </main>
 
       {/* Footer */}
-      <footer className="w-full px-6 py-8 border-t border-gray-100 relative z-10">
+      {/* <footer className="w-full px-6 py-8 border-t border-gray-100 relative z-10">
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-gray-500 text-sm">
             © 2025 Fingnet. All rights reserved.
@@ -232,7 +232,7 @@ const Landing = () => {
             </button>
           </p>
         </div>
-      </footer>
+      </footer> */}
     </div>
   );
 };
