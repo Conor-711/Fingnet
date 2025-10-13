@@ -13,6 +13,8 @@ import Landing from "./pages/Landing";
 import Main from "./pages/Main";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import ExtensionLogin from "./pages/auth/ExtensionLogin";
 import ExtensionCallback from "./pages/auth/ExtensionCallback";
 import ExtensionApiHandler from "./pages/api/ExtensionApiHandler";
@@ -40,6 +42,10 @@ const App = () => (
                 <Routes>
                   {/* Landing Page - Public */}
                   <Route path="/" element={<Landing />} />
+                  
+                  {/* Legal Pages - Public */}
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/terms" element={<Terms />} />
                   
                   {/* Extension Auth Routes - Public (不需要 ProtectedRoute) */}
                   <Route path="/auth/extension-login" element={<ExtensionLogin />} />

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '@/contexts/AuthContext';
@@ -238,7 +238,22 @@ const Landing = () => {
             <p className="text-gray-500 text-sm">
               © 2025 Fingnet. All rights reserved.
             </p>
-            {/* <p className="text-gray-400 text-xs mt-2">
+            <div className="flex items-center justify-center gap-4 mt-3">
+              <Link 
+                to="/privacy" 
+                className="text-gray-500 hover:text-gray-900 text-xs underline"
+              >
+                Privacy Policy
+              </Link>
+              <span className="text-gray-300">·</span>
+              <Link 
+                to="/terms" 
+                className="text-gray-500 hover:text-gray-900 text-xs underline"
+              >
+                Terms of Service
+              </Link>
+            </div>
+            <p className="text-gray-400 text-xs mt-3">
               Already have access?{' '}
               <button
                 onClick={handleGetStarted}
@@ -247,7 +262,7 @@ const Landing = () => {
               >
                 Sign in
               </button>
-            </p> */}
+            </p>
           </div>
         </div>
       </footer>
