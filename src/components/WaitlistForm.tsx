@@ -114,9 +114,6 @@ export default function WaitlistForm() {
           )}
         </Button>
       </div>
-      <p className="text-xs text-gray-500 mt-3 text-center">
-        Join our waitlist to get early access when we launch.
-      </p>
     </form>
   );
 }
