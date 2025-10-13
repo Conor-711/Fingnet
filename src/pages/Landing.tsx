@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import NetworkBackground from '@/components/NetworkBackground';
 import { checkOnboardingCompleted } from '@/lib/supabase';
 import WaitlistForm from '@/components/WaitlistForm';
+import logo from '@/assets/logo/logo.png';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -149,8 +150,15 @@ const Landing = () => {
       {/* Header */}
       <header className="w-full px-6 py-4 relative z-10">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div className="text-xl font-outfit text-gray-900">
-            Fingnet
+          <div className="flex items-center gap-3">
+            <img 
+              src={logo} 
+              alt="Fingnet Logo" 
+              className="w-8 h-8 object-contain"
+            />
+            <div className="text-xl font-outfit text-gray-900">
+              Fingnet
+            </div>
           </div>
         </div>
       </header>
@@ -216,23 +224,33 @@ const Landing = () => {
       </main>
 
       {/* Footer */}
-      {/* <footer className="w-full px-6 py-8 border-t border-gray-100 relative z-10">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-gray-500 text-sm">
-            © 2025 Fingnet. All rights reserved.
-          </p>
-          <p className="text-gray-400 text-xs mt-2">
-            Already have access?{' '}
-            <button
-              onClick={handleGetStarted}
-              disabled={isLoggingIn}
-              className="text-gray-600 hover:text-gray-900 underline disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Sign in
-            </button>
-          </p>
+      <footer className="w-full px-6 py-8 border-t border-gray-100 relative z-10">
+        <div className="max-w-6xl mx-auto">
+          {/* Slogan */}
+          <div className="text-center mb-6">
+            <p className="text-gray-700 text-base font-medium italic">
+              "We shape other people, therefore other people will shape us"
+            </p>
+          </div>
+          
+          {/* Footer Info */}
+          <div className="text-center">
+            <p className="text-gray-500 text-sm">
+              © 2025 Fingnet. All rights reserved.
+            </p>
+            <p className="text-gray-400 text-xs mt-2">
+              Already have access?{' '}
+              <button
+                onClick={handleGetStarted}
+                disabled={isLoggingIn}
+                className="text-gray-600 hover:text-gray-900 underline disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Sign in
+              </button>
+            </p>
+          </div>
         </div>
-      </footer> */}
+      </footer>
     </div>
   );
 };
