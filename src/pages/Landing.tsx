@@ -253,16 +253,6 @@ const Landing = () => {
                 Terms of Service
               </Link>
             </div>
-            <p className="text-gray-400 text-xs mt-3">
-              Already have access?{' '}
-              <button
-                onClick={handleGetStarted}
-                disabled={isLoggingIn}
-                className="text-gray-600 hover:text-gray-900 underline disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Sign in
-              </button>
-            </p>
           </div>
         </div>
       </footer>
