@@ -238,7 +238,7 @@ const Landing = () => {
             <p className="text-gray-500 text-sm">
               © 2025 Fingnet. All rights reserved.
             </p>
-            <p className="text-gray-400 text-xs mt-2">
+            {/* <p className="text-gray-400 text-xs mt-2">
               Already have access?{' '}
               <button
                 onClick={handleGetStarted}
@@ -247,7 +247,7 @@ const Landing = () => {
               >
                 Sign in
               </button>
-            </p>
+            </p> */}
           </div>
         </div>
       </footer>
