@@ -5,6 +5,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import NetworkBackground from '@/components/NetworkBackground';
+import NetworkEvolve from '@/components/NetworkEvolve';
 import { checkOnboardingCompleted } from '@/lib/supabase';
 import WaitlistForm from '@/components/WaitlistForm';
 import logo from '@/assets/logo/logo.png';
@@ -222,6 +223,9 @@ const Landing = () => {
           </div> */}
         </div>
       </main>
+
+      {/* Network Evolution Timeline */}
+      <NetworkEvolve />
 
       {/* Footer */}
       <footer className="w-full px-6 py-8 border-t border-gray-100 relative z-10">
