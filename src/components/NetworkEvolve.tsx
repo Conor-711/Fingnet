@@ -34,7 +34,7 @@ const NetworkEvolve = () => {
       x: 30 + Math.random() * 40, // Keep within 30-70% of container
       y: 30 + Math.random() * 40,
       direction: Math.random() * Math.PI * 2,
-      speed: 0.15 + Math.random() * 0.1, // Slow, elegant movement
+      speed: 0.3 + Math.random() * 0.2, // Faster, more dynamic movement
     }));
 
     setAnimatedLogos(initializedLogos);
@@ -79,17 +79,17 @@ const NetworkEvolve = () => {
         {/* Timeline Container */}
         <div className="flex items-center justify-between gap-6 relative">
           {/* Stage 1: Early Social Networks */}
-          <div className="flex-[0.7] backdrop-blur-md bg-white/40 border border-gray-200/50 rounded-2xl p-6 shadow-lg flex flex-col items-center gap-6 relative">
+          <div className="flex-[0.6] backdrop-blur-md bg-gray-100/60 border border-gray-200/50 rounded-2xl p-6 shadow-lg flex flex-col items-center gap-6 relative">
             <div className="flex flex-col items-center gap-4">
               <img
                 src={friendsterLogo}
                 alt="Friendster"
-                className="w-12 h-12 object-contain opacity-70 hover:opacity-100 transition-opacity rounded-lg"
+                className="w-16 h-16 object-contain opacity-70 hover:opacity-100 transition-opacity rounded-lg"
               />
               <img
                 src={myspaceLogo}
                 alt="MySpace"
-                className="w-12 h-12 object-contain opacity-70 hover:opacity-100 transition-opacity rounded-lg"
+                className="w-16 h-16 object-contain opacity-70 hover:opacity-100 transition-opacity rounded-lg"
               />
             </div>
             {/* Timeline dot */}
@@ -100,12 +100,12 @@ const NetworkEvolve = () => {
           <div className="flex-1 h-0.5 bg-gradient-to-r from-gray-400 to-blue-400 relative top-8"></div>
 
           {/* Stage 2: Facebook Era */}
-          <div className="flex-[0.9] backdrop-blur-md bg-white/40 border border-gray-200/50 rounded-2xl p-6 shadow-lg flex flex-col items-center gap-6 relative">
+          <div className="flex-[1.0] backdrop-blur-md bg-gray-100/60 border border-gray-200/50 rounded-2xl p-6 shadow-lg flex flex-col items-center gap-6 relative">
             <div className="flex items-center justify-center">
               <img
                 src={facebookLogo}
                 alt="Facebook"
-                className="w-20 h-20 object-contain opacity-80 hover:opacity-100 transition-opacity rounded-lg"
+                className="w-28 h-28 object-contain opacity-80 hover:opacity-100 transition-opacity rounded-lg"
               />
             </div>
             {/* Timeline dot */}
@@ -116,23 +116,23 @@ const NetworkEvolve = () => {
           <div className="flex-1 h-0.5 bg-gradient-to-r from-blue-400 to-emerald-400 relative top-8"></div>
 
           {/* Stage 3: Professional & Dating */}
-          <div className="flex-[1.1] backdrop-blur-md bg-white/40 border border-gray-200/50 rounded-2xl p-6 shadow-lg flex flex-col items-center gap-6 relative">
+          <div className="flex-[1.2] backdrop-blur-md bg-gray-100/60 border border-gray-200/50 rounded-2xl p-6 shadow-lg flex flex-col items-center gap-6 relative">
             <div className="flex flex-col items-center gap-4">
               <img
                 src={linkedinLogo}
                 alt="LinkedIn"
-                className="w-16 h-16 object-contain opacity-80 hover:opacity-100 transition-opacity rounded-lg"
+                className="w-24 h-24 object-contain opacity-80 hover:opacity-100 transition-opacity rounded-lg"
               />
               <div className="flex items-center gap-4">
                 <img
                   src={hingeLogo}
                   alt="Hinge"
-                  className="w-12 h-12 object-contain opacity-70 hover:opacity-100 transition-opacity rounded-lg"
+                  className="w-16 h-16 object-contain opacity-70 hover:opacity-100 transition-opacity rounded-lg"
                 />
                 <img
                   src={tinderLogo}
                   alt="Tinder"
-                  className="w-12 h-12 object-contain opacity-70 hover:opacity-100 transition-opacity rounded-lg"
+                  className="w-16 h-16 object-contain opacity-70 hover:opacity-100 transition-opacity rounded-lg"
                 />
               </div>
             </div>
@@ -144,7 +144,7 @@ const NetworkEvolve = () => {
           <div className="flex-1 h-0.5 bg-gradient-to-r from-emerald-400 to-purple-400 relative top-8"></div>
 
           {/* Stage 4: Future/Now - Animated */}
-          <div className="flex-[1.6] backdrop-blur-md bg-white/40 border border-gray-200/50 rounded-2xl p-8 shadow-lg flex flex-col items-center gap-6 relative">
+          <div className="flex-[1.6] backdrop-blur-md bg-gray-100/60 border border-gray-200/50 rounded-2xl p-8 shadow-lg flex flex-col items-center gap-6 relative">
             {/* Animated container for Stage 4 logos */}
             <div className="relative w-full h-56">
               {animatedLogos.map((logo) => (
@@ -152,7 +152,7 @@ const NetworkEvolve = () => {
                   key={logo.id}
                   src={logo.src}
                   alt={logo.id}
-                  className="absolute w-14 h-14 object-contain opacity-80 hover:opacity-100 transition-all duration-100 ease-linear transform -translate-x-1/2 -translate-y-1/2 rounded-lg"
+                  className="absolute w-20 h-20 object-contain opacity-80 hover:opacity-100 transition-all duration-100 ease-linear transform -translate-x-1/2 -translate-y-1/2 rounded-lg"
                   style={{
                     left: `${logo.x}%`,
                     top: `${logo.y}%`,
