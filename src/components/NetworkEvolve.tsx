@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 // Import all social network logos
 import friendsterLogo from '@/assets/social_network/friendster.png';
 import myspaceLogo from '@/assets/social_network/myspace.png';
-import facebookLogo from '@/assets/social_network/Facebook.png';
+import facebookLogo from '@/assets/social_network/facebook.png';
 import linkedinLogo from '@/assets/social_network/linkedin.png';
 import hingeLogo from '@/assets/social_network/hinge.png';
 import tinderLogo from '@/assets/social_network/tinder.png';
