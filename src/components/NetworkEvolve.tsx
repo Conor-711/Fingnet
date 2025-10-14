@@ -79,17 +79,17 @@ const NetworkEvolve = () => {
         {/* Timeline Container */}
         <div className="flex items-center justify-between gap-6 relative">
           {/* Stage 1: Early Social Networks */}
-          <div className="flex-[0.6] backdrop-blur-md bg-gray-100/60 border border-gray-200/50 rounded-2xl p-6 shadow-lg flex flex-col items-center gap-6 relative">
+          <div className="flex-[0.8] backdrop-blur-md bg-gray-100/60 border border-gray-200/50 rounded-2xl p-6 shadow-lg flex flex-col items-center gap-6 relative">
             <div className="flex flex-col items-center gap-4">
               <img
                 src={friendsterLogo}
                 alt="Friendster"
-                className="w-16 h-16 object-contain opacity-70 hover:opacity-100 transition-opacity rounded-lg"
+                className="w-25 h-25 object-contain opacity-70 hover:opacity-100 transition-opacity rounded-lg"
               />
               <img
                 src={myspaceLogo}
                 alt="MySpace"
-                className="w-16 h-16 object-contain opacity-70 hover:opacity-100 transition-opacity rounded-lg"
+                className="w-25 h-25 object-contain opacity-70 hover:opacity-100 transition-opacity rounded-lg"
               />
             </div>
             {/* Timeline dot */}
@@ -105,7 +105,7 @@ const NetworkEvolve = () => {
               <img
                 src={facebookLogo}
                 alt="Facebook"
-                className="w-28 h-28 object-contain opacity-80 hover:opacity-100 transition-opacity rounded-lg"
+                className="w-35 h-35 object-contain opacity-80 hover:opacity-100 transition-opacity rounded-lg"
               />
             </div>
             {/* Timeline dot */}
