@@ -79,7 +79,7 @@ const NetworkEvolve = () => {
         {/* Timeline Container */}
         <div className="flex items-center justify-between gap-6 relative">
           {/* Stage 1: Early Social Networks */}
-          <div className="flex-[0.8] backdrop-blur-md bg-white/40 border border-gray-200/50 rounded-2xl p-6 shadow-lg flex flex-col items-center gap-6 relative">
+          <div className="flex-[0.7] backdrop-blur-md bg-white/40 border border-gray-200/50 rounded-2xl p-6 shadow-lg flex flex-col items-center gap-6 relative">
             <div className="flex flex-col items-center gap-4">
               <img
                 src={friendsterLogo}
@@ -100,7 +100,7 @@ const NetworkEvolve = () => {
           <div className="flex-1 h-0.5 bg-gradient-to-r from-gray-400 to-blue-400 relative top-8"></div>
 
           {/* Stage 2: Facebook Era */}
-          <div className="flex-[0.8] backdrop-blur-md bg-white/40 border border-gray-200/50 rounded-2xl p-6 shadow-lg flex flex-col items-center gap-6 relative">
+          <div className="flex-[0.9] backdrop-blur-md bg-white/40 border border-gray-200/50 rounded-2xl p-6 shadow-lg flex flex-col items-center gap-6 relative">
             <div className="flex items-center justify-center">
               <img
                 src={facebookLogo}
@@ -116,7 +116,7 @@ const NetworkEvolve = () => {
           <div className="flex-1 h-0.5 bg-gradient-to-r from-blue-400 to-emerald-400 relative top-8"></div>
 
           {/* Stage 3: Professional & Dating */}
-          <div className="flex-[0.8] backdrop-blur-md bg-white/40 border border-gray-200/50 rounded-2xl p-6 shadow-lg flex flex-col items-center gap-6 relative">
+          <div className="flex-[1.1] backdrop-blur-md bg-white/40 border border-gray-200/50 rounded-2xl p-6 shadow-lg flex flex-col items-center gap-6 relative">
             <div className="flex flex-col items-center gap-4">
               <img
                 src={linkedinLogo}
