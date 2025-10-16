@@ -181,15 +181,12 @@ const Landing = () => {
 
               {/* Waitlist Form */}
               <div className="space-y-6">
-                <p className="text-lg text-gray-600">
-                  Join our waitlist for early access.
-                </p>
                 <WaitlistForm />
                 
                 {/* OR Divider */}
                 <div className="flex items-center gap-4 my-4">
                   <div className="flex-1 h-px bg-gray-300"></div>
-                  <span className="text-gray-500 text-sm">OR</span>
+                  <span className="text-gray-500 text-sm"></span>
                   <div className="flex-1 h-px bg-gray-300"></div>
                 </div>
 
@@ -204,7 +201,7 @@ const Landing = () => {
                     className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white"
                     type="button"
                   >
-                    下载Fingnet插件
+                    Download Extension
                   </Button>
                 </a>
               </div>
