@@ -9,6 +9,7 @@ import hingeLogo from '@/assets/social_network/hinge.png';
 import tinderLogo from '@/assets/social_network/tinder.png';
 import seriesLogo from '@/assets/social_network/series.png';
 import sonderLogo from '@/assets/social_network/sonder.png';
+import fingnetLogo from '@/assets/logo/logo.png';
 
 interface AnimatedLogo {
   id: string;
@@ -27,6 +28,7 @@ const NetworkEvolve = () => {
     const logos = [
       { id: 'series', src: seriesLogo },
       { id: 'sonder', src: sonderLogo },
+      { id: 'fingnet', src: fingnetLogo },
     ];
 
     const initializedLogos = logos.map((logo) => ({

@@ -185,6 +185,28 @@ const Landing = () => {
                   Join our waitlist for early access.
                 </p>
                 <WaitlistForm />
+                
+                {/* OR Divider */}
+                <div className="flex items-center gap-4 my-4">
+                  <div className="flex-1 h-px bg-gray-300"></div>
+                  <span className="text-gray-500 text-sm">OR</span>
+                  <div className="flex-1 h-px bg-gray-300"></div>
+                </div>
+
+                {/* Chrome Web Store Button */}
+                <a
+                  href="https://chromewebstore.google.com/detail/gakgbpiefibmlhlaaknepdnfmfbckbbe?utm_source=item-share-cb"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <Button 
+                    className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white"
+                    type="button"
+                  >
+                    下载Fingnet插件
+                  </Button>
+                </a>
               </div>
             </div>
           </div>
