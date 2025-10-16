@@ -164,43 +164,27 @@ const Landing = () => {
         </div>
       </header>
 
-      {/* Main Content - Two Column Layout */}
-      <main className="flex-1 flex items-stretch px-6 relative z-10">
-        <div className="max-w-7xl mx-auto w-full flex items-center gap-12">
-          {/* Left Column - Title + Network Evolution */}
-          <div className="flex-1 flex flex-col justify-center space-y-16">
-            {/* Main Title */}
-            <div>
-              <h1 className="text-5xl md:text-6xl font-outfit font-bold text-gray-900 leading-tight">
-                A cleverly designed social networking system
-              </h1>
-            </div>
-
-            {/* Network Evolution Timeline */}
-            <div className="relative">
-              <NetworkEvolve />
-            </div>
-
-            {/* Slogan */}
-            <div>
-              <p className="text-lg text-gray-700 font-medium italic">
-                "We shape other people, therefore other people will shape us"
-              </p>
-            </div>
-          </div>
-
-          {/* Right Column - Waitlist Card */}
-          <div className="flex-1 flex items-center justify-end">
-            <div className="w-full max-w-sm backdrop-blur-md bg-gray-100/60 border border-gray-200/50 rounded-2xl p-8 shadow-lg">
-              <div className="space-y-4">
-                <p className="text-lg text-gray-700 font-semibold text-center">
-                  Join our Waitlist
-                </p>
-                <p className="text-sm text-gray-600 text-center">
-                  Get early access to Fingnet
-                </p>
+      {/* Main Content */}
+      <main className="flex-1 flex items-center justify-center px-6 relative z-10">
+        <div className="max-w-7xl mx-auto w-full">
+          {/* Left-Right Layout */}
+          <div className="flex items-center gap-12">
+            {/* Left Side: Main Title */}
+            <div className="flex-1 flex items-center">
+              <div className="space-y-8">
+                {/* Main Title */}
+                <h1 className="text-5xl md:text-6xl font-outfit font-bold text-gray-900 leading-tight">
+                  A cleverly designed social networking system
+                </h1>
               </div>
-              <div className="mt-6">
+            </div>
+
+            {/* Right Side: Waitlist Card */}
+            <div className="w-[45%] flex items-center">
+              <div className="w-full backdrop-blur-md bg-gray-100/60 border border-gray-200/50 rounded-2xl p-8 shadow-lg">
+                <p className="text-lg text-gray-600 mb-6 text-center font-medium">
+                  Join our waitlist for early access.
+                </p>
                 <WaitlistForm />
               </div>
             </div>
@@ -208,9 +192,19 @@ const Landing = () => {
         </div>
       </main>
 
+      {/* Network Evolution Timeline */}
+      <NetworkEvolve />
+
       {/* Footer */}
       <footer className="w-full px-6 py-8 border-t border-gray-100 relative z-10">
         <div className="max-w-6xl mx-auto">
+          {/* Slogan */}
+          <div className="text-center mb-6">
+            <p className="text-gray-700 text-base font-medium italic">
+              "We shape other people, therefore other people will shape us"
+            </p>
+          </div>
+          
           {/* Footer Info */}
           <div className="text-center">
             <p className="text-gray-500 text-sm">
