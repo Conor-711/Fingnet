@@ -164,79 +164,53 @@ const Landing = () => {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-6 relative z-10">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Hero Section */}
-          <div className="space-y-8">
+      {/* Main Content - Two Column Layout */}
+      <main className="flex-1 flex items-stretch px-6 relative z-10">
+        <div className="max-w-7xl mx-auto w-full flex items-center gap-12">
+          {/* Left Column - Title + Network Evolution */}
+          <div className="flex-1 flex flex-col justify-center space-y-16">
             {/* Main Title */}
-            <h1 className="text-5xl md:text-6xl font-outfit font-bold text-gray-900 leading-tight">
-            A cleverly designed social networking system
-            </h1>
+            <div>
+              <h1 className="text-5xl md:text-6xl font-outfit font-bold text-gray-900 leading-tight">
+                A cleverly designed social networking system
+              </h1>
+            </div>
 
-            {/* Waitlist Form - Centered */}
-            <div className="pt-12">
-              <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-               Join our waitlist for early access.
+            {/* Network Evolution Timeline */}
+            <div className="relative">
+              <NetworkEvolve />
+            </div>
+
+            {/* Slogan */}
+            <div>
+              <p className="text-lg text-gray-700 font-medium italic">
+                "We shape other people, therefore other people will shape us"
               </p>
-              <WaitlistForm />
             </div>
           </div>
 
-          {/* Feature Highlights */}
-          {/* <div className="mt-20 grid md:grid-cols-3 gap-8 text-left">
-            <div className="space-y-3">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">🤖</span>
+          {/* Right Column - Waitlist Card */}
+          <div className="flex-1 flex items-center justify-end">
+            <div className="w-full max-w-sm backdrop-blur-md bg-gray-100/60 border border-gray-200/50 rounded-2xl p-8 shadow-lg">
+              <div className="space-y-4">
+                <p className="text-lg text-gray-700 font-semibold text-center">
+                  Join our Waitlist
+                </p>
+                <p className="text-sm text-gray-600 text-center">
+                  Get early access to Fingnet
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                AI Twin Creation
-              </h3>
-              <p className="text-gray-600">
-                Create a personalized AI twin that reflects your personality, goals, and values.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">🌐</span>
+              <div className="mt-6">
+                <WaitlistForm />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                Smart Networking
-              </h3>
-              <p className="text-gray-600">
-                Connect with others through meaningful AI-powered conversations and shared interests.
-              </p>
             </div>
-
-            <div className="space-y-3">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">⚡</span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                Superconnector
-              </h3>
-              <p className="text-gray-600">
-                Let your AI twin work as your superconnector, finding and building relationships 24/7.
-              </p>
-            </div>
-          </div> */}
+          </div>
         </div>
       </main>
-
-      {/* Network Evolution Timeline */}
-      <NetworkEvolve />
 
       {/* Footer */}
       <footer className="w-full px-6 py-8 border-t border-gray-100 relative z-10">
         <div className="max-w-6xl mx-auto">
-          {/* Slogan */}
-          <div className="text-center mb-6">
-            <p className="text-gray-700 text-base font-medium italic">
-              "We shape other people, therefore other people will shape us"
-            </p>
-          </div>
-          
           {/* Footer Info */}
           <div className="text-center">
             <p className="text-gray-500 text-sm">
