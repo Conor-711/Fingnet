@@ -144,45 +144,44 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col relative overflow-hidden">
-      {/* Network Background Animation */}
+    <div className="bg-white flex flex-col relative overflow-hidden">
+      {/* Network Background Animation - Full Screen */}
       <NetworkBackground />
-      
-      {/* Header */}
-      <header className="w-full px-6 py-4 relative z-10">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3">
+
+      {/* Main Content - Full Screen Split Layout */}
+      <main className="min-h-screen grid grid-cols-1 md:grid-cols-2 relative z-10">
+        {/* Left Side - Logo and Brand Name Only */}
+        <div className="flex items-center justify-center px-8 md:px-12 lg:px-16 py-12 md:py-0">
+          <div className="flex items-center gap-5">
             <img 
               src={logo} 
               alt="Fingnet Logo" 
-              className="w-8 h-8 object-contain"
+              className="w-20 h-20 md:w-28 md:h-28 lg:w-32 lg:h-32 object-contain"
             />
-            <div className="text-xl font-outfit text-gray-900">
+            <div className="text-5xl md:text-6xl lg:text-7xl font-outfit font-bold text-gray-900">
               Fingnet
             </div>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-6 relative z-10">
-        <div className="max-w-7xl mx-auto w-full">
-          {/* Left-Right Layout */}
-          <div className="flex items-center gap-12">
-            {/* Left Side: Main Title */}
-            <div className="flex-1 flex items-center">
-              <div className="space-y-8">
-                {/* Main Title */}
-                <h1 className="text-5xl md:text-6xl font-outfit font-bold text-gray-900 leading-tight">
-                  A cleverly designed social networking system
-                </h1>
-              </div>
-            </div>
+        {/* Right Side - Slogan and Waitlist Section */}
+        <div className="flex items-center justify-center px-8 md:px-12 lg:px-16 py-12 md:py-0">
+          <div className="w-full max-w-lg space-y-12">
+            {/* Slogan at Top */}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-outfit font-bold text-gray-900 leading-tight">
+              A cleverly designed social networking system
+            </h1>
 
-            {/* Right Side: Waitlist Card */}
-            <div className="w-[45%] flex items-center">
-              <div className="w-full backdrop-blur-md bg-gray-100/60 border border-gray-200/50 rounded-2xl p-8 shadow-lg">
-                <p className="text-lg text-gray-600 mb-6 text-center font-medium">
+            {/* Join Waitlist Module */}
+            <div className="space-y-8">
+              {/* Title */}
+              <h2 className="text-5xl md:text-6xl font-outfit font-bold text-gray-900">
+                Join today.
+              </h2>
+
+              {/* Waitlist Form */}
+              <div className="space-y-6">
+                <p className="text-lg text-gray-600">
                   Join our waitlist for early access.
                 </p>
                 <WaitlistForm />
