@@ -149,16 +149,16 @@ const Landing = () => {
       <NetworkBackground />
 
       {/* Main Content - Full Screen Split Layout */}
-      <main className="min-h-screen grid grid-cols-1 md:grid-cols-2 relative z-10">
+      <main className="min-h-screen grid grid-cols-1 md:grid-cols-[40%_60%] relative z-10">
         {/* Left Side - Logo and Brand Name Only */}
         <div className="flex items-center justify-center px-8 md:px-12 lg:px-16 py-12 md:py-0">
           <div className="flex items-center gap-5">
             <img 
               src={logo} 
               alt="Fingnet Logo" 
-              className="w-20 h-20 md:w-28 md:h-28 lg:w-32 lg:h-32 object-contain"
+              className="w-16 h-16 md:w-24 md:h-24 lg:w-28 lg:h-28 object-contain"
             />
-            <div className="text-5xl md:text-6xl lg:text-7xl font-outfit font-bold text-gray-900">
+            <div className="text-4xl md:text-5xl lg:text-6xl font-outfit font-bold text-gray-900">
               Fingnet
             </div>
           </div>
@@ -166,16 +166,16 @@ const Landing = () => {
 
         {/* Right Side - Slogan and Waitlist Section */}
         <div className="flex items-center justify-center px-8 md:px-12 lg:px-16 py-12 md:py-0">
-          <div className="w-full max-w-lg space-y-20">
+          <div className="w-full max-w-xl space-y-20">
             {/* Slogan at Top */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-outfit font-bold text-gray-900 leading-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-5xl font-outfit font-bold text-gray-900 leading-relaxed">
               A cleverly designed social networking system
             </h1>
 
             {/* Join Waitlist Module */}
             <div className="space-y-10">
               {/* Title */}
-              <h2 className="text-5xl md:text-6xl font-outfit font-bold text-gray-900">
+              <h2 className="text-2xl md:text-3xl font-outfit font-bold text-gray-900">
                 Join today.
               </h2>
 
