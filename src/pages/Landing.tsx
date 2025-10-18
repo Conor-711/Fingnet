@@ -148,6 +148,22 @@ const Landing = () => {
       {/* Network Background Animation - Full Screen */}
       <NetworkBackground />
 
+      {/* Top Navigation with Launch Video Button */}
+      <div className="fixed top-0 left-0 right-0 z-20 flex justify-center pt-6 px-6">
+        <a
+          href="https://x.com/Conor_711/status/1979500963552690516"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Button 
+            className="bg-white/90 backdrop-blur-sm hover:bg-white text-gray-900 border border-gray-200 shadow-lg animate-breathing px-6 py-2"
+            type="button"
+          >
+            Watch the launch video
+          </Button>
+        </a>
+      </div>
+
       {/* Main Content - Full Screen Split Layout */}
       <main className="min-h-screen grid grid-cols-1 md:grid-cols-[40%_60%] relative z-10">
         {/* Left Side - Logo and Brand Name Only */}
