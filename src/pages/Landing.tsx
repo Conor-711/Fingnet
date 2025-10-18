@@ -166,14 +166,14 @@ const Landing = () => {
 
         {/* Right Side - Slogan and Waitlist Section */}
         <div className="flex items-center justify-center px-8 md:px-12 lg:px-16 py-12 md:py-0">
-          <div className="w-full max-w-lg space-y-12">
+          <div className="w-full max-w-lg space-y-20">
             {/* Slogan at Top */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-outfit font-bold text-gray-900 leading-tight">
               A cleverly designed social networking system
             </h1>
 
             {/* Join Waitlist Module */}
-            <div className="space-y-8">
+            <div className="space-y-10">
               {/* Title */}
               <h2 className="text-5xl md:text-6xl font-outfit font-bold text-gray-900">
                 Join today.
@@ -198,7 +198,7 @@ const Landing = () => {
                   className="block"
                 >
                   <Button 
-                    className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white"
+                    className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white animate-breathing"
                     type="button"
                   >
                     Download Extension

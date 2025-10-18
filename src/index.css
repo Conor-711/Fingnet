@@ -356,3 +356,73 @@
 .animate-slide {
   animation: slide 2s ease-in-out infinite;
 }
+
+/* Landing Page Animations */
+/* Breathing animation for Download Extension button */
+@keyframes breathing {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(17, 24, 39, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(17, 24, 39, 0.5);
+    transform: scale(1.02);
+  }
+}
+
+.animate-breathing {
+  animation: breathing 2s ease-in-out infinite;
+}
+
+/* Network Evolve Card Float Animations */
+@keyframes float-slow {
+  0%, 100% { 
+    transform: translateY(0px); 
+  }
+  50% { 
+    transform: translateY(-8px); 
+  }
+}
+
+@keyframes float-medium {
+  0%, 100% { 
+    transform: translateY(0px); 
+  }
+  50% { 
+    transform: translateY(-12px); 
+  }
+}
+
+@keyframes float-fast {
+  0%, 100% { 
+    transform: translateY(0px); 
+  }
+  50% { 
+    transform: translateY(-15px); 
+  }
+}
+
+@keyframes float-dynamic {
+  0%, 100% { 
+    transform: translateY(0px) scale(1); 
+  }
+  50% { 
+    transform: translateY(-18px) scale(1.02); 
+  }
+}
+
+.animate-float-slow { 
+  animation: float-slow 4s ease-in-out infinite; 
+}
+
+.animate-float-medium { 
+  animation: float-medium 3.5s ease-in-out infinite; 
+}
+
+.animate-float-fast { 
+  animation: float-fast 3s ease-in-out infinite; 
+}
+
+.animate-float-dynamic { 
+  animation: float-dynamic 2.5s ease-in-out infinite; 
+}
